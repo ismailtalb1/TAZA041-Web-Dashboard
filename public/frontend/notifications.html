@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TAZA 041 | Notifications</title>
+  <link rel="icon" href="assets/images/taza041-logo.jpg?v=20260801" type="image/jpeg" data-restaurant-favicon>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.bundle.css?v=20260714-privacy-trigger">
+</head>
+<body data-page="notifications">
+
+<header class="site-header">
+  <div class="container nav-row logged-nav-row">
+    <div class="header-account">
+      <a class="logo" href="home-user.html">
+        <div class="logo-image logo-loaded"><img loading="eager" decoding="async" src="assets/images/taza041-logo.jpg" alt="TAZA 041"></div>
+        <div class="logo-text"><strong>TAZA 041</strong><span data-ar="تجربة العميل" data-en="Customer Experience">تجربة العميل</span></div>
+      </a>
+      <div class="header-user">
+        <div>
+          <strong data-user-name data-ar="جاري التحميل" data-en="Loading">جاري التحميل</strong>
+          <small><span data-ar="نقاط الولاء:" data-en="Loyalty points:">نقاط الولاء:</span> <span data-user-loyalty>—</span></small>
+        </div>
+      </div>
+    </div>
+    <div class="header-status-slot" data-header-status></div>
+    <div class="header-actions">
+      <div class="header-page-context">
+        <span class="header-page-marker" aria-hidden="true"></span>
+        <span><small data-ar="الصفحة الحالية" data-en="Current page">الصفحة الحالية</small><strong data-ar="الإشعارات" data-en="Notifications">الإشعارات</strong></span>
+      </div>
+      <button class="menu-toggle" data-open-sidebar>☰</button>
+      <div class="header-preferences" aria-label="Preferences">
+        <button class="tool-btn" data-theme-toggle data-theme-label>☾</button>
+        <button class="tool-btn" data-lang-toggle data-ar="AR" data-en="EN">AR</button>
+      </div>
+      <button class="icon-circle" data-open-cart>🛒 <span data-cart-count>0</span></button>
+    </div>
+  </div>
+</header>
+<div class="sidebar" data-sidebar>
+  <div class="row-between"><strong data-ar="القائمة الجانبية" data-en="Side menu">القائمة الجانبية</strong><button class="close-btn" data-close-sidebar>×</button></div>
+  <div class="sidebar-links">
+    <a class="sidebar-link" href="notifications.html"><span>🔔</span><span data-ar="الإشعارات" data-en="Notifications">الإشعارات</span></a>
+    <a class="sidebar-link" href="profile.html"><span>👤</span><span data-ar="إعداد الحساب الشخصي" data-en="Profile settings">إعداد الحساب الشخصي</span></a>
+    <a class="sidebar-link" href="orders.html"><span>🧾</span><span data-ar="الطلبات السابقة" data-en="Previous orders">الطلبات السابقة</span></a>
+    <a class="sidebar-link" href="ai-suggestion.html"><span>🤖</span><span data-ar="اقتراح وجبة بالذكاء الاصطناعي" data-en="AI meal suggestion">اقتراح وجبة بالذكاء الاصطناعي</span></a>
+    <a class="sidebar-link" href="index.html" onclick="localStorage.setItem('taza_logged_in','false')"><span>🚪</span><span data-ar="تسجيل الخروج" data-en="Logout">تسجيل الخروج</span></a>
+  </div>
+</div>
+<div class="cart-drawer" data-cart-drawer>
+  <div class="row-between"><strong data-ar="السلة" data-en="Cart">السلة</strong><button class="close-btn" data-close-cart>×</button></div>
+  <div class="cart-list" data-cart-list></div>
+  <div class="summary-item" style="margin-top:12px;"><div class="row-between"><strong data-ar="الإجمالي" data-en="Total">الإجمالي</strong><span data-cart-total>0 SYP</span></div></div>
+  <div class="hero-actions" style="margin-top:12px;"><a class="btn btn-primary" href="menu.html" data-ar="اذهب إلى المنيو" data-en="Go to menu">اذهب إلى المنيو</a></div>
+</div>
+
+<div class="page-shell">
+  <nav class="page-back-nav" data-page-back-nav>
+    <div class="container"><a class="page-back-link" data-page-back href="home-user.html" data-ar="رجوع" data-en="Back">رجوع</a></div>
+  </nav>
+  <main class="section notifications-page">
+    <div class="container">
+      <section class="notifications-hero card">
+        <div>
+          <span class="section-tag" data-ar="مركز التنبيهات" data-en="Notification center">مركز التنبيهات</span>
+          <h1 data-ar="الإشعارات الخاصة بك" data-en="Your notifications">الإشعارات الخاصة بك</h1>
+          <p class="muted" data-ar="تابع تحديثات الطلبات، العروض، والتنبيهات المهمة من مكان واحد منظم." data-en="Track order updates, offers, and important alerts from one organized place.">تابع تحديثات الطلبات، العروض، والتنبيهات المهمة من مكان واحد منظم.</p>
+        </div>
+        <div class="notifications-hero-visual" aria-hidden="true">
+          <span></span>
+          <i></i>
+          <b></b>
+        </div>
+      </section>
+      <section class="notifications-board card">
+        <div class="row-between notifications-board-head">
+          <div>
+            <span class="section-tag" data-ar="النشاط الأخير" data-en="Recent activity">النشاط الأخير</span>
+            <h2 data-ar="قائمة الإشعارات" data-en="Notifications list">قائمة الإشعارات</h2>
+          </div>
+          <div class="notification-toolbar">
+            <div class="notification-filters" data-notification-filters aria-label="Notification filters">
+              <button type="button" class="notification-filter active" data-notification-filter="all" data-label-ar="الكل" data-label-en="All">الكل</button>
+              <button type="button" class="notification-filter" data-notification-filter="orders" data-label-ar="الطلبات" data-label-en="Orders">الطلبات</button>
+              <button type="button" class="notification-filter" data-notification-filter="offers" data-label-ar="العروض" data-label-en="Offers">العروض</button>
+              <button type="button" class="notification-filter" data-notification-filter="payment" data-label-ar="الدفع" data-label-en="Payment">الدفع</button>
+              <button type="button" class="notification-filter" data-notification-filter="loyalty" data-label-ar="الولاء" data-label-en="Loyalty">الولاء</button>
+            </div>
+            <button class="btn btn-secondary notification-read-all" type="button" data-mark-all-notifications-read data-ar="تحديد الكل كمقروء" data-en="Mark all as read">تحديد الكل كمقروء</button>
+          </div>
+        </div>
+        <div class="notification-list" data-notifications-list></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+
+<div class="overlay" data-overlay></div>
+<div class="toast" data-toast></div>
+
+<script src="assets/js/core/state.js?v=20260801-api-origin"></script>
+<script src="assets/js/core/cookies.js?v=20260714-privacy-trigger"></script>
+<script src="assets/js/core/ui.js?v=20260801-authenticated-notifications"></script>
+<script src="assets/js/core/catalog.js?v=20260801-restaurant-favicon"></script>
+<script src="assets/js/core/customer-cart.js"></script>
+<script src="assets/js/pages/router-auth.js?v=20260801-auth-direct-submit"></script>
+<script src="assets/js/app.js?v=20260707-ready"></script>
+</body></html>

@@ -1,0 +1,2763 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TAZA 041 — المدير العام</title>
+  <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+  <!-- Dashboard CSS -->
+  <link rel="stylesheet" href="assets/css/dashboard.css">
+
+  <style>
+    /* ── Page-specific styles ──────────────────── */
+    .section-content { display: none; }
+    .section-content.active { display: block; animation: fadeIn .25s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+    .nav-tabs-custom {
+      display: flex; gap: 4px; flex-wrap: wrap;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--border-radius); padding: 6px; margin-bottom: 24px;
+    }
+
+    .nav-tab {
+      padding: 8px 16px; border-radius: var(--border-radius-sm);
+      font-size: .825rem; font-weight: 600; cursor: pointer;
+      border: none; background: transparent; color: var(--text-muted);
+      transition: var(--transition-fast); font-family: inherit;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .nav-tab:hover  { background: var(--primary-soft); color: var(--primary); }
+    .nav-tab.active { background: var(--primary); color: white; }
+
+    .tbl-actions { display:flex; gap:6px; }
+
+    /* Employee card grid */
+    .emp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .emp-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--border-radius); padding: 20px;
+      transition: var(--transition);
+      position: relative; overflow: hidden;
+    }
+    .emp-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+    .emp-card::before {
+      content: ''; position: absolute; top: 0; right: 0; left: 0;
+      height: 3px; background: linear-gradient(90deg, var(--primary), var(--accent));
+    }
+
+    .emp-card-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+    .emp-card-info h4 { font-size:.9rem; font-weight:700; color:var(--text-primary); margin-bottom:2px; }
+    .emp-card-info p  { font-size:.75rem; color:var(--primary); font-weight:600; }
+
+    .emp-card-stats {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px; margin-bottom: 14px;
+    }
+    .emp-stat {
+      background: var(--bg-main); border-radius: var(--border-radius-sm);
+      padding: 8px 10px; text-align:center;
+    }
+    .emp-stat-val { font-size:1.1rem; font-weight:700; color:var(--text-primary); }
+    .emp-stat-lbl { font-size:.65rem; color:var(--text-muted); }
+
+    /* Modal inputs tight */
+    .modal-body .form-group { margin-bottom: 14px; }
+    .modal-body .form-control { height: 42px; }
+    select.form-control { height: 42px; }
+    textarea.form-control { height: auto; min-height: 80px; }
+
+    /* Report card */
+    .report-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--border-radius); padding: 18px 20px;
+      transition: var(--transition); display:flex; flex-direction:column; gap:10px;
+    }
+    .report-card:hover { box-shadow: var(--shadow-sm); }
+    .report-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+    .report-type-badge { font-size:.7rem; padding: 3px 10px; }
+
+    /* Settings section */
+    .settings-section {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--border-radius); padding: 24px; margin-bottom: 16px;
+    }
+    .settings-section h3 {
+      font-size:.95rem; font-weight:700; color:var(--text-primary);
+      margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid var(--border);
+      display:flex; align-items:center; gap:8px;
+    }
+
+    /* Table scrollable wrapper */
+    .table-responsive { overflow-x: auto; }
+
+    /* Status badge inline */
+    .open-badge {
+      display:inline-flex; align-items:center; gap:5px;
+      padding:4px 12px; border-radius:20px; font-size:.75rem; font-weight:600;
+    }
+    .open-badge.open   { background:var(--success-light); color:var(--success); }
+    .open-badge.closed { background:var(--danger-light);  color:var(--danger);  }
+
+    /* Notification panel positioned */
+    #notif-panel { left: 80px; }
+    body.lang-en #notif-panel { left: auto; right: 80px; }
+  </style>
+  <link rel="stylesheet" href="assets/css/general-manager.css">
+</head>
+
+<body class="gm-dashboard">
+<div id="toast-container" class="toast-container"></div>
+
+<!-- ══════════════════════════════════
+     Sidebar
+     ══════════════════════════════════ -->
+<div class="dashboard-wrapper">
+<aside class="sidebar" id="sidebar">
+
+  <!-- لوغو -->
+  <a href="#" class="sidebar-logo">
+    <div class="sidebar-logo-icon">
+      <img src="assets/images/logo.jpg" alt="TAZA"
+           onerror="this.parentElement.innerHTML='<span style=\'font-size:.9rem;font-weight:900;color:var(--primary);font-family:var(--font-latin)\'>T</span>'">
+    </div>
+    <div class="sidebar-logo-text">
+      <div class="sidebar-logo-title">TAZA 041</div>
+      <div class="sidebar-logo-sub" data-lang-ar="لوحة الإدارة" data-lang-en="Admin Panel">لوحة الإدارة</div>
+    </div>
+  </a>
+
+  <!-- قائمة التنقل -->
+  <nav class="sidebar-nav">
+    <div class="sidebar-section-title" data-lang-ar="القائمة الرئيسية" data-lang-en="MAIN MENU">القائمة الرئيسية</div>
+
+    <a class="sidebar-item active" data-tab="overview" data-tooltip="نظرة عامة" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-gauge-high"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="نظرة عامة" data-lang-en="Overview">نظرة عامة</span>
+    </a>
+
+    <a class="sidebar-item" data-tab="employees" data-tooltip="الموظفون" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-users-gear"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="الموظفون" data-lang-en="Employees">الموظفون</span>
+    </a>
+
+    <a class="sidebar-item" data-tab="customers" data-tooltip="الزبائن" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-users"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="الزبائن" data-lang-en="Customers">الزبائن</span>
+    </a>
+
+    <a class="sidebar-item" data-tab="orders" data-tooltip="الطلبات" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-bag-shopping"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="الطلبات" data-lang-en="Orders">الطلبات</span>
+      <span class="sidebar-badge notif-pending" style="display:none">0</span>
+    </a>
+
+    <a class="sidebar-item" data-tab="reports" data-tooltip="التقارير" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-file-chart-column"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="التقارير" data-lang-en="Reports">التقارير</span>
+      <span class="sidebar-badge notif-reports" style="display:none">0</span>
+    </a>
+
+    <a class="sidebar-item" data-tab="loyalty" data-tooltip="الولاء" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-trophy"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="نظام الولاء" data-lang-en="Loyalty">نظام الولاء</span>
+    </a>
+
+    <div class="sidebar-section-title" data-lang-ar="الإعدادات" data-lang-en="SETTINGS">الإعدادات</div>
+
+    <a class="sidebar-item" data-tab="settings" data-tooltip="إعدادات المطعم" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-sliders"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="إعدادات المطعم" data-lang-en="Restaurant Settings">إعدادات المطعم</span>
+    </a>
+
+    <a class="sidebar-item" data-tab="profile" data-tooltip="ملفي الشخصي" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-user-pen"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="ملفي الشخصي" data-lang-en="My Profile">ملفي الشخصي</span>
+    </a>
+  </nav>
+
+  <!-- معلومات المستخدم -->
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-user-avatar" id="sidebar-user-avatar"></div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sidebar-user-name">—</div>
+        <div class="sidebar-user-role" data-lang-ar="المدير العام" data-lang-en="General Manager">المدير العام</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ══════════════════════════════════
+     Main Content
+     ══════════════════════════════════ -->
+<div class="main-content" id="main-content">
+
+  <!-- Topbar -->
+  <header class="topbar" id="topbar">
+    <div class="topbar-title">
+      <button class="topbar-btn" id="sidebar-toggle" title="طي القائمة">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div>
+        <div class="topbar-page-title" id="page-title"
+             data-lang-ar="نظرة عامة" data-lang-en="Overview">نظرة عامة</div>
+        <div class="topbar-breadcrumb">
+          <span>TAZA 041</span> <span>›</span>
+          <span class="current" id="breadcrumb-current"
+                data-lang-ar="المدير العام" data-lang-en="General Manager">المدير العام</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <!-- الساعة -->
+      <div class="topbar-clock">
+        <div class="topbar-time" id="topbar-time">--:--</div>
+        <div class="topbar-date" id="topbar-date"></div>
+      </div>
+
+      <!-- مؤشر الثيم -->
+      <button class="theme-indicator" id="theme-toggle" type="button" aria-label="تبديل المظهر">
+        <span class="theme-dot" id="theme-dot"></span>
+        <span id="theme-indicator-text"></span>
+      </button>
+
+      <!-- تبديل اللغة -->
+      <div class="lang-toggle">
+        <button class="lang-btn active" data-lang="ar">ع</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+      </div>
+
+      <!-- الإشعارات -->
+      <button class="topbar-btn" id="notif-btn" title="الإشعارات">
+        <i class="fa-solid fa-bell"></i>
+        <span class="badge-dot notif-count-dot" style="display:none"></span>
+      </button>
+
+      <!-- تسجيل الخروج -->
+      <button class="topbar-btn" id="logout-btn" title="تسجيل الخروج">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- لوحة الإشعارات -->
+  <div class="notification-panel" id="notif-panel">
+    <div class="notification-panel-header">
+      <div class="notification-panel-heading">
+        <span class="notification-panel-title" data-lang-ar="الإشعارات" data-lang-en="Notifications">الإشعارات</span>
+        <span class="notification-panel-summary" id="notif-panel-summary"
+              data-lang-ar="آخر التحديثات المهمة" data-lang-en="Latest important updates">آخر التحديثات المهمة</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="notif-mark-all" onclick="markAllNotifsRead()"
+              data-lang-ar="تعيين الكل مقروء" data-lang-en="Mark all read">تعيين الكل مقروء</button>
+    </div>
+    <div class="notification-list" id="notif-list">
+      <div class="empty-state" style="padding:30px">
+        <div class="empty-icon">🔔</div>
+        <div class="empty-title" data-lang-ar="لا توجد إشعارات" data-lang-en="No notifications">لا توجد إشعارات</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       محتوى الصفحة
+       ══════════════════════════════ -->
+  <div class="page-container">
+
+    <!-- ─── تبويبات التنقل ─── -->
+    <div class="nav-tabs-custom" id="nav-tabs">
+      <button class="nav-tab active" data-tab="overview">
+        <i class="fa-solid fa-gauge-high"></i>
+        <span data-lang-ar="نظرة عامة" data-lang-en="Overview">نظرة عامة</span>
+      </button>
+      <button class="nav-tab" data-tab="employees">
+        <i class="fa-solid fa-users-gear"></i>
+        <span data-lang-ar="الموظفون" data-lang-en="Employees">الموظفون</span>
+      </button>
+      <button class="nav-tab" data-tab="customers">
+        <i class="fa-solid fa-users"></i>
+        <span data-lang-ar="الزبائن" data-lang-en="Customers">الزبائن</span>
+      </button>
+      <button class="nav-tab" data-tab="orders">
+        <i class="fa-solid fa-bag-shopping"></i>
+        <span data-lang-ar="الطلبات" data-lang-en="Orders">الطلبات</span>
+      </button>
+      <button class="nav-tab" data-tab="reports">
+        <i class="fa-solid fa-file-chart-column"></i>
+        <span data-lang-ar="التقارير" data-lang-en="Reports">التقارير</span>
+      </button>
+      <button class="nav-tab" data-tab="loyalty">
+        <i class="fa-solid fa-trophy"></i>
+        <span data-lang-ar="الولاء" data-lang-en="Loyalty">الولاء</span>
+      </button>
+      <button class="nav-tab" data-tab="settings">
+        <i class="fa-solid fa-sliders"></i>
+        <span data-lang-ar="الإعدادات" data-lang-en="Settings">الإعدادات</span>
+      </button>
+      <button class="nav-tab" data-tab="profile">
+        <i class="fa-solid fa-user-pen"></i>
+        <span data-lang-ar="ملفي" data-lang-en="Profile">ملفي</span>
+      </button>
+    </div>
+
+    <!-- ════════════════════════════
+         [1] نظرة عامة
+         ════════════════════════════ -->
+    <div id="tab-overview" class="section-content active">
+
+      <div class="overview-heading">
+        <div>
+          <span class="section-kicker" data-lang-ar="مركز القيادة" data-lang-en="COMMAND CENTER">مركز القيادة</span>
+          <h1 data-lang-ar="ملخص العمل اليوم" data-lang-en="Today's Operations Summary">ملخص العمل اليوم</h1>
+          <p data-lang-ar="ابدأ بما يحتاج قرارك، ثم انتقل إلى التحليلات التفصيلية." data-lang-en="Start with what needs your decision, then explore the detailed analytics.">ابدأ بما يحتاج قرارك، ثم انتقل إلى التحليلات التفصيلية.</p>
+        </div>
+        <div class="overview-shortcuts">
+          <button type="button" class="btn btn-outline" onclick="switchTab('orders')">
+            <i class="fa-solid fa-bag-shopping"></i>
+            <span data-lang-ar="متابعة الطلبات" data-lang-en="Review Orders">متابعة الطلبات</span>
+          </button>
+          <button type="button" class="btn btn-outline" onclick="switchTab('reports')">
+            <i class="fa-solid fa-file-lines"></i>
+            <span data-lang-ar="مراجعة التقارير" data-lang-en="Review Reports">مراجعة التقارير</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="grid-4 mb-5" id="overview-stats">
+        <div class="stat-card skeleton" style="height:110px"></div>
+        <div class="stat-card skeleton" style="height:110px"></div>
+        <div class="stat-card skeleton" style="height:110px"></div>
+        <div class="stat-card skeleton" style="height:110px"></div>
+      </div>
+
+      <div class="attention-panel" id="overview-priority" aria-live="polite">
+        <div class="attention-icon"><i class="fa-solid fa-bolt"></i></div>
+        <div class="attention-copy">
+          <strong data-lang-ar="جاري تحديد الأولويات" data-lang-en="Checking priorities">جاري تحديد الأولويات</strong>
+          <span data-lang-ar="ستظهر هنا العناصر التي تحتاج تدخلك." data-lang-en="Items that need your attention will appear here.">ستظهر هنا العناصر التي تحتاج تدخلك.</span>
+        </div>
+      </div>
+
+      <!-- Charts Row 1 -->
+      <div class="overview-primary-grid">
+
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-heading">
+              <div class="chart-card-title">
+                <i class="fa-solid fa-chart-line"></i>
+                <span data-lang-ar="اتجاه الإيرادات" data-lang-en="Revenue Trend">اتجاه الإيرادات</span>
+              </div>
+              <span class="chart-card-subtitle" data-lang-ar="مقارنة الأداء اليومي خلال الفترة" data-lang-en="Daily performance across the selected period">مقارنة الأداء اليومي خلال الفترة</span>
+            </div>
+            <select class="form-control chart-period-select"
+                    id="revenue-period" onchange="loadRevenueChart()">
+              <option value="7" data-lang-ar="7 أيام" data-lang-en="7 Days">7 أيام</option>
+              <option value="30" data-lang-ar="30 يوم" data-lang-en="30 Days">30 يوم</option>
+            </select>
+          </div>
+          <div class="chart-card-body">
+            <div class="chart-container-lg" id="chart-revenue-wrap">
+              <canvas id="chart-revenue"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-heading">
+              <div class="chart-card-title">
+                <i class="fa-solid fa-chart-pie"></i>
+                <span data-lang-ar="مزيج الطلبات" data-lang-en="Order Mix">مزيج الطلبات</span>
+              </div>
+              <span class="chart-card-subtitle" data-lang-ar="توزيع قنوات الطلب" data-lang-en="Distribution by order channel">توزيع قنوات الطلب</span>
+            </div>
+          </div>
+          <div class="chart-card-body">
+            <div class="chart-container-donut">
+              <canvas id="chart-order-types"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row 2 -->
+      <div class="overview-secondary-grid">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">
+              <i class="fa-solid fa-star"></i>
+              <span data-lang-ar="أفضل المنتجات مبيعاً" data-lang-en="Top Selling Products">أفضل المنتجات مبيعاً</span>
+            </div>
+          </div>
+          <div class="chart-card-body">
+            <div class="chart-container">
+              <canvas id="chart-top-products"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">
+              <i class="fa-solid fa-credit-card"></i>
+              <span data-lang-ar="طرق الدفع" data-lang-en="Payment Methods">طرق الدفع</span>
+            </div>
+          </div>
+          <div class="chart-card-body">
+            <div class="chart-container-donut">
+              <canvas id="chart-payments"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════
+         [2] الموظفون
+         ════════════════════════════ -->
+    <div id="tab-employees" class="section-content">
+
+      <div class="page-header employee-page-header">
+        <div class="page-header-left">
+          <span class="section-kicker" data-lang-ar="الفريق والصلاحيات" data-lang-en="TEAM & ACCESS">الفريق والصلاحيات</span>
+          <h1 data-lang-ar="إدارة الموظفين" data-lang-en="Employee Management">إدارة الموظفين</h1>
+          <p data-lang-ar="إنشاء وتعديل وإدارة حسابات الموظفين" data-lang-en="Create, edit and manage employee accounts">
+            إنشاء وتعديل وإدارة حسابات الموظفين
+          </p>
+        </div>
+        <div class="section-actions employee-page-actions">
+          <div class="search-bar employee-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="emp-search" placeholder="ابحث بالاسم أو اسم المستخدم..." data-placeholder-ar="ابحث بالاسم أو اسم المستخدم..." data-placeholder-en="Search by name or username...">
+          </div>
+          <button class="btn btn-primary" type="button" id="emp-add-btn">
+            <i class="fa-solid fa-plus"></i>
+            <span data-lang-ar="موظف جديد" data-lang-en="New Employee">موظف جديد</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Role Filter -->
+      <div class="employee-filter-shell mb-4">
+        <div class="employee-results-summary" aria-live="polite">
+          <span class="employee-results-icon"><i class="fa-solid fa-users"></i></span>
+          <span id="employee-results-count">—</span>
+        </div>
+        <div class="filter-bar" id="emp-role-filter">
+        <button class="filter-chip active" data-role="">
+          <span data-lang-ar="الكل" data-lang-en="All">الكل</span>
+        </button>
+        <button class="filter-chip" data-role="order_manager">
+          <span data-lang-ar="مدير طلبات" data-lang-en="Order Mgr">مدير طلبات</span>
+        </button>
+        <button class="filter-chip" data-role="delivery_manager">
+          <span data-lang-ar="مدير توصيل" data-lang-en="Delivery Mgr">مدير توصيل</span>
+        </button>
+        <button class="filter-chip" data-role="inventory_manager">
+          <span data-lang-ar="مدير مخزون" data-lang-en="Inventory Mgr">مدير مخزون</span>
+        </button>
+        <button class="filter-chip" data-role="finance_manager">
+          <span data-lang-ar="مدير مالي" data-lang-en="Finance Mgr">مدير مالي</span>
+        </button>
+        <button class="filter-chip" data-role="communication_manager">
+          <span data-lang-ar="مدير تواصل" data-lang-en="Comm. Mgr">مدير تواصل</span>
+        </button>
+        <button class="filter-chip" data-role="driver">
+          <span data-lang-ar="سائق" data-lang-en="Driver">سائق</span>
+        </button>
+        </div>
+      </div>
+
+      <div class="emp-grid" id="employees-grid">
+        <div class="stat-card skeleton" style="height:200px"></div>
+        <div class="stat-card skeleton" style="height:200px"></div>
+        <div class="stat-card skeleton" style="height:200px"></div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════
+         [3] الزبائن
+         ════════════════════════════ -->
+    <div id="tab-customers" class="section-content">
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 data-lang-ar="إدارة الزبائن" data-lang-en="Customer Management">إدارة الزبائن</h1>
+          <p data-lang-ar="متابعة الزبائن وإدارة الحظر وإرسال الإشعارات" data-lang-en="Monitor customers, manage bans and send notifications">
+            متابعة الزبائن وإدارة الحظر وإرسال الإشعارات
+          </p>
+        </div>
+        <div class="section-actions">
+          <div class="search-bar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="cust-search" placeholder="بحث..." data-placeholder-ar="بحث..." data-placeholder-en="Search...">
+          </div>
+          <button class="btn btn-outline" onclick="openBroadcastModal()">
+            <i class="fa-solid fa-bullhorn"></i>
+            <span data-lang-ar="إشعار جماعي" data-lang-en="Broadcast">إشعار جماعي</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Customer Filters -->
+      <div class="filter-bar mb-4">
+        <button class="filter-chip active" data-filter="all" onclick="loadCustomers(this)">
+          <span data-lang-ar="الكل" data-lang-en="All">الكل</span>
+        </button>
+        <button class="filter-chip" data-filter="most_orders" onclick="loadCustomers(this)">
+          <span data-lang-ar="الأكثر طلباً" data-lang-en="Most Orders">الأكثر طلباً</span>
+        </button>
+        <button class="filter-chip" data-filter="top_spenders" onclick="loadCustomers(this)">
+          <span data-lang-ar="الأعلى إنفاقاً" data-lang-en="Top Spenders">الأعلى إنفاقاً</span>
+        </button>
+        <button class="filter-chip" data-filter="top_loyalty" onclick="loadCustomers(this)">
+          <span data-lang-ar="نقاط الولاء" data-lang-en="Loyalty Points">نقاط الولاء</span>
+        </button>
+        <button class="filter-chip" data-filter="suspicious" onclick="loadCustomers(this)">
+          <i class="fa-solid fa-triangle-exclamation" style="color:var(--warning)"></i>
+          <span data-lang-ar="مشبوهون" data-lang-en="Suspicious">مشبوهون</span>
+        </button>
+        <button class="filter-chip" data-filter="banned" onclick="loadCustomers(this)">
+          <i class="fa-solid fa-ban" style="color:var(--danger)"></i>
+          <span data-lang-ar="محظورون" data-lang-en="Banned">محظورون</span>
+        </button>
+      </div>
+
+      <!-- Customers Table -->
+      <div class="card data-card">
+        <div class="table-responsive">
+          <table class="taza-table" id="customers-table">
+            <thead>
+              <tr>
+                <th data-lang-ar="الزبون"          data-lang-en="Customer">الزبون</th>
+                <th data-lang-ar="الهاتف"          data-lang-en="Phone">الهاتف</th>
+                <th data-lang-ar="الطلبات"         data-lang-en="Orders">الطلبات</th>
+                <th data-lang-ar="الإنفاق"         data-lang-en="Spent">الإنفاق</th>
+                <th data-lang-ar="نقاط الولاء"     data-lang-en="Points">نقاط الولاء</th>
+                <th data-lang-ar="المستوى"         data-lang-en="Tier">المستوى</th>
+                <th data-lang-ar="الحالة"          data-lang-en="Status">الحالة</th>
+                <th data-lang-ar="الإجراءات"       data-lang-en="Actions">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="customers-tbody">
+              <tr><td colspan="8" class="text-center p-5">
+                <div class="loader-ring" style="margin:0 auto"></div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="data-pagination" id="customers-pagination" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════
+         [4] الطلبات
+         ════════════════════════════ -->
+    <div id="tab-orders" class="section-content">
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 data-lang-ar="جميع الطلبات" data-lang-en="All Orders">جميع الطلبات</h1>
+          <p data-lang-ar="فلترة الطلبات ومراجعة حالتها المالية والتشغيلية." data-lang-en="Filter orders and review their operational and payment status.">فلترة الطلبات ومراجعة حالتها المالية والتشغيلية.</p>
+        </div>
+        <div class="section-actions order-filters">
+          <select class="form-control" id="order-type-filter" onchange="loadOrders()" aria-label="نوع الطلب">
+            <option value="" data-lang-ar="كل الأنواع" data-lang-en="All Types">كل الأنواع</option>
+            <option value="normal" data-lang-ar="عادي" data-lang-en="Normal">عادي</option>
+            <option value="delivery" data-lang-ar="توصيل" data-lang-en="Delivery">توصيل</option>
+            <option value="reservation" data-lang-ar="حجز" data-lang-en="Reservation">حجز</option>
+          </select>
+          <select class="form-control" id="order-status-filter" onchange="loadOrders()" aria-label="حالة الطلب">
+            <option value="" data-lang-ar="كل الحالات" data-lang-en="All Statuses">كل الحالات</option>
+            <option value="pending" data-lang-ar="معلق" data-lang-en="Pending">معلق</option>
+            <option value="confirmed" data-lang-ar="مؤكد" data-lang-en="Confirmed">مؤكد</option>
+            <option value="ready" data-lang-ar="قيد التجهيز" data-lang-en="Preparing">قيد التجهيز</option>
+            <option value="completed" data-lang-ar="مكتمل" data-lang-en="Completed">مكتمل</option>
+            <option value="cancelled" data-lang-ar="ملغى" data-lang-en="Cancelled">ملغى</option>
+          </select>
+          <input type="date" class="form-control" id="order-date-filter" onchange="loadOrders()" aria-label="تاريخ الطلب">
+        </div>
+      </div>
+
+      <div class="card data-card">
+        <div class="table-responsive">
+          <table class="taza-table" id="orders-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th data-lang-ar="الزبون"    data-lang-en="Customer">الزبون</th>
+                <th data-lang-ar="النوع"     data-lang-en="Type">النوع</th>
+                <th data-lang-ar="الحالة"    data-lang-en="Status">الحالة</th>
+                <th data-lang-ar="الإجمالي"  data-lang-en="Total">الإجمالي</th>
+                <th data-lang-ar="الدفع"     data-lang-en="Payment">الدفع</th>
+                <th data-lang-ar="التاريخ"   data-lang-en="Date">التاريخ</th>
+              </tr>
+            </thead>
+            <tbody id="orders-tbody">
+              <tr><td colspan="7" class="text-center p-5">
+                <div class="loader-ring" style="margin:0 auto"></div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="data-pagination" id="orders-pagination" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════
+         [5] التقارير
+         ════════════════════════════ -->
+    <div id="tab-reports" class="section-content">
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 data-lang-ar="التقارير الواردة" data-lang-en="Incoming Reports">التقارير الواردة</h1>
+          <p data-lang-ar="راجع تقارير الفريق واتخذ الإجراء المناسب من مكان واحد." data-lang-en="Review team reports and take the right action from one place.">راجع تقارير الفريق واتخذ الإجراء المناسب من مكان واحد.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openSendReportModal()">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span data-lang-ar="إرسال تعليمات" data-lang-en="Send Instructions">إرسال تعليمات</span>
+        </button>
+      </div>
+
+      <div class="reports-list" id="reports-list">
+        <div class="stat-card skeleton" style="height:100px"></div>
+        <div class="stat-card skeleton" style="height:100px"></div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════
+         [6] نظام الولاء
+         ════════════════════════════ -->
+    <div id="tab-loyalty" class="section-content">
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 data-lang-ar="نظام الولاء" data-lang-en="Loyalty System">نظام الولاء</h1>
+          <p data-lang-ar="راقب نمو الحسابات والنقاط وتوزيع مستويات الزبائن." data-lang-en="Track account growth, points, and customer tier distribution.">راقب نمو الحسابات والنقاط وتوزيع مستويات الزبائن.</p>
+        </div>
+      </div>
+
+      <section class="loyalty-settings-panel" aria-labelledby="loyalty-settings-title">
+        <div class="loyalty-settings-head">
+          <div>
+            <span class="loyalty-settings-kicker" data-lang-ar="تحكم المدير العام" data-lang-en="General manager control">تحكم المدير العام</span>
+            <h2 id="loyalty-settings-title" data-lang-ar="معامل كسب النقاط لكل مستوى" data-lang-en="Points multiplier by tier">معامل كسب النقاط لكل مستوى</h2>
+            <p data-lang-ar="كل 10 ل.س تمنح نقطة أساسية، ثم يُطبق معامل مستوى الزبون عند إتمام الدفع." data-lang-en="Every 10 SYP earns one base point, then the customer's tier multiplier is applied when payment completes.">كل 10 ل.س تمنح نقطة أساسية، ثم يُطبق معامل مستوى الزبون عند إتمام الدفع.</p>
+          </div>
+          <button class="btn btn-primary" id="save-loyalty-settings-btn" type="button" onclick="saveLoyaltySettings()">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span data-lang-ar="حفظ المعاملات" data-lang-en="Save multipliers">حفظ المعاملات</span>
+          </button>
+        </div>
+
+        <div class="loyalty-multiplier-grid">
+          <label class="loyalty-multiplier-card tier-bronze" for="loyalty-multiplier-bronze">
+            <span class="loyalty-tier-icon" aria-hidden="true">🥉</span>
+            <span class="loyalty-multiplier-copy">
+              <strong data-lang-ar="برونزي" data-lang-en="Bronze">برونزي</strong>
+              <small data-lang-ar="من 0 نقطة" data-lang-en="From 0 points">من 0 نقطة</small>
+            </span>
+            <span class="loyalty-multiplier-field">
+              <input id="loyalty-multiplier-bronze" data-loyalty-multiplier="bronze" type="number" min="0.1" max="10" step="0.1" inputmode="decimal" aria-label="Bronze multiplier">
+              <b>×</b>
+            </span>
+          </label>
+          <label class="loyalty-multiplier-card tier-silver" for="loyalty-multiplier-silver">
+            <span class="loyalty-tier-icon" aria-hidden="true">🥈</span>
+            <span class="loyalty-multiplier-copy">
+              <strong data-lang-ar="فضي" data-lang-en="Silver">فضي</strong>
+              <small data-lang-ar="من 400 نقطة" data-lang-en="From 400 points">من 400 نقطة</small>
+            </span>
+            <span class="loyalty-multiplier-field">
+              <input id="loyalty-multiplier-silver" data-loyalty-multiplier="silver" type="number" min="0.1" max="10" step="0.1" inputmode="decimal" aria-label="Silver multiplier">
+              <b>×</b>
+            </span>
+          </label>
+          <label class="loyalty-multiplier-card tier-gold" for="loyalty-multiplier-gold">
+            <span class="loyalty-tier-icon" aria-hidden="true">🥇</span>
+            <span class="loyalty-multiplier-copy">
+              <strong data-lang-ar="ذهبي" data-lang-en="Gold">ذهبي</strong>
+              <small data-lang-ar="من 700 نقطة" data-lang-en="From 700 points">من 700 نقطة</small>
+            </span>
+            <span class="loyalty-multiplier-field">
+              <input id="loyalty-multiplier-gold" data-loyalty-multiplier="gold" type="number" min="0.1" max="10" step="0.1" inputmode="decimal" aria-label="Gold multiplier">
+              <b>×</b>
+            </span>
+          </label>
+          <label class="loyalty-multiplier-card tier-platinum" for="loyalty-multiplier-platinum">
+            <span class="loyalty-tier-icon" aria-hidden="true">💎</span>
+            <span class="loyalty-multiplier-copy">
+              <strong data-lang-ar="بلاتينيوم" data-lang-en="Platinum">بلاتينيوم</strong>
+              <small data-lang-ar="من 1000 نقطة" data-lang-en="From 1000 points">من 1000 نقطة</small>
+            </span>
+            <span class="loyalty-multiplier-field">
+              <input id="loyalty-multiplier-platinum" data-loyalty-multiplier="platinum" type="number" min="0.1" max="10" step="0.1" inputmode="decimal" aria-label="Platinum multiplier">
+              <b>×</b>
+            </span>
+          </label>
+        </div>
+        <div class="loyalty-settings-note">
+          <i class="fa-solid fa-circle-info"></i>
+          <span data-lang-ar="يُطبّق التغيير على النقاط الجديدة فقط؛ أرصدة الزبائن الحالية لا تتغير." data-lang-en="Changes apply to newly earned points only; existing customer balances remain unchanged.">يُطبّق التغيير على النقاط الجديدة فقط؛ أرصدة الزبائن الحالية لا تتغير.</span>
+        </div>
+      </section>
+
+      <!-- Stats -->
+      <div class="grid-4 mb-5" id="loyalty-stats-grid">
+        <div class="stat-card skeleton" style="height:110px"></div>
+        <div class="stat-card skeleton" style="height:110px"></div>
+        <div class="stat-card skeleton" style="height:110px"></div>
+        <div class="stat-card skeleton" style="height:110px"></div>
+      </div>
+
+      <div class="loyalty-content-grid">
+        <!-- Top Customers -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fa-solid fa-crown" style="color:var(--accent)"></i>
+              <span data-lang-ar="أعلى الزبائن نقاطاً" data-lang-en="Top Loyalty Customers">أعلى الزبائن نقاطاً</span>
+            </div>
+          </div>
+          <div class="card-body" id="top-loyalty-list">
+            <div class="loader-ring" style="margin:0 auto"></div>
+          </div>
+        </div>
+
+        <!-- Tiers Chart -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">
+              <i class="fa-solid fa-chart-pie" style="color:var(--accent)"></i>
+              <span data-lang-ar="توزيع المستويات" data-lang-en="Tier Distribution">توزيع المستويات</span>
+            </div>
+          </div>
+          <div class="chart-card-body">
+            <div class="chart-container-donut"><canvas id="chart-loyalty-tiers"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════
+         [7] الإعدادات
+         ════════════════════════════ -->
+    <div id="tab-settings" class="section-content">
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 data-lang-ar="إعدادات المطعم" data-lang-en="Restaurant Settings">إعدادات المطعم</h1>
+          <p data-lang-ar="الإعدادات التشغيلية الحساسة للتوصيل والحجوزات وحالة الاستقبال." data-lang-en="Operational controls for delivery, reservations, and restaurant availability.">الإعدادات التشغيلية الحساسة للتوصيل والحجوزات وحالة الاستقبال.</p>
+        </div>
+        <!-- حالة المطعم -->
+        <div id="restaurant-status-wrap" style="display:flex;align-items:center;gap:10px">
+          <span id="restaurant-open-badge" class="open-badge open">
+            <i class="fa-solid fa-circle-check"></i>
+            <span data-lang-ar="مفتوح" data-lang-en="Open">مفتوح</span>
+          </span>
+          <button class="btn btn-outline btn-sm" id="toggle-open-btn" onclick="toggleRestaurantOpen()">
+            <i class="fa-solid fa-power-off"></i>
+            <span id="toggle-open-text" data-lang-ar="إغلاق المطعم" data-lang-en="Close Restaurant">إغلاق المطعم</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="settings-grid">
+      <!-- إعدادات التوصيل -->
+      <div class="settings-section">
+        <h3>
+          <i class="fa-solid fa-motorcycle" style="color:var(--primary)"></i>
+          <span data-lang-ar="إعدادات التوصيل" data-lang-en="Delivery Settings">إعدادات التوصيل</span>
+        </h3>
+        <div class="settings-fields settings-fields-2">
+          <div class="form-group">
+            <label class="form-label" data-lang-ar="تكلفة التوصيل لكل 100 متر (ل.س)" data-lang-en="Delivery cost per 100m (SYP)">
+              تكلفة التوصيل لكل 100 متر (ل.س)
+            </label>
+            <input type="number" class="form-control" id="delivery-cost" placeholder="5">
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-lang-ar="الحد الأقصى للمسافة (متر)" data-lang-en="Max delivery distance (meters)">
+              الحد الأقصى للمسافة (متر)
+            </label>
+            <input type="number" class="form-control" id="delivery-max-distance" placeholder="10000">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="saveDeliverySettings()">
+          <i class="fa-solid fa-floppy-disk"></i>
+          <span data-lang-ar="حفظ إعدادات التوصيل" data-lang-en="Save Delivery Settings">حفظ إعدادات التوصيل</span>
+        </button>
+      </div>
+
+      <!-- إعدادات الحجز -->
+      <div class="settings-section">
+        <h3>
+          <i class="fa-solid fa-chair" style="color:var(--accent)"></i>
+          <span data-lang-ar="إعدادات الحجز" data-lang-en="Reservation Settings">إعدادات الحجز</span>
+        </h3>
+        <div class="settings-fields settings-fields-3">
+          <div class="form-group">
+            <label class="form-label" data-lang-ar="تكلفة طاولة VIP (ل.س)" data-lang-en="VIP table extra cost (SYP)">تكلفة طاولة VIP</label>
+            <input type="number" class="form-control" id="vip-cost" placeholder="50">
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-lang-ar="عدد المقاعد المجانية" data-lang-en="Free seats count">عدد المقاعد المجانية</label>
+            <input type="number" class="form-control" id="free-seats" placeholder="4">
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-lang-ar="تكلفة المقعد الإضافي (ل.س)" data-lang-en="Extra seat cost (SYP)">تكلفة المقعد الإضافي</label>
+            <input type="number" class="form-control" id="extra-seat-cost" placeholder="20">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="saveReservationSettings()">
+          <i class="fa-solid fa-floppy-disk"></i>
+          <span data-lang-ar="حفظ إعدادات الحجز" data-lang-en="Save Reservation Settings">حفظ إعدادات الحجز</span>
+        </button>
+      </div>
+      </div>
+
+    </div>
+
+    <!-- ════════════════════════════
+         [8] الملف الشخصي
+         ════════════════════════════ -->
+    <div id="tab-profile" class="section-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 data-lang-ar="ملفي الشخصي" data-lang-en="My Profile">ملفي الشخصي</h1>
+          <p data-lang-ar="إدارة معلومات الحساب والصورة الشخصية وكلمة المرور." data-lang-en="Manage account details, profile photo, and password.">إدارة معلومات الحساب والصورة الشخصية وكلمة المرور.</p>
+        </div>
+      </div>
+
+      <div class="profile-layout">
+        <div class="card profile-identity-card">
+          <div class="avatar avatar-xl" id="profile-avatar" style="margin:0 auto 14px"></div>
+          <div style="font-weight:700;font-size:1rem;margin-bottom:4px" id="profile-name-display">—</div>
+          <div style="font-size:.75rem;color:var(--primary);font-weight:600" id="profile-role-display">المدير العام</div>
+          <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:18px">
+            <label class="btn btn-outline btn-sm" style="cursor:pointer">
+              <i class="fa-solid fa-camera"></i>
+              <span data-lang-ar="تغيير الصورة" data-lang-en="Change Photo">تغيير الصورة</span>
+              <input type="file" id="avatar-input" accept="image/jpeg,image/png,image/webp" style="display:none">
+            </label>
+          </div>
+        </div>
+
+        <div class="card profile-form-column">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fa-solid fa-id-card" style="color:var(--primary)"></i>
+              <span data-lang-ar="بيانات الحساب" data-lang-en="Account Details">بيانات الحساب</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label" data-lang-ar="البريد الإلكتروني" data-lang-en="Email">البريد الإلكتروني</label>
+              <input type="email" class="form-control" id="profile-email" autocomplete="email">
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-lang-ar="رقم الهاتف" data-lang-en="Phone">رقم الهاتف</label>
+              <input type="text" class="form-control" id="profile-phone" autocomplete="tel">
+            </div>
+            <div class="divider"></div>
+            <div class="form-group">
+              <label class="form-label" data-lang-ar="كلمة المرور الحالية" data-lang-en="Current Password">كلمة المرور الحالية</label>
+              <input type="password" class="form-control" id="profile-current-pass" autocomplete="current-password">
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-lang-ar="كلمة المرور الجديدة" data-lang-en="New Password">كلمة المرور الجديدة</label>
+              <input type="password" class="form-control" id="profile-new-pass" minlength="6" autocomplete="new-password">
+            </div>
+            <button class="btn btn-primary" type="button" id="save-profile-btn">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span data-lang-ar="حفظ التغييرات" data-lang-en="Save Changes">حفظ التغييرات</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page-container -->
+</div><!-- /main-content -->
+</div><!-- /dashboard-wrapper -->
+
+
+<!-- ══════════════════════════════════
+     Modals
+     ══════════════════════════════════ -->
+
+<!-- Modal: إضافة/تعديل موظف -->
+<div class="modal-overlay" id="emp-modal">
+  <div class="modal-box" style="max-width:680px">
+    <div class="modal-header">
+      <span class="modal-title" id="emp-modal-title" data-lang-ar="موظف جديد" data-lang-en="New Employee">موظف جديد</span>
+      <button class="modal-close" onclick="closeModal('emp-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="emp-modal-id">
+      <div id="emp-avatar-editor" style="display:flex;align-items:center;gap:14px;margin-bottom:18px;padding:14px;background:var(--bg-main);border:1px solid var(--border-light);border-radius:var(--border-radius-sm)">
+        <div class="avatar avatar-lg" id="emp-avatar-preview" style="flex:0 0 auto"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <label class="btn btn-outline btn-sm" style="cursor:pointer">
+            <i class="fa-solid fa-camera"></i>
+            <span data-lang-ar="اختيار صورة" data-lang-en="Choose Photo">اختيار صورة</span>
+            <input type="file" id="emp-avatar-file" accept="image/jpeg,image/png,image/webp" style="display:none">
+          </label>
+          <button class="btn btn-outline btn-sm" type="button" id="emp-avatar-remove" onclick="removeEmployeeAvatar()" style="display:none;color:var(--danger)">
+            <i class="fa-solid fa-trash-can"></i>
+            <span data-lang-ar="حذف الصورة" data-lang-en="Remove Photo">حذف الصورة</span>
+          </button>
+          <small style="width:100%;color:var(--text-muted);font-size:.68rem" data-lang-ar="JPG أو PNG أو WebP — حتى 5 ميغابايت" data-lang-en="JPG, PNG, or WebP — up to 5 MB">JPG أو PNG أو WebP — حتى 5 ميغابايت</small>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label" data-lang-ar="الاسم الكامل" data-lang-en="Full Name">الاسم الكامل <span class="required">*</span></label>
+          <input type="text" class="form-control" id="emp-name" placeholder="محمد أحمد">
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-lang-ar="اسم المستخدم" data-lang-en="Username">اسم المستخدم <span class="required">*</span></label>
+          <input type="text" class="form-control" id="emp-username" placeholder="user123">
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-lang-ar="كلمة المرور" data-lang-en="Password">كلمة المرور <span class="required" id="pass-required">*</span></label>
+          <input type="password" class="form-control" id="emp-password" placeholder="••••••">
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-lang-ar="تأكيد كلمة المرور" data-lang-en="Confirm Password">تأكيد كلمة المرور <span class="required" id="pass-confirm-required">*</span></label>
+          <input type="password" class="form-control" id="emp-password-confirmation" placeholder="••••••">
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-lang-ar="الدور الوظيفي" data-lang-en="Role">الدور الوظيفي <span class="required">*</span></label>
+          <select class="form-control" id="emp-role">
+            <option value="" data-lang-ar="اختر الدور" data-lang-en="Select role">اختر الدور</option>
+            <option value="order_manager" data-lang-ar="مدير الطلبات" data-lang-en="Order Manager">مدير الطلبات</option>
+            <option value="delivery_manager" data-lang-ar="مدير التوصيل" data-lang-en="Delivery Manager">مدير التوصيل</option>
+            <option value="inventory_manager" data-lang-ar="مدير المخزون" data-lang-en="Inventory Manager">مدير المخزون</option>
+            <option value="finance_manager" data-lang-ar="المدير المالي" data-lang-en="Finance Manager">المدير المالي</option>
+            <option value="communication_manager" data-lang-ar="مدير التواصل" data-lang-en="Comm. Manager">مدير التواصل</option>
+            <option value="driver" data-lang-ar="سائق" data-lang-en="Driver">سائق</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-lang-ar="البريد الإلكتروني" data-lang-en="Email">البريد الإلكتروني</label>
+          <input type="email" class="form-control" id="emp-email" placeholder="email@example.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-lang-ar="رقم الهاتف" data-lang-en="Phone">رقم الهاتف</label>
+          <input type="text" class="form-control" id="emp-phone" placeholder="+963-9XX-XXXXXX">
+        </div>
+        <div class="form-group" id="emp-active-group" style="display:none">
+          <label class="form-label" data-lang-ar="حالة الحساب" data-lang-en="Account Status">حالة الحساب</label>
+          <select class="form-control" id="emp-is-active">
+            <option value="1" data-lang-ar="نشط" data-lang-en="Active">نشط</option>
+            <option value="0" data-lang-ar="معطّل" data-lang-en="Disabled">معطّل</option>
+          </select>
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label" for="emp-manager-password" data-lang-ar="كلمة مرور المدير العام للتأكيد" data-lang-en="General Manager Password">كلمة مرور المدير العام للتأكيد <span class="required">*</span></label>
+          <input type="password" class="form-control" id="emp-manager-password" autocomplete="current-password" data-placeholder-ar="مطلوبة لحماية بيانات الموظف" data-placeholder-en="Required to protect employee data" placeholder="مطلوبة لحماية بيانات الموظف">
+          <small style="display:block;margin-top:5px;color:var(--text-muted);font-size:.68rem" data-lang-ar="لا يتم حفظها؛ تستخدم لتأكيد صلاحية المالك فقط." data-lang-en="It is never stored; it only confirms the owner's authority.">لا يتم حفظها؛ تستخدم لتأكيد صلاحية المالك فقط.</small>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('emp-modal')" data-lang-ar="إلغاء" data-lang-en="Cancel">إلغاء</button>
+      <button class="btn btn-primary btn-sm" type="button" id="emp-save-btn" onclick="saveEmployee()">
+        <i class="fa-solid fa-floppy-disk"></i>
+        <span data-lang-ar="حفظ" data-lang-en="Save">حفظ</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: إقالة موظف -->
+<div class="modal-overlay" id="fire-modal">
+  <div class="modal-box" style="max-width:440px">
+    <div class="modal-header">
+      <span class="modal-title" style="color:var(--danger)">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span data-lang-ar="إقالة موظف" data-lang-en="Fire Employee">إقالة موظف</span>
+      </span>
+      <button class="modal-close" onclick="closeModal('fire-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text-secondary);margin-bottom:14px;font-size:.875rem"
+         data-lang-ar="سيتم تعطيل حساب الموظف فوراً وحذف جميع جلساته."
+         data-lang-en="The employee account will be immediately disabled.">
+        سيتم تعطيل حساب الموظف فوراً وحذف جميع جلساته.
+      </p>
+      <input type="hidden" id="fire-emp-id">
+      <div class="form-group">
+        <label class="form-label" data-lang-ar="سبب الإقالة" data-lang-en="Reason">سبب الإقالة <span class="required">*</span></label>
+        <textarea class="form-control" id="fire-reason" rows="3"
+                  data-placeholder-ar="اذكر سبب الإقالة بالتفصيل..."
+                  data-placeholder-en="Provide detailed reason..."
+                  placeholder="اذكر سبب الإقالة بالتفصيل..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="fire-manager-password" data-lang-ar="كلمة مرور المدير العام" data-lang-en="General Manager Password">كلمة مرور المدير العام <span class="required">*</span></label>
+        <input type="password" class="form-control" id="fire-manager-password" autocomplete="current-password">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('fire-modal')" data-lang-ar="إلغاء" data-lang-en="Cancel">إلغاء</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmFire()">
+        <i class="fa-solid fa-user-minus"></i>
+        <span data-lang-ar="تأكيد الإقالة" data-lang-en="Confirm Fire">تأكيد الإقالة</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: إشعار لموظف -->
+<div class="modal-overlay" id="notify-emp-modal">
+  <div class="modal-box" style="max-width:460px">
+    <div class="modal-header">
+      <span class="modal-title" data-lang-ar="إرسال إشعار للموظف" data-lang-en="Notify Employee">إرسال إشعار للموظف</span>
+      <button class="modal-close" onclick="closeModal('notify-emp-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="notify-emp-id">
+      <div class="form-group">
+        <label class="form-label" data-lang-ar="العنوان" data-lang-en="Title">العنوان <span class="required">*</span></label>
+        <input type="text" class="form-control" id="notify-title"
+               data-placeholder-ar="عنوان الإشعار..." data-placeholder-en="Notification title..."
+               placeholder="عنوان الإشعار...">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-lang-ar="الرسالة" data-lang-en="Message">الرسالة <span class="required">*</span></label>
+        <textarea class="form-control" id="notify-message" rows="3"
+                  data-placeholder-ar="نص الرسالة..." data-placeholder-en="Message text..."
+                  placeholder="نص الرسالة..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('notify-emp-modal')" data-lang-ar="إلغاء" data-lang-en="Cancel">إلغاء</button>
+      <button class="btn btn-primary btn-sm" onclick="sendNotifToEmp()">
+        <i class="fa-solid fa-paper-plane"></i>
+        <span data-lang-ar="إرسال" data-lang-en="Send">إرسال</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: حظر زبون -->
+<div class="modal-overlay" id="ban-modal">
+  <div class="modal-box" style="max-width:440px">
+    <div class="modal-header">
+      <span class="modal-title" style="color:var(--danger)">
+        <i class="fa-solid fa-ban"></i>
+        <span data-lang-ar="حظر زبون" data-lang-en="Ban Customer">حظر زبون</span>
+      </span>
+      <button class="modal-close" onclick="closeModal('ban-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ban-cust-id">
+      <div class="form-group">
+        <label class="form-label" data-lang-ar="سبب الحظر" data-lang-en="Ban Reason">سبب الحظر <span class="required">*</span></label>
+        <textarea class="form-control" id="ban-reason" rows="3"
+                  placeholder="اذكر سبب الحظر..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('ban-modal')" data-lang-ar="إلغاء" data-lang-en="Cancel">إلغاء</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmBan()">
+        <i class="fa-solid fa-ban"></i>
+        <span data-lang-ar="تأكيد الحظر" data-lang-en="Confirm Ban">تأكيد الحظر</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: إشعار جماعي -->
+<div class="modal-overlay" id="broadcast-modal">
+  <div class="modal-box" style="max-width:460px">
+    <div class="modal-header">
+      <span class="modal-title" data-lang-ar="إشعار جماعي لكل الزبائن" data-lang-en="Broadcast to All Customers">إشعار جماعي لكل الزبائن</span>
+      <button class="modal-close" onclick="closeModal('broadcast-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" data-lang-ar="العنوان" data-lang-en="Title">العنوان <span class="required">*</span></label>
+        <input type="text" class="form-control" id="broadcast-title" placeholder="عنوان الإشعار...">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-lang-ar="الرسالة" data-lang-en="Message">الرسالة <span class="required">*</span></label>
+        <textarea class="form-control" id="broadcast-message" rows="3" placeholder="نص الرسالة..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('broadcast-modal')" data-lang-ar="إلغاء" data-lang-en="Cancel">إلغاء</button>
+      <button class="btn btn-primary btn-sm" onclick="sendBroadcast()">
+        <i class="fa-solid fa-bullhorn"></i>
+        <span data-lang-ar="إرسال للجميع" data-lang-en="Send to All">إرسال للجميع</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: إرسال تعليمات لموظف -->
+<div class="modal-overlay" id="send-report-modal">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-header">
+      <span class="modal-title" data-lang-ar="إرسال تعليمات لموظف" data-lang-en="Send Instructions to Employee">إرسال تعليمات لموظف</span>
+      <button class="modal-close" onclick="closeModal('send-report-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" data-lang-ar="الموظف المستلم" data-lang-en="Recipient Employee">الموظف المستلم <span class="required">*</span></label>
+        <select class="form-control" id="report-receiver-id">
+          <option value="" data-lang-ar="اختر موظفاً" data-lang-en="Select employee">اختر موظفاً</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-lang-ar="نوع التعليمات" data-lang-en="Type">نوع التعليمات <span class="required">*</span></label>
+        <select class="form-control" id="report-type">
+          <option value="order" data-lang-ar="طلبات" data-lang-en="Order">طلبات</option>
+          <option value="delivery" data-lang-ar="توصيل" data-lang-en="Delivery">توصيل</option>
+          <option value="inventory" data-lang-ar="مخزون" data-lang-en="Inventory">مخزون</option>
+          <option value="financial" data-lang-ar="مالية" data-lang-en="Financial">مالية</option>
+          <option value="general" data-lang-ar="عامة" data-lang-en="General">عامة</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-lang-ar="العنوان" data-lang-en="Title">العنوان <span class="required">*</span></label>
+        <input type="text" class="form-control" id="report-title" placeholder="عنوان التعليمات...">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-lang-ar="المحتوى" data-lang-en="Content">المحتوى <span class="required">*</span></label>
+        <textarea class="form-control" id="report-content" rows="4" placeholder="تفاصيل التعليمات..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('send-report-modal')" data-lang-ar="إلغاء" data-lang-en="Cancel">إلغاء</button>
+      <button class="btn btn-primary btn-sm" onclick="sendReportToEmployee()">
+        <i class="fa-solid fa-paper-plane"></i>
+        <span data-lang-ar="إرسال" data-lang-en="Send">إرسال</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════
+     Scripts
+     ══════════════════════════════════ -->
+<script src="assets/js/config.js?v=20260810-live-sync"></script>
+<script src="assets/js/employee-profile.js"></script>
+<script src="assets/js/charts.js"></script>
+
+<script>
+'use strict';
+
+// ── State ──────────────────────────────────────────
+let _employees    = [];
+let _customers    = [];
+let _orders       = [];
+let _reports      = [];
+let _restaurantInfo = null;
+let _activeTab    = 'overview';
+let _customerPagination = null;
+let _orderPagination = null;
+
+// ── Init ───────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  TAZA.initDashboardPage(['general_manager']);
+  setupTabs();
+  loadOverview();
+  loadNotifications();
+  startAutoRefresh();
+
+  document.getElementById('emp-avatar-file')?.addEventListener('change', previewEmployeeAvatar);
+
+  // إعادة رسم المحتوى الديناميكي بعد تبديل اللغة، من دون تغيير مصادر البيانات.
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', refreshActiveTabLanguage);
+  });
+});
+
+function startAutoRefresh() {
+  TAZA.LiveSync.subscribe(async () => {
+    if (_activeTab === 'overview') return loadOverview();
+    if (_activeTab === 'orders') return loadOrders();
+    if (_activeTab === 'customers') return loadCustomers();
+    if (_activeTab === 'loyalty') return loadLoyalty();
+  });
+}
+
+function refreshActiveTabLanguage() {
+  const refreshers = {
+    overview:  loadOverview,
+    employees: () => renderEmployees(_employees),
+    customers: () => {
+      renderCustomersTable(_customers);
+      renderDataPagination('customers-pagination', _customerPagination, page => loadCustomers(null, page));
+    },
+    orders:    () => {
+      renderOrdersTable(_orders);
+      renderDataPagination('orders-pagination', _orderPagination, loadOrders);
+    },
+    reports:   () => renderReports(_reports),
+    loyalty:   loadLoyalty,
+    settings:  () => {
+      if (_restaurantInfo) updateOpenStatusBadge(_restaurantInfo.is_open);
+    },
+  };
+
+  refreshers[_activeTab]?.();
+}
+
+// ── Tab Switching ──────────────────────────────────
+function setupTabs() {
+  document.querySelectorAll('[data-tab]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      const tab = el.dataset.tab;
+      if (tab) switchTab(tab);
+    });
+  });
+}
+
+function switchTab(tab) {
+  _activeTab = tab;
+
+  // التبويبات في الـ nav
+  document.querySelectorAll('.nav-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.tab === tab)
+  );
+
+  // الـ sidebar items
+  document.querySelectorAll('.sidebar-item[data-tab]').forEach(t =>
+    t.classList.toggle('active', t.dataset.tab === tab)
+  );
+
+  // المحتوى
+  document.querySelectorAll('.section-content').forEach(s =>
+    s.classList.toggle('active', s.id === `tab-${tab}`)
+  );
+
+  // تحديث عنوان الصفحة
+  const titleMap = {
+    overview: { ar:'نظرة عامة', en:'Overview' },
+    employees:{ ar:'الموظفون',  en:'Employees' },
+    customers:{ ar:'الزبائن',   en:'Customers' },
+    orders:   { ar:'الطلبات',   en:'Orders' },
+    reports:  { ar:'التقارير',  en:'Reports' },
+    loyalty:  { ar:'الولاء',    en:'Loyalty' },
+    settings: { ar:'الإعدادات', en:'Settings' },
+    profile:  { ar:'ملفي الشخصي', en:'My Profile' },
+  };
+  const lang = TAZA.Lang.current;
+  const pageTitle = document.getElementById('page-title');
+  if (pageTitle && titleMap[tab]) {
+    pageTitle.textContent = titleMap[tab][lang];
+  }
+
+  // تحميل البيانات عند الطلب (Lazy Loading)
+  const loaders = {
+    employees: () => !_employees.length && loadEmployees(),
+    customers: () => !_customers.length && loadCustomers(),
+    orders:    () => !_orders.length    && loadOrders(),
+    reports:   () => !_reports.length   && loadReports(),
+    loyalty:   loadLoyalty,
+    settings:  loadSettings,
+  };
+  loaders[tab]?.();
+}
+
+// ══════════════════════════════════════════════
+// [1] Overview
+// ══════════════════════════════════════════════
+async function loadOverview() {
+  try {
+    const [meRes, statsRes] = await Promise.all([
+      TAZA.Http.get(TAZA.API.AUTH.ME),
+      TAZA.Http.get(TAZA.API.ADMIN_ORDERS.STATS),
+    ]);
+
+    const extras = meRes?.data?.extras ?? {};
+    const stats  = statsRes?.data ?? {};
+
+    renderOverviewStats(extras, stats);
+    loadRevenueChart(stats);
+    loadOrderTypesChart(stats);
+    loadTopProductsChart();
+    loadPaymentMethodsChart();
+
+    // تحديث الـ badge للطلبات المعلقة في الـ sidebar
+    const pending = extras.pending_orders ?? 0;
+    document.querySelectorAll('.notif-pending').forEach(el => {
+      el.textContent = pending;
+      el.style.display = pending > 0 ? 'inline-block' : 'none';
+    });
+
+    // تحديث الـ badge للتقارير
+    const reportsBadge = extras.pending_reports ?? 0;
+    document.querySelectorAll('.notif-reports').forEach(el => {
+      el.textContent = reportsBadge;
+      el.style.display = reportsBadge > 0 ? 'inline-block' : 'none';
+    });
+
+  } catch(e) {
+    TAZA.Toast.apiError(e);
+  }
+}
+
+function renderOverviewStats(extras, stats) {
+  const isAr = TAZA.Lang.current === 'ar';
+  const grid  = document.getElementById('overview-stats');
+  const todayRevenue = stats.revenue?.today ?? 0;
+
+  grid.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="fa-solid fa-users-gear"></i></div>
+      <div class="stat-content">
+        <div class="stat-label">${isAr ? 'الموظفون النشطون' : 'Active Employees'}</div>
+        <div class="stat-value">${extras.total_employees ?? '—'}</div>
+        <div class="stat-change neutral"><i class="fa-solid fa-circle-info"></i> ${isAr ? 'إجمالي الموظفين' : 'Total staff'}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="fa-solid fa-users"></i></div>
+      <div class="stat-content">
+        <div class="stat-label">${isAr ? 'الزبائن المسجلون' : 'Registered Customers'}</div>
+        <div class="stat-value">${extras.total_customers ?? '—'}</div>
+        <div class="stat-change up"><i class="fa-solid fa-arrow-up"></i> ${isAr ? 'نشطون' : 'Active'}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon amber"><i class="fa-solid fa-clock"></i></div>
+      <div class="stat-content">
+        <div class="stat-label">${isAr ? 'طلبات معلقة' : 'Pending Orders'}</div>
+        <div class="stat-value" style="color:${(extras.pending_orders??0)>0?'var(--warning)':'var(--text-primary)'}">${extras.pending_orders ?? 0}</div>
+        <div class="stat-change ${(extras.pending_orders??0)>0?'down':'neutral'}">
+          <i class="fa-solid fa-circle-dot"></i> ${isAr ? 'تحتاج معالجة' : 'Needs attention'}
+        </div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="fa-solid fa-money-bill-wave"></i></div>
+      <div class="stat-content">
+        <div class="stat-label">${isAr ? 'إيرادات اليوم' : 'Today\'s Revenue'}</div>
+        <div class="stat-value" style="font-size:1.2rem">${TAZA.Utils.formatMoney(todayRevenue)}</div>
+        <div class="stat-change up"><i class="fa-solid fa-arrow-up"></i> ${isAr ? 'هذا اليوم' : 'Today'}</div>
+      </div>
+    </div>
+  `;
+
+  renderOverviewPriority(extras);
+}
+
+function renderOverviewPriority(extras = {}) {
+  const panel   = document.getElementById('overview-priority');
+  if (!panel) return;
+
+  const isAr          = TAZA.Lang.current === 'ar';
+  const pendingOrders = Number(extras.pending_orders ?? 0);
+  const pendingReports= Number(extras.pending_reports ?? 0);
+  const hasAlerts     = pendingOrders > 0 || pendingReports > 0;
+
+  panel.className = `attention-panel ${hasAlerts ? 'has-alerts' : 'is-clear'}`;
+  panel.innerHTML = `
+    <div class="attention-icon">
+      <i class="fa-solid ${hasAlerts ? 'fa-bolt' : 'fa-circle-check'}"></i>
+    </div>
+    <div class="attention-copy">
+      <strong>${hasAlerts
+        ? (isAr ? 'هناك عناصر تحتاج مراجعتك' : 'Items need your review')
+        : (isAr ? 'العمل يسير بصورة طبيعية' : 'Operations are running normally')}</strong>
+      <span>${hasAlerts
+        ? (isAr ? 'ابدأ بالعناصر المعلقة للحفاظ على انسيابية العمل.' : 'Start with pending items to keep operations moving.')
+        : (isAr ? 'لا توجد طلبات أو تقارير معلقة حالياً.' : 'There are no pending orders or reports right now.')}</span>
+    </div>
+    ${hasAlerts ? `<div class="attention-actions">
+      ${pendingOrders > 0 ? `<button type="button" class="attention-action" onclick="switchTab('orders')">
+        <i class="fa-solid fa-bag-shopping"></i> ${pendingOrders} ${isAr ? 'طلبات' : 'orders'}
+      </button>` : ''}
+      ${pendingReports > 0 ? `<button type="button" class="attention-action" onclick="switchTab('reports')">
+        <i class="fa-solid fa-file-lines"></i> ${pendingReports} ${isAr ? 'تقارير' : 'reports'}
+      </button>` : ''}
+    </div>` : ''}
+  `;
+}
+
+async function loadRevenueChart(cachedStats = null) {
+  try {
+    const period = Number(document.getElementById('revenue-period')?.value ?? 7);
+    const stats = cachedStats?.period_days === period
+      ? cachedStats
+      : (await TAZA.Http.get(TAZA.API.ADMIN_ORDERS.STATS, { period }))?.data ?? {};
+    const trend = stats.revenue_trend ?? [];
+    TAZA.Charts.dashboard.revenueWeekly('chart-revenue', {
+      labels: trend.map(point => TAZA.Charts.dateLabel(point.date, { day: 'numeric', month: 'short' })),
+      revenues: trend.map(point => Number(point.revenue ?? 0)),
+    });
+  } catch {
+    TAZA.Charts.dashboard.revenueWeekly('chart-revenue', null);
+  }
+}
+
+function loadOrderTypesChart(stats = {}) {
+  const isAr = TAZA.Lang.current === 'ar';
+  const values = [stats.by_type?.normal, stats.by_type?.delivery, stats.by_type?.reservation]
+    .map(value => Number(value ?? 0));
+  TAZA.Charts.dashboard.ordersByType('chart-order-types', {
+    labels: [isAr ? 'عادي' : 'Normal', isAr ? 'توصيل' : 'Delivery', isAr ? 'حجز' : 'Reservation'],
+    values,
+    total: values.reduce((sum, value) => sum + value, 0),
+  });
+}
+
+async function loadTopProductsChart() {
+  try {
+    const res = await TAZA.Http.get(TAZA.API.PRODUCTS.STATS);
+    const products = res?.data?.most_ordered ?? [];
+    TAZA.Charts.dashboard.topProducts('chart-top-products', {
+      labels: products.map(product => product.name),
+      values: products.map(product => Number(product.ordered_quantity ?? product.order_count ?? 0)),
+    });
+  } catch {
+    TAZA.Charts.dashboard.topProducts('chart-top-products', null);
+  }
+}
+
+async function loadPaymentMethodsChart() {
+  try {
+    const res = await TAZA.Http.get(TAZA.API.FINANCE.PAYMENT_STATS);
+    const methods = res?.data?.by_method ?? [];
+    TAZA.Charts.dashboard.paymentMethods('chart-payments', {
+      labels: methods.map(method => method.label),
+      values: methods.map(method => Number(method.count ?? 0)),
+    });
+  } catch {
+    TAZA.Charts.dashboard.paymentMethods('chart-payments', null);
+  }
+}
+
+// ══════════════════════════════════════════════
+// [2] Employees
+// ══════════════════════════════════════════════
+let _activeEmployeeRoleFilter = '';
+
+function escapeHtml(value = '') {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function renderDataPagination(containerId, pagination, onPage) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  container.replaceChildren();
+  const current = Number(pagination?.current_page ?? 1);
+  const last = Number(pagination?.last_page ?? 1);
+  const total = Number(pagination?.total ?? 0);
+  const from = Number(pagination?.from ?? 0);
+  const to = Number(pagination?.to ?? 0);
+  const isAr = TAZA.Lang.current === 'ar';
+
+  const summary = document.createElement('span');
+  summary.className = 'data-pagination-summary';
+  summary.textContent = isAr
+    ? `عرض ${from.toLocaleString('ar-SY')}–${to.toLocaleString('ar-SY')} من ${total.toLocaleString('ar-SY')}`
+    : `Showing ${from.toLocaleString('en-US')}–${to.toLocaleString('en-US')} of ${total.toLocaleString('en-US')}`;
+  container.appendChild(summary);
+
+  if (last <= 1) return;
+
+  const controls = document.createElement('div');
+  controls.className = 'data-pagination-controls';
+  const addButton = (label, targetPage, disabled = false, active = false) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `btn btn-sm ${active ? 'btn-primary' : 'btn-outline'}`;
+    button.textContent = label;
+    button.disabled = disabled;
+    if (active) button.setAttribute('aria-current', 'page');
+    button.addEventListener('click', () => onPage(targetPage));
+    controls.appendChild(button);
+  };
+
+  addButton(isAr ? 'السابق' : 'Previous', current - 1, current <= 1);
+  const firstPage = Math.max(1, current - 2);
+  const lastPage = Math.min(last, current + 2);
+  for (let page = firstPage; page <= lastPage; page += 1) {
+    addButton(String(page), page, false, page === current);
+  }
+  addButton(isAr ? 'التالي' : 'Next', current + 1, current >= last);
+  container.appendChild(controls);
+}
+
+function normalizeEmployeePayload(isEdit = false) {
+  const payload = {
+    name:     document.getElementById('emp-name').value.trim(),
+    username: document.getElementById('emp-username').value.trim(),
+    role:     document.getElementById('emp-role').value,
+  };
+
+  const email = document.getElementById('emp-email').value.trim();
+  const phone = document.getElementById('emp-phone').value.trim();
+  const pass  = document.getElementById('emp-password').value.trim();
+  const confirmation = document.getElementById('emp-password-confirmation').value.trim();
+  const managerPassword = document.getElementById('emp-manager-password')?.value ?? '';
+
+  payload.email = email || null;
+  payload.phone = phone || null;
+  if (pass) {
+    payload.password = pass;
+    payload.password_confirmation = confirmation;
+  }
+  if (isEdit) payload.is_active = document.getElementById('emp-is-active').value === '1';
+  payload.manager_password = managerPassword;
+
+  return { payload, pass, confirmation, managerPassword };
+}
+
+function renderEmployeeAvatarPreview(employee = null, previewUrl = '') {
+  const preview = document.getElementById('emp-avatar-preview');
+  if (!preview) return;
+
+  preview.replaceChildren();
+  const source = previewUrl || employee?.avatar || '';
+  if (source) {
+    const image = document.createElement('img');
+    image.src = TAZA.Media.url(source);
+    image.alt = employee?.name ?? '';
+    image.style.cssText = 'width:100%;height:100%;object-fit:cover';
+    image.onerror = () => {
+      preview.replaceChildren();
+      preview.textContent = TAZA.Utils.initials(employee?.name ?? document.getElementById('emp-name')?.value ?? '');
+    };
+    preview.appendChild(image);
+  } else {
+    preview.textContent = TAZA.Utils.initials(employee?.name ?? document.getElementById('emp-name')?.value ?? '');
+  }
+
+  const removeButton = document.getElementById('emp-avatar-remove');
+  if (removeButton) removeButton.style.display = employee?.avatar ? '' : 'none';
+}
+
+function previewEmployeeAvatar(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  const isAr = TAZA.Lang.current === 'ar';
+  if (!TAZA.Utils.isImageFile(file) || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+    TAZA.Toast.warning(isAr ? 'اختر صورة JPG أو PNG أو WebP' : 'Choose a JPG, PNG, or WebP image');
+    event.target.value = '';
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    TAZA.Toast.warning(isAr ? 'حجم الصورة يجب ألا يتجاوز 5 ميغابايت' : 'Image size must not exceed 5 MB');
+    event.target.value = '';
+    return;
+  }
+
+  renderEmployeeAvatarPreview(null, URL.createObjectURL(file));
+}
+
+async function requestEmployeeUpdate(id, payload) {
+  try {
+    return await TAZA.Http.put(TAZA.API.EMPLOYEES.UPDATE(id), payload);
+  } catch (err) {
+    // احتياطي: بعض بيئات التشغيل المحلية أو إعدادات CORS قد تمنع PUT/PATCH.
+    if ([405, 419, 0, undefined].includes(err?.status)) {
+      return await TAZA.Http.post(TAZA.API.EMPLOYEES.UPDATE(id), payload);
+    }
+    throw err;
+  }
+}
+
+async function loadEmployees(role = _activeEmployeeRoleFilter) {
+  try {
+    _activeEmployeeRoleFilter = role || '';
+    const params = _activeEmployeeRoleFilter ? { role: _activeEmployeeRoleFilter } : {};
+    const res = await TAZA.Http.get(TAZA.API.EMPLOYEES.LIST, params);
+    _employees = res?.data?.all ?? res?.data?.employees ?? [];
+    renderEmployees(_employees);
+  } catch(e) {
+    TAZA.Toast.apiError(e);
+  }
+}
+
+function renderEmployees(emps) {
+  const grid = document.getElementById('employees-grid');
+  const countEl = document.getElementById('employee-results-count');
+  const isAr = TAZA.Lang.current === 'ar';
+
+  const search = document.getElementById('emp-search')?.value.toLowerCase() ?? '';
+  const filtered = search
+    ? emps.filter(e => e.name?.toLowerCase().includes(search) || e.username?.toLowerCase().includes(search))
+    : emps;
+
+  if (countEl) {
+    countEl.textContent = isAr
+      ? `${filtered.length.toLocaleString('ar-SY')} موظف${search ? ' مطابق' : ''}`
+      : `${filtered.length.toLocaleString('en-US')} employee${filtered.length === 1 ? '' : 's'}${search ? ' found' : ''}`;
+  }
+
+  if (!filtered.length) {
+    grid.innerHTML = `<div class="empty-state employee-empty-state" style="grid-column:1/-1">
+      <div class="empty-icon"><i class="fa-solid fa-user-group"></i></div>
+      <div class="empty-title">${search
+        ? (isAr ? 'لا توجد نتائج مطابقة للبحث' : 'No employees match your search')
+        : (isAr ? 'لا يوجد موظفون' : 'No employees found')}</div>
+      <p>${isAr ? 'جرّب تغيير عبارة البحث أو فلتر الصلاحية.' : 'Try changing the search term or role filter.'}</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(emp => {
+    const id = Number(emp.id);
+    const name = escapeHtml(emp.name ?? '—');
+    const roleLabel = escapeHtml(emp.role_label ?? emp.role ?? '—');
+    const phone = escapeHtml(emp.phone ?? '—');
+    const email = escapeHtml(emp.email ?? '—');
+    const avatar = emp.avatar ? escapeHtml(emp.avatar) : '';
+    const username = escapeHtml(emp.username ? `@${emp.username}` : (isAr ? 'بدون اسم مستخدم' : 'No username'));
+    const roleIcons = {
+      order_manager: 'fa-bag-shopping',
+      delivery_manager: 'fa-truck-fast',
+      inventory_manager: 'fa-boxes-stacked',
+      finance_manager: 'fa-chart-line',
+      communication_manager: 'fa-comments',
+      driver: 'fa-car-side',
+    };
+    const roleIcon = roleIcons[emp.role] ?? 'fa-user-tie';
+
+    return `
+    <article class="emp-card ${emp.is_active ? 'is-active' : 'is-inactive'}" data-employee-id="${id}" data-role="${escapeHtml(emp.role ?? '')}">
+      <div class="emp-card-accent" aria-hidden="true"></div>
+      <div class="emp-card-header">
+        <div class="avatar avatar-lg emp-avatar">
+          ${avatar
+            ? `<img src="${avatar}" alt="${name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+            : ''}
+          <span${avatar ? ' style="display:none"' : ''}>${escapeHtml(TAZA.Utils.initials(emp.name))}</span>
+          <span class="emp-presence-dot" title="${emp.is_active ? (isAr ? 'نشط' : 'Active') : (isAr ? 'معطّل' : 'Inactive')}"></span>
+        </div>
+        <div class="emp-card-info">
+          <h4>${name}</h4>
+          <p><i class="fa-solid ${roleIcon}"></i>${roleLabel}</p>
+          <span class="emp-username">${username}</span>
+        </div>
+        <span class="badge emp-status ${emp.is_active ? 'badge-success' : 'badge-danger'}">
+          <i class="fa-solid fa-circle"></i>
+          ${emp.is_active ? (isAr?'نشط':'Active') : (isAr?'معطّل':'Inactive')}
+        </span>
+      </div>
+
+      <div class="emp-contact-list">
+        <div class="emp-contact" title="${phone}">
+          <span class="emp-contact-icon"><i class="fa-solid fa-phone"></i></span>
+          <span class="emp-contact-copy"><small>${isAr ? 'رقم الهاتف' : 'Phone'}</small><strong>${phone}</strong></span>
+        </div>
+        <div class="emp-contact" title="${email}">
+          <span class="emp-contact-icon"><i class="fa-regular fa-envelope"></i></span>
+          <span class="emp-contact-copy"><small>${isAr ? 'البريد الإلكتروني' : 'Email'}</small><strong>${email}</strong></span>
+        </div>
+      </div>
+
+      <div class="emp-card-actions">
+        <button type="button" class="btn btn-outline btn-sm emp-edit-action" data-emp-action="edit" data-emp-id="${id}">
+          <i class="fa-solid fa-pen"></i> ${isAr ? 'تعديل' : 'Edit'}
+        </button>
+        <button type="button" class="btn btn-ghost btn-sm" data-emp-action="notify" data-emp-id="${id}" title="${isAr ? 'إرسال إشعار' : 'Send notification'}" aria-label="${isAr ? 'إرسال إشعار' : 'Send notification'}">
+          <i class="fa-solid fa-bell"></i>
+        </button>
+        <button type="button" class="btn btn-danger btn-sm" data-emp-action="fire" data-emp-id="${id}" title="${isAr ? 'إنهاء الخدمة' : 'Terminate'}" aria-label="${isAr ? 'إنهاء الخدمة' : 'Terminate'}">
+          <i class="fa-solid fa-user-minus"></i>
+        </button>
+      </div>
+    </article>`;
+  }).join('');
+}
+
+// Employee search
+document.getElementById('emp-search')?.addEventListener('input', () => renderEmployees(_employees));
+
+// Role filter chips
+document.getElementById('emp-role-filter')?.addEventListener('click', (e) => {
+  const chip = e.target.closest('.filter-chip');
+  if (!chip) return;
+  document.querySelectorAll('#emp-role-filter .filter-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  loadEmployees(chip.dataset.role || '');
+});
+
+function openAddEmpModal() {
+  document.getElementById('emp-modal-id').value   = '';
+  document.getElementById('emp-name').value        = '';
+  document.getElementById('emp-username').value    = '';
+  document.getElementById('emp-password').value    = '';
+  document.getElementById('emp-password-confirmation').value = '';
+  document.getElementById('emp-manager-password').value = '';
+  document.getElementById('emp-role').value        = '';
+  document.getElementById('emp-email').value       = '';
+  document.getElementById('emp-phone').value       = '';
+  document.getElementById('emp-avatar-file').value = '';
+  document.getElementById('emp-is-active').value   = '1';
+  document.getElementById('emp-active-group').style.display = 'none';
+  document.getElementById('emp-modal-title').textContent = TAZA.Lang.current === 'ar' ? 'موظف جديد' : 'New Employee';
+  document.getElementById('pass-required').style.display = 'inline';
+  document.getElementById('pass-confirm-required').style.display = 'inline';
+  renderEmployeeAvatarPreview();
+  openModal('emp-modal');
+}
+
+async function openEditEmpModal(id) {
+  id = Number(id);
+  let emp = _employees.find(e => Number(e.id) === id);
+
+  // في حال كانت القائمة مفلترة أو لم تكن محملة، نجلب بيانات الموظف مباشرة من الـ API
+  if (!emp) {
+    try {
+      const res = await TAZA.Http.get(TAZA.API.EMPLOYEES.SHOW(id));
+      emp = res?.data?.employee;
+    } catch (e) {
+      TAZA.Toast.apiError(e);
+      return;
+    }
+  }
+  if (!emp) return;
+
+  const isAr = TAZA.Lang.current === 'ar';
+  document.getElementById('emp-modal-id').value   = emp.id;
+  document.getElementById('emp-name').value        = emp.name     ?? '';
+  document.getElementById('emp-username').value    = emp.username ?? '';
+  document.getElementById('emp-password').value    = '';
+  document.getElementById('emp-password-confirmation').value = '';
+  document.getElementById('emp-manager-password').value = '';
+  document.getElementById('emp-role').value        = emp.role     ?? '';
+  document.getElementById('emp-email').value       = emp.email    ?? '';
+  document.getElementById('emp-phone').value       = emp.phone    ?? '';
+  document.getElementById('emp-avatar-file').value = '';
+  document.getElementById('emp-is-active').value   = emp.is_active ? '1' : '0';
+  document.getElementById('emp-active-group').style.display = '';
+  document.getElementById('emp-modal-title').textContent = isAr ? 'تعديل موظف' : 'Edit Employee';
+  document.getElementById('pass-required').style.display = 'none';
+  document.getElementById('pass-confirm-required').style.display = 'none';
+  renderEmployeeAvatarPreview(emp);
+  openModal('emp-modal');
+}
+
+async function saveEmployee() {
+  const id       = document.getElementById('emp-modal-id').value;
+  const isEdit   = !!id;
+  const isAr     = TAZA.Lang.current === 'ar';
+  const btn      = document.getElementById('emp-save-btn');
+
+  const { payload, pass, confirmation, managerPassword } = normalizeEmployeePayload(isEdit);
+
+  if (!payload.name || !payload.username || !payload.role) {
+    TAZA.Toast.warning(isAr ? 'يرجى ملء الحقول المطلوبة' : 'Please fill required fields');
+    return;
+  }
+  if (!isEdit && !pass) {
+    TAZA.Toast.warning(isAr ? 'كلمة المرور مطلوبة' : 'Password is required');
+    return;
+  }
+  if (pass && pass !== confirmation) {
+    TAZA.Toast.warning(isAr ? 'تأكيد كلمة المرور غير متطابق' : 'Password confirmation does not match');
+    return;
+  }
+  if (pass && pass.length < 6) {
+    TAZA.Toast.warning(isAr ? 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' : 'Password must be at least 6 characters');
+    return;
+  }
+  if (!managerPassword) {
+    TAZA.Toast.warning(isAr ? 'أدخل كلمة مرور المدير العام لتأكيد العملية' : 'Enter the general manager password to confirm');
+    document.getElementById('emp-manager-password')?.focus();
+    return;
+  }
+
+  TAZA.Utils.disableBtn(btn);
+  try {
+    let response;
+    if (isEdit) {
+      response = await requestEmployeeUpdate(id, payload);
+    } else {
+      response = await TAZA.Http.post(TAZA.API.EMPLOYEES.STORE, payload);
+    }
+
+    const employeeId = response?.data?.employee?.id ?? id;
+    const avatarFile = document.getElementById('emp-avatar-file').files?.[0];
+    if (avatarFile && employeeId) {
+      const formData = new FormData();
+      formData.append('image', avatarFile);
+      formData.append('manager_password', managerPassword);
+      await TAZA.Http.upload(TAZA.API.EMPLOYEES.UPLOAD_AVATAR(employeeId), formData);
+    }
+
+    TAZA.Toast.success(isEdit
+      ? (isAr ? 'تم تحديث بيانات الموظف' : 'Employee updated')
+      : (isAr ? 'تم إنشاء الحساب بنجاح' : 'Employee created'));
+    closeModal('emp-modal');
+    _employees = [];
+    await loadEmployees(_activeEmployeeRoleFilter);
+  } catch(e) {
+    TAZA.Toast.apiError(e);
+  } finally {
+    TAZA.Utils.enableBtn(btn);
+  }
+}
+
+function removeEmployeeAvatar() {
+  const id = document.getElementById('emp-modal-id').value;
+  const isAr = TAZA.Lang.current === 'ar';
+  if (!id) {
+    document.getElementById('emp-avatar-file').value = '';
+    renderEmployeeAvatarPreview();
+    return;
+  }
+
+  TAZA.Confirm.show(
+    isAr ? 'هل تريد حذف صورة هذا الموظف؟' : 'Remove this employee photo?',
+    async () => {
+      try {
+        const managerPassword = document.getElementById('emp-manager-password')?.value ?? '';
+        if (!managerPassword) {
+          TAZA.Toast.warning(isAr ? 'أدخل كلمة مرور المدير العام أولاً' : 'Enter the general manager password first');
+          document.getElementById('emp-manager-password')?.focus();
+          return;
+        }
+        const response = await TAZA.Http.delete(TAZA.API.EMPLOYEES.UPLOAD_AVATAR(id), { manager_password: managerPassword });
+        const employee = response?.data?.employee;
+        document.getElementById('emp-avatar-file').value = '';
+        renderEmployeeAvatarPreview(employee);
+        _employees = _employees.map(item => Number(item.id) === Number(id) ? employee : item);
+        TAZA.Toast.success(isAr ? 'تم حذف صورة الموظف' : 'Employee photo removed');
+      } catch (error) {
+        TAZA.Toast.apiError(error);
+      }
+    },
+    { danger: true, btnText: isAr ? 'حذف الصورة' : 'Remove Photo' }
+  );
+}
+
+function openFireModal(id, name) {
+  document.getElementById('fire-emp-id').value = id;
+  document.getElementById('fire-reason').value  = '';
+  document.getElementById('fire-manager-password').value = '';
+  openModal('fire-modal');
+}
+
+async function confirmFire() {
+  const id     = document.getElementById('fire-emp-id').value;
+  const reason = document.getElementById('fire-reason').value.trim();
+  const managerPassword = document.getElementById('fire-manager-password')?.value ?? '';
+  const isAr   = TAZA.Lang.current === 'ar';
+
+  if (!reason) {
+    TAZA.Toast.warning(isAr ? 'سبب الإقالة مطلوب' : 'Reason is required');
+    return;
+  }
+  if (!managerPassword) {
+    TAZA.Toast.warning(isAr ? 'أدخل كلمة مرور المدير العام لتأكيد الإقالة' : 'Enter the general manager password to confirm termination');
+    document.getElementById('fire-manager-password')?.focus();
+    return;
+  }
+
+  try {
+    await TAZA.Http.delete(TAZA.API.EMPLOYEES.DELETE(id), { reason, manager_password: managerPassword });
+    TAZA.Toast.success(isAr ? 'تم إقالة الموظف' : 'Employee fired');
+    closeModal('fire-modal');
+    _employees = [];
+    await loadEmployees(_activeEmployeeRoleFilter);
+  } catch(e) {
+    TAZA.Toast.apiError(e);
+  }
+}
+
+function openNotifyEmpModal(id, name) {
+  document.getElementById('notify-emp-id').value = id;
+  document.getElementById('notify-title').value   = '';
+  document.getElementById('notify-message').value = '';
+  openModal('notify-emp-modal');
+}
+
+async function sendNotifToEmp() {
+  const id      = document.getElementById('notify-emp-id').value;
+  const title   = document.getElementById('notify-title').value.trim();
+  const message = document.getElementById('notify-message').value.trim();
+  const isAr    = TAZA.Lang.current === 'ar';
+
+  if (!title || !message) {
+    TAZA.Toast.warning(isAr ? 'العنوان والرسالة مطلوبان' : 'Title and message required');
+    return;
+  }
+
+  try {
+    await TAZA.Http.post(TAZA.API.EMPLOYEES.NOTIFY(id), { title, message });
+    TAZA.Toast.success(isAr ? 'تم إرسال الإشعار' : 'Notification sent');
+    closeModal('notify-emp-modal');
+  } catch(e) {
+    TAZA.Toast.apiError(e);
+  }
+}
+
+// ══════════════════════════════════════════════
+// [3] Customers
+// ══════════════════════════════════════════════
+async function loadCustomers(chipEl = null, page = 1) {
+  if (chipEl) {
+    document.querySelectorAll('#tab-customers .filter-chip').forEach(c => c.classList.remove('active'));
+    chipEl.classList.add('active');
+  }
+
+  const activeChip = document.querySelector('#tab-customers .filter-chip.active');
+  const filter     = activeChip?.dataset.filter ?? 'all';
+  const search     = document.getElementById('cust-search')?.value.trim() ?? '';
+  const isAr       = TAZA.Lang.current === 'ar';
+
+  try {
+    const params = { filter, page, per_page: 25 };
+    if (search) params.search = search;
+
+    const res = await TAZA.Http.get(TAZA.API.CUSTOMERS.LIST, params);
+    _customers = res?.data?.customers ?? [];
+    _customerPagination = res?.data?.pagination ?? null;
+    renderCustomersTable(_customers);
+    renderDataPagination('customers-pagination', _customerPagination, nextPage => loadCustomers(null, nextPage));
+  } catch(e) {
+    TAZA.Toast.apiError(e);
+  }
+}
+
+document.getElementById('cust-search')?.addEventListener('input',
+  TAZA.Utils.debounce(() => loadCustomers(), 400));
+
+function renderCustomersTable(customers) {
+  const tbody = document.getElementById('customers-tbody');
+  const isAr  = TAZA.Lang.current === 'ar';
+
+  if (!customers.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">
+      <div class="empty-icon">👤</div>
+      <div class="empty-title">${isAr ? 'لا يوجد زبائن' : 'No customers'}</div>
+    </div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = customers.map(c => {
+    const risk = c.cancellation_risk === 'high'   ? `<span class="badge badge-danger">⚠️ ${isAr?'خطر':'High'}</span>` :
+                 c.cancellation_risk === 'medium' ? `<span class="badge badge-warning">⚠️ ${isAr?'تحذير':'Med'}</span>` : '';
+
+    const statusBadge = c.is_banned
+      ? `<span class="badge badge-danger">${isAr?'محظور':'Banned'}</span>`
+      : `<span class="badge badge-success">${isAr?'نشط':'Active'}</span>`;
+
+    const tierColors = { bronze:'#CD7F32', silver:'#94A3B8', gold:'#F59E0B', platinum:'#A78BFA' };
+    const tierColor  = tierColors[c.loyalty_tier] ?? 'var(--text-muted)';
+
+    return `<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="avatar avatar-sm">${escapeHtml(TAZA.Utils.initials(c.name))}</div>
+          <div>
+            <div style="font-weight:600;font-size:.85rem">${escapeHtml(c.name ?? '—')}</div>
+            <div style="font-size:.72rem;color:var(--text-muted)">${escapeHtml(c.email ?? '—')}</div>
+          </div>
+        </div>
+      </td>
+      <td style="font-size:.82rem">${escapeHtml(c.phone ?? '—')}</td>
+      <td><span style="font-weight:700">${c.total_orders ?? 0}</span></td>
+      <td style="font-size:.82rem">${TAZA.Utils.formatMoney(c.total_spent ?? 0)}</td>
+      <td><span style="font-weight:700;color:var(--primary)">${c.loyalty_points ?? 0} ${isAr?'نقطة':'pts'}</span></td>
+      <td><span style="color:${tierColor};font-weight:700;font-size:.8rem">${c.loyalty_tier?.toUpperCase() ?? '—'}</span></td>
+      <td>${statusBadge} ${risk}</td>
+      <td>
+        <div class="tbl-actions">
+          ${c.is_banned
+            ? `<button class="btn btn-success btn-sm" onclick="unbanCustomer(${c.id})">
+                <i class="fa-solid fa-unlock"></i> ${isAr?'رفع':'Unban'}
+               </button>`
+            : `<button class="btn btn-danger btn-sm" onclick="openBanModal(${c.id})">
+                <i class="fa-solid fa-ban"></i> ${isAr?'حظر':'Ban'}
+               </button>`
+          }
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openBanModal(id) {
+  document.getElementById('ban-cust-id').value = id;
+  document.getElementById('ban-reason').value  = '';
+  openModal('ban-modal');
+}
+
+async function confirmBan() {
+  const id     = document.getElementById('ban-cust-id').value;
+  const reason = document.getElementById('ban-reason').value.trim();
+  const isAr   = TAZA.Lang.current === 'ar';
+
+  if (!reason) {
+    TAZA.Toast.warning(isAr ? 'سبب الحظر مطلوب' : 'Reason required');
+    return;
+  }
+
+  try {
+    await TAZA.Http.post(TAZA.API.CUSTOMERS.BAN(id), { reason });
+    TAZA.Toast.success(isAr ? 'تم حظر الزبون' : 'Customer banned');
+    closeModal('ban-modal');
+    _customers = [];
+    loadCustomers();
+  } catch(e) {
+    TAZA.Toast.apiError(e);
+  }
+}
+
+async function unbanCustomer(id) {
+  const isAr = TAZA.Lang.current === 'ar';
+  TAZA.Confirm.show(
+    isAr ? 'هل تريد رفع الحظر عن هذا الزبون؟' : 'Unban this customer?',
+    async () => {
+      try {
+        await TAZA.Http.post(TAZA.API.CUSTOMERS.UNBAN(id));
+        TAZA.Toast.success(isAr ? 'تم رفع الحظر' : 'Customer unbanned');
+        _customers = [];
+        loadCustomers();
+      } catch(e) {
+        TAZA.Toast.apiError(e);
+      }
+    }
+  );
+}
+
+function openBroadcastModal() {
+  document.getElementById('broadcast-title').value   = '';
+  document.getElementById('broadcast-message').value = '';
+  openModal('broadcast-modal');
+}
+
+async function sendBroadcast() {
+  const title   = document.getElementById('broadcast-title').value.trim();
+  const message = document.getElementById('broadcast-message').value.trim();
+  const isAr    = TAZA.Lang.current === 'ar';
+
+  if (!title || !message) {
+    TAZA.Toast.warning(isAr ? 'العنوان والرسالة مطلوبان' : 'Title and message required');
+    return;
+  }
+
+  try {
+    const res = await TAZA.Http.post(TAZA.API.CUSTOMERS.BROADCAST, { title, message });
+    TAZA.Toast.success(`${isAr?'تم الإرسال لـ':'Sent to'} ${res?.data?.sent_to ?? 0} ${isAr?'زبون':'customers'}`);
+    closeModal('broadcast-modal');
+  } catch(e) {
+    TAZA.Toast.apiError(e);
+  }
+}
+
+// ══════════════════════════════════════════════
+// [4] Orders
+// ══════════════════════════════════════════════
+async function loadOrders(page = 1) {
+  const type   = document.getElementById('order-type-filter')?.value   ?? '';
+  const status = document.getElementById('order-status-filter')?.value ?? '';
+  const date   = document.getElementById('order-date-filter')?.value   ?? '';
+  const isAr   = TAZA.Lang.current === 'ar';
+
+  try {
+    const params = { page, per_page: 25 };
+    if (type)   params.type   = type;
+    if (status) params.status = status;
+    if (date)   params.date   = date;
+
+    const res = await TAZA.Http.get(TAZA.API.ADMIN_ORDERS.LIST, params);
+    _orders = res?.data?.orders ?? [];
+    _orderPagination = res?.data?.pagination ?? null;
+    renderOrdersTable(_orders);
+    renderDataPagination('orders-pagination', _orderPagination, nextPage => loadOrders(nextPage));
+  } catch(e) {
+    TAZA.Toast.apiError(e);
+  }
+}
+
+function renderOrdersTable(orders) {
+  const tbody = document.getElementById('orders-tbody');
+  const isAr  = TAZA.Lang.current === 'ar';
+
+  if (!orders.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <div class="empty-title">${isAr ? 'لا توجد طلبات' : 'No orders'}</div>
+    </div></td></tr>`;
+    return;
+  }
+
+  const typeIcons = { normal:'🍽️', delivery:'🚗', reservation:'🪑' };
+
+  tbody.innerHTML = orders.map(o => `
+    <tr>
+      <td style="font-weight:700;color:var(--primary)">#${o.id}</td>
+      <td style="font-size:.82rem">${escapeHtml(o.customer?.name ?? (isAr?'زائر':'Guest'))}</td>
+      <td>
+        <span class="badge badge-info">
+          ${typeIcons[o.type] ?? '📋'} ${escapeHtml(o.type_label ?? o.type)}
+        </span>
+      </td>
+      <td>${TAZA.Utils.statusBadge(o.status)}</td>
+      <td style="font-weight:600">${TAZA.Utils.formatMoney(o.final_price)}</td>
+      <td style="font-size:.78rem;color:var(--text-muted)">${escapeHtml(o.payment?.method_label ?? o.payment?.method ?? '—')}</td>
+      <td style="font-size:.78rem;color:var(--text-muted)">${TAZA.Utils.timeAgo(o.created_at)}</td>
+    </tr>
+  `).join('');
+}
+
+// ══════════════════════════════════════════════
+// [5] Reports
+// ══════════════════════════════════════════════
+async function loadReports() {
+  const isAr = TAZA.Lang.current === 'ar';
+  try {
+    const res = await TAZA.Http.get(TAZA.API.ADMIN_REPORTS.LIST);
+    _reports  = res?.data?.reports ?? [];
+    renderReports(_reports);
+  } catch(e) {
+    TAZA.Toast.apiError(e);
+  }
+}
+
+function renderReports(reports) {
+  const list = document.getElementById('reports-list');
+  const isAr = TAZA.Lang.current === 'ar';
+
+  if (!reports.length) {
+    list.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <div class="empty-title">${isAr ? 'لا توجد تقارير' : 'No reports'}</div>
+    </div>`;
+    return;
+  }
+
+  const typeColors = {
+    order:'blue', delivery:'info', financial:'green',
+    inventory:'warning', communication:'purple', ai_generated:'amber', general:'muted',
+  };
+
+  list.innerHTML = reports.map(r => `
+    <div class="report-card">
+      <div class="report-card-header">
+        <div>
+          <div class="report-title">${escapeHtml(r.title)}</div>
+          <div class="report-meta">
+            <i class="fa-solid fa-user"></i> ${escapeHtml(r.sender?.name ?? '—')} &nbsp;·&nbsp;
+            <i class="fa-regular fa-clock"></i> ${TAZA.Utils.timeAgo(r.created_at)}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:flex-start;flex-shrink:0">
+          <span class="badge badge-${typeColors[r.report_type]??'muted'} report-type-badge">${escapeHtml(r.type_label)}</span>
+          <span class="badge ${r.status==='sent'?'badge-warning':r.status==='reviewed'?'badge-success':'badge-muted'}">${escapeHtml(r.status_label)}</span>
+        </div>
+      </div>
+      ${r.description ? `<div class="report-description">${escapeHtml(r.description)}</div>` : ''}
+      <div class="report-content-preview">
+         ${escapeHtml(r.content ?? '')}
+      </div>
+      <div class="report-actions">
+        ${r.status === 'sent' ? `
+          <button class="btn btn-success btn-sm" onclick="reviewReport(${r.id})">
+            <i class="fa-solid fa-check"></i> ${isAr?'مراجعة':'Review'}
+          </button>
+        ` : ''}
+        <button class="btn btn-outline btn-sm" onclick="archiveReport(${r.id})">
+          <i class="fa-solid fa-box-archive"></i> ${isAr?'أرشفة':'Archive'}
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function reviewReport(id) {
+  try {
+    await TAZA.Http.put(TAZA.API.REPORTS.REVIEW(id));
+    TAZA.Toast.success(TAZA.Lang.current === 'ar' ? 'تمت المراجعة' : 'Report reviewed');
+    _reports = [];
+    loadReports();
+  } catch(e) {
+    TAZA.Toast.apiError(e);
+  }
+}
+
+async function archiveReport(id) {
+  try {
+    await TAZA.Http.put(TAZA.API.REPORTS.ARCHIVE(id));
+    TAZA.Toast.success(TAZA.Lang.current === 'ar' ? 'تمت الأرشفة' : 'Archived');
+    _reports = [];
+    loadReports();
+  } catch(e) {
+    TAZA.Toast.apiError(e);
+  }
+}
+
+async function openSendReportModal() {
+  // جلب قائمة الموظفين لملء الـ select
+  if (!_employees.length) {
+    try {
+      const res = await TAZA.Http.get(TAZA.API.EMPLOYEES.LIST);
+      _employees = res?.data?.all ?? [];
+    } catch {}
+  }
+
+  const sel  = document.getElementById('report-receiver-id');
+  const isAr = TAZA.Lang.current === 'ar';
+  sel.innerHTML = `<option value="">${isAr?'اختر موظفاً':'Select employee'}</option>` +
+    _employees.map(e => `<option value="${Number(e.id)}">${escapeHtml(e.name)} — ${escapeHtml(e.role_label)}</option>`).join('');
+
+  document.getElementById('report-title').value   = '';
+  document.getElementById('report-content').value = '';
+  openModal('send-report-modal');
+}
+
+async function sendReportToEmployee() {
+  const receiverId = document.getElementById('report-receiver-id').value;
+  const type       = document.getElementById('report-type').value;
+  const title      = document.getElementById('report-title').value.trim();
+  const content    = document.getElementById('report-content').value.trim();
+  const isAr       = TAZA.Lang.current === 'ar';
+
+  if (!receiverId || !title || !content) {
+    TAZA.Toast.warning(isAr ? 'يرجى ملء كل الحقول' : 'Please fill all fields');
+    return;
+  }
+
+  try {
+    // نستخدم مسار إرسال تعليمات المدير العام
+    // نحتاج report_id — نرسل أولاً كـ draft ثم نرسله
+    // بدلاً من ذلك، نرسل مباشرة عبر notify
+    await TAZA.Http.post(TAZA.API.EMPLOYEES.NOTIFY(receiverId), {
+      title,
+      message: `[${type.toUpperCase()}] ${content}`,
+    });
+    TAZA.Toast.success(isAr ? 'تم إرسال التعليمات' : 'Instructions sent');
+    closeModal('send-report-modal');
+  } catch(e) {
+    TAZA.Toast.apiError(e);
+  }
+}
+
+// ══════════════════════════════════════════════
+// [6] Loyalty
+// ══════════════════════════════════════════════
+async function loadLoyalty() {
+  const isAr = TAZA.Lang.current === 'ar';
+  try {
+    const res = await TAZA.Http.get(TAZA.API.LOYALTY.STATS);
+    const s   = res?.data ?? {};
+
+    renderLoyaltyMultipliers(s.tier_multipliers ?? {});
+
+    // Stats
+    const grid = document.getElementById('loyalty-stats-grid');
+    grid.innerHTML = `
+      <div class="stat-card">
+        <div class="stat-icon blue"><i class="fa-solid fa-users"></i></div>
+        <div class="stat-content">
+          <div class="stat-label">${isAr?'حسابات الولاء':'Loyalty Accounts'}</div>
+          <div class="stat-value">${s.overview?.total_active_accounts ?? 0}</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon amber"><i class="fa-solid fa-star"></i></div>
+        <div class="stat-content">
+          <div class="stat-label">${isAr?'النقاط في النظام':'Points in System'}</div>
+          <div class="stat-value">${s.overview?.total_points_in_system?.toLocaleString('ar-SY') ?? 0}</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="fa-solid fa-arrow-up"></i></div>
+        <div class="stat-content">
+          <div class="stat-label">${isAr?'نقاط مكتسبة هذا الشهر':'Earned This Month'}</div>
+          <div class="stat-value">${s.this_month?.points_earned?.toLocaleString('ar-SY') ?? 0}</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple"><i class="fa-solid fa-arrow-down"></i></div>
+        <div class="stat-content">
+          <div class="stat-label">${isAr?'نقاط مُستردَّة':'Redeemed This Month'}</div>
+          <div class="stat-value">${s.this_month?.points_redeemed?.toLocaleString('ar-SY') ?? 0}</div>
+        </div>
+      </div>
+    `;
+
+    // Top Customers
+    const topList = document.getElementById('top-loyalty-list');
+    const tops    = s.top_customers ?? [];
+    if (tops.length) {
+      const tierEmojis = { bronze:'🥉', silver:'🥈', gold:'🥇', platinum:'💎' };
+      topList.innerHTML = tops.map((c, i) => `
+        <div class="loyalty-rank-row">
+          <div class="loyalty-rank">${i + 1}</div>
+          <div>
+            <div class="loyalty-name">${escapeHtml(c.customer_name)}</div>
+            <div class="loyalty-tier">${tierEmojis[c.tier] ?? ''} ${c.tier?.toUpperCase()}</div>
+          </div>
+          <div class="loyalty-points">${c.points?.toLocaleString('ar-SY') ?? 0} ${isAr?'نقطة':'pts'}</div>
+        </div>
+      `).join('');
+    } else {
+      topList.innerHTML = `<div class="empty-state" style="padding:20px"><div class="empty-icon">🏆</div></div>`;
+    }
+
+    // Tiers Chart
+    const byTier = s.overview
+      ? {
+          labels: ['Bronze 🥉','Silver 🥈','Gold 🥇','Platinum 💎'],
+          values: [
+            (s.tier_distribution?.bronze ?? 0),
+            (s.tier_distribution?.silver ?? 0),
+            (s.tier_distribution?.gold   ?? 0),
+            (s.tier_distribution?.platinum ?? 0),
+          ],
+        }
+      : null;
+
+    TAZA.Charts.createDonut('chart-loyalty-tiers', {
+      labels: byTier?.labels ?? ['Bronze','Silver','Gold','Platinum'],
+      data:   byTier?.values ?? [0, 0, 0, 0],
+    });
+
+  } catch(e) {
+    TAZA.Toast.apiError(e);
+  }
+}
+
+function renderLoyaltyMultipliers(multipliers = {}) {
+  const defaults = { bronze: 1, silver: 1.2, gold: 1.5, platinum: 2 };
+  document.querySelectorAll('[data-loyalty-multiplier]').forEach(input => {
+    const tier = input.dataset.loyaltyMultiplier;
+    const value = Number(multipliers[tier] ?? defaults[tier]);
+    input.value = Number.isFinite(value) ? value : defaults[tier];
+  });
+}
+
+async function saveLoyaltySettings() {
+  const isAr = TAZA.Lang.current === 'ar';
+  const button = document.getElementById('save-loyalty-settings-btn');
+  const multipliers = {};
+
+  for (const input of document.querySelectorAll('[data-loyalty-multiplier]')) {
+    const value = Number(input.value);
+    if (!Number.isFinite(value) || value < 0.1 || value > 10) {
+      input.focus();
+      TAZA.Toast.warning(isAr
+        ? 'أدخل معاملاً بين 0.1 و10 لكل مستوى'
+        : 'Enter a multiplier between 0.1 and 10 for every tier');
+      return;
+    }
+    multipliers[input.dataset.loyaltyMultiplier] = value;
+  }
+
+  button.disabled = true;
+  button.classList.add('is-loading');
+  try {
+    const res = await TAZA.Http.put(TAZA.API.LOYALTY.SETTINGS, { multipliers });
+    renderLoyaltyMultipliers(res?.data?.tier_multipliers ?? multipliers);
+    TAZA.Toast.success(isAr
+      ? 'تم حفظ معاملات مستويات الولاء'
+      : 'Loyalty tier multipliers saved');
+  } catch (e) {
+    TAZA.Toast.apiError(e);
+  } finally {
+    button.disabled = false;
+    button.classList.remove('is-loading');
+  }
+}
+
+// ══════════════════════════════════════════════
+// [7] Settings
+// ══════════════════════════════════════════════
+async function loadSettings() {
+  try {
+    const res = await TAZA.Http.get(TAZA.API.ADMIN_RESTAURANT.SHOW);
+    _restaurantInfo = res?.data?.restaurant ?? {};
+
+    const ds = _restaurantInfo.delivery_settings ?? {};
+    const rs = _restaurantInfo.reservation_settings ?? {};
+
+    document.getElementById('delivery-cost').value        = ds.cost_per_100m       ?? '';
+    document.getElementById('delivery-max-distance').value= ds.max_distance_meters ?? '';
+    document.getElementById('vip-cost').value             = rs.vip_extra_cost      ?? '';
+    document.getElementById('free-seats').value           = rs.free_seats_count    ?? '';
+    document.getElementById('extra-seat-cost').value      = rs.cost_per_extra_seat ?? '';
+
+    updateOpenStatusBadge(_restaurantInfo.is_open);
+  } catch(e) {
+    TAZA.Toast.apiError(e);
+  }
+}
+
+function updateOpenStatusBadge(isOpen) {
+  const badge     = document.getElementById('restaurant-open-badge');
+  const toggleBtn = document.getElementById('toggle-open-text');
+  const isAr      = TAZA.Lang.current === 'ar';
+  if (!badge) return;
+
+  badge.className = `open-badge ${isOpen ? 'open' : 'closed'}`;
+  badge.innerHTML = isOpen
+    ? `<i class="fa-solid fa-circle-check"></i> ${isAr?'مفتوح':'Open'}`
+    : `<i class="fa-solid fa-circle-xmark"></i> ${isAr?'مغلق':'Closed'}`;
+
+  if (toggleBtn) {
+    toggleBtn.textContent = isOpen
+      ? (isAr ? 'إغلاق المطعم' : 'Close Restaurant')
+      : (isAr ? 'فتح المطعم'   : 'Open Restaurant');
+  }
+}
+
+async function toggleRestaurantOpen() {
+  const isOpen = _restaurantInfo?.is_open ?? true;
+  const isAr   = TAZA.Lang.current === 'ar';
+
+  TAZA.Confirm.show(
+    isOpen
+      ? (isAr ? 'هل تريد إغلاق المطعم؟' : 'Close the restaurant?')
+      : (isAr ? 'هل تريد فتح المطعم؟'   : 'Open the restaurant?'),
+    async () => {
+      try {
+        await TAZA.Http.put(TAZA.API.ADMIN_RESTAURANT.TOGGLE_OPEN, { is_open: !isOpen });
+        _restaurantInfo.is_open = !isOpen;
+        updateOpenStatusBadge(!isOpen);
+        TAZA.Toast.success(isAr
+          ? (!isOpen ? 'تم فتح المطعم' : 'تم إغلاق المطعم')
+          : (!isOpen ? 'Restaurant opened' : 'Restaurant closed')
+        );
+      } catch(e) {
+        TAZA.Toast.apiError(e);
+      }
+    },
+    { danger: isOpen }
+  );
+}
+
+async function saveDeliverySettings() {
+  const cost    = document.getElementById('delivery-cost').value;
+  const maxDist = document.getElementById('delivery-max-distance').value;
+  const isAr    = TAZA.Lang.current === 'ar';
+
+  if (!cost || !maxDist) {
+    TAZA.Toast.warning(isAr ? 'يرجى ملء الحقول' : 'Please fill fields');
+    return;
+  }
+
+  try {
+    await TAZA.Http.put(TAZA.API.ADMIN_RESTAURANT.UPDATE_DELIVERY, {
+      cost_per_100m:       parseFloat(cost),
+      max_distance_meters: parseInt(maxDist),
+    });
+    const res = await TAZA.Http.get(TAZA.API.ADMIN_RESTAURANT.SHOW);
+    _restaurantInfo = res?.data?.restaurant ?? _restaurantInfo;
+    TAZA.Toast.success(isAr ? 'تم حفظ إعدادات التوصيل' : 'Delivery settings saved');
+  } catch(e) {
+    TAZA.Toast.apiError(e);
+  }
+}
+
+async function saveReservationSettings() {
+  const vipCost   = document.getElementById('vip-cost').value;
+  const freeSeats = document.getElementById('free-seats').value;
+  const extraSeat = document.getElementById('extra-seat-cost').value;
+  const isAr      = TAZA.Lang.current === 'ar';
+
+  if (!vipCost || !freeSeats || !extraSeat) {
+    TAZA.Toast.warning(isAr ? 'يرجى ملء الحقول' : 'Please fill fields');
+    return;
+  }
+
+  try {
+    await TAZA.Http.put(TAZA.API.ADMIN_RESTAURANT.UPDATE_RESERVATION, {
+      vip_extra_cost:      parseFloat(vipCost),
+      seats_above:         parseInt(freeSeats),
+      cost_per_extra_seat: parseFloat(extraSeat),
+    });
+    TAZA.Toast.success(isAr ? 'تم حفظ إعدادات الحجز' : 'Reservation settings saved');
+  } catch(e) {
+    TAZA.Toast.apiError(e);
+  }
+}
+
+// ══════════════════════════════════════════════
+// Notifications Panel
+// ══════════════════════════════════════════════
+async function loadNotifications() {
+  try {
+    const res = await TAZA.Http.get(TAZA.API.NOTIFICATIONS.LIST, { status: 'unread' });
+    const notifs = res?.data?.notifications ?? [];
+    const count  = res?.data?.unread_count  ?? 0;
+
+    // تحديث الـ badge
+    const dot = document.querySelector('.badge-dot');
+    if (dot) dot.style.display = count > 0 ? 'block' : 'none';
+
+    const list = document.getElementById('notif-list');
+    const summary = document.getElementById('notif-panel-summary');
+    const markAllButton = document.getElementById('notif-mark-all');
+    const isAr = TAZA.Lang.current === 'ar';
+    if (markAllButton) markAllButton.style.display = count > 0 ? '' : 'none';
+    if (summary) {
+      summary.textContent = count > 0
+        ? (isAr ? `${count} إشعار غير مقروء` : `${count} unread notification${count === 1 ? '' : 's'}`)
+        : (isAr ? 'لا توجد تحديثات جديدة' : 'You are all caught up');
+    }
+
+    if (!notifs.length) {
+      list.innerHTML = `<div class="notification-empty">
+        <div class="notification-empty-icon"><i class="fa-regular fa-bell"></i></div>
+        <strong>${isAr ? 'كل شيء تحت السيطرة' : 'You are all caught up'}</strong>
+        <span>${isAr ? 'ستظهر التحديثات المهمة هنا فور وصولها.' : 'Important updates will appear here as they arrive.'}</span>
+      </div>`;
+      return;
+    }
+
+    list.innerHTML = notifs.slice(0, 10).map(n => `
+      <button type="button" class="notification-item notification-${notificationTone(n.type)} ${n.is_read ? '' : 'unread'}" onclick="readNotif(${n.id}, this)">
+        <span class="notification-icon"><i class="fa-solid ${notificationIcon(n.type)}"></i></span>
+        <span class="notification-item-main">
+          <span class="notification-item-title">${escapeHtml(n.title ?? '')}</span>
+          ${n.message ? `<span class="notification-item-message">${escapeHtml(n.message)}</span>` : ''}
+          <span class="notification-item-time"><i class="fa-regular fa-clock"></i> ${escapeHtml(n.created_at_human ?? n.created_at ?? '')}</span>
+        </span>
+        <span class="notification-unread-dot" aria-hidden="true"></span>
+      </button>
+    `).join('');
+  } catch {}
+}
+
+function notificationTone(type) {
+  const tones = {
+    stock_alert: 'warning',
+    payment_update: 'success',
+    loyalty_tier_upgrade: 'success',
+    delivery_update: 'info',
+    reservation_update: 'info',
+    order_update: 'primary',
+    new_offer: 'primary',
+    manager_notification: 'neutral',
+    system_announcement: 'neutral',
+  };
+  return tones[type] ?? 'neutral';
+}
+
+function notificationIcon(type) {
+  const icons = {
+    order_update: 'fa-bag-shopping',
+    delivery_update: 'fa-motorcycle',
+    reservation_update: 'fa-chair',
+    payment_update: 'fa-credit-card',
+    loyalty_tier_upgrade: 'fa-trophy',
+    new_offer: 'fa-tag',
+    stock_alert: 'fa-box-open',
+    manager_notification: 'fa-clipboard-check',
+    system_announcement: 'fa-bullhorn',
+  };
+  return icons[type] ?? 'fa-bell';
+}
+
+function updateNotificationSummaryAfterRead() {
+  const remaining = document.querySelectorAll('.notification-item.unread').length;
+  const summary = document.getElementById('notif-panel-summary');
+  const isAr = TAZA.Lang.current === 'ar';
+  if (summary) {
+    summary.textContent = remaining > 0
+      ? (isAr ? `${remaining} إشعار غير مقروء` : `${remaining} unread notification${remaining === 1 ? '' : 's'}`)
+      : (isAr ? 'لا توجد تحديثات جديدة' : 'You are all caught up');
+  }
+  const dot = document.querySelector('.badge-dot');
+  if (dot) dot.style.display = remaining > 0 ? 'block' : 'none';
+}
+
+async function readNotif(id, el) {
+  el?.classList.remove('unread');
+  updateNotificationSummaryAfterRead();
+  try { await TAZA.Http.put(TAZA.API.NOTIFICATIONS.MARK_READ(id)); } catch {}
+}
+
+async function markAllNotifsRead() {
+  try {
+    await TAZA.Http.put(TAZA.API.NOTIFICATIONS.MARK_ALL_READ);
+    document.querySelectorAll('.notification-item.unread').forEach(el => el.classList.remove('unread'));
+    updateNotificationSummaryAfterRead();
+    TAZA.Toast.success(TAZA.Lang.current === 'ar' ? 'تمت قراءة جميع الإشعارات' : 'All notifications marked as read');
+  } catch {}
+}
+
+// ربط أزرار الموظفين بطريقة آمنة حتى لا نعتمد فقط على onclick داخل HTML
+document.getElementById('emp-add-btn')?.addEventListener('click', openAddEmpModal);
+document.getElementById('employees-grid')?.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-emp-action]');
+  if (!btn) return;
+
+  const id = Number(btn.dataset.empId);
+  const emp = _employees.find(item => Number(item.id) === id);
+  const name = emp?.name ?? '';
+
+  if (btn.dataset.empAction === 'edit') {
+    openEditEmpModal(id);
+  } else if (btn.dataset.empAction === 'notify') {
+    openNotifyEmpModal(id, name);
+  } else if (btn.dataset.empAction === 'fire') {
+    openFireModal(id, name);
+  }
+});
+
+// تصدير الدوال المطلوبة للـ inline onclick القديمة الموجودة في الصفحة
+Object.assign(window, {
+  openAddEmpModal,
+  openEditEmpModal,
+  saveEmployee,
+  openFireModal,
+  confirmFire,
+  openNotifyEmpModal,
+  sendNotifToEmp,
+  openModal,
+  closeModal,
+});
+
+// ══════════════════════════════════════════════
+// Modal Helpers
+// ══════════════════════════════════════════════
+// ══ Modal System — نسخة مضمونة ══════════════════
+function openModal(id) {
+    console.log('[TAZA] openModal called:', id);
+    const modal = document.getElementById(id);
+    if (!modal) {
+      console.error('[TAZA] Modal NOT FOUND in DOM:', id);
+      return;
+    }
+    // إضافة الكلاس + إضافة style مباشرة كحل احتياطي
+    modal.classList.add('show');
+    modal.style.opacity      = '1';
+    modal.style.visibility   = 'visible';
+    modal.style.pointerEvents= 'auto';
+    document.body.style.overflow = 'hidden';
+    console.log('[TAZA] Modal opened:', id, modal.classList.contains('show'));
+  }
+
+  function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    modal.classList.remove('show');
+    modal.style.opacity      = '';
+    modal.style.visibility   = '';
+    modal.style.pointerEvents= '';
+    document.body.style.overflow = '';
+  }
+
+  function openAddEmpModal() {
+    console.log('[TAZA] openAddEmpModal called');
+
+    // تحقق من كل عنصر قبل الاستخدام
+    const fields = {
+      'emp-modal-id': '', 'emp-name': '', 'emp-username': '',
+      'emp-password': '', 'emp-password-confirmation': '', 'emp-manager-password': '', 'emp-role': '', 'emp-email': '', 'emp-phone': ''
+    };
+
+    for (const [id, val] of Object.entries(fields)) {
+      const el = document.getElementById(id);
+      if (!el) { console.error('[TAZA] Element missing:', id); continue; }
+      el.value = val;
+    }
+
+    const titleEl = document.getElementById('emp-modal-title');
+    if (titleEl) titleEl.textContent = TAZA.Lang.current === 'ar' ? 'موظف جديد' : 'New Employee';
+
+    const passReq = document.getElementById('pass-required');
+    if (passReq) passReq.style.display = 'inline';
+
+    openModal('emp-modal');
+  }
+
+  function openEditEmpModal(id) {
+    console.log('[TAZA] openEditEmpModal called, id:', id, typeof id);
+
+    const emp = _employees.find(e => e.id === id || e.id === String(id) || String(e.id) === String(id));
+    if (!emp) {
+      console.error('[TAZA] Employee not found in _employees. Array:', _employees, 'Looking for id:', id);
+      return;
+    }
+
+    const isAr = TAZA.Lang.current === 'ar';
+    const map = {
+      'emp-modal-id': emp.id, 'emp-name': emp.name ?? '', 'emp-username': emp.username ?? '',
+      'emp-password': '', 'emp-password-confirmation': '', 'emp-manager-password': '', 'emp-role': emp.role ?? '', 'emp-email': emp.email ?? '',
+      'emp-phone': emp.phone ?? ''
+    };
+
+    for (const [elId, val] of Object.entries(map)) {
+      const el = document.getElementById(elId);
+      if (el) el.value = val;
+    }
+
+    const titleEl = document.getElementById('emp-modal-title');
+    if (titleEl) titleEl.textContent = isAr ? 'تعديل موظف' : 'Edit Employee';
+
+    const passReq = document.getElementById('pass-required');
+    if (passReq) passReq.style.display = 'none';
+
+    openModal('emp-modal');
+  }
+
+// إغلاق Modal بالضغط خارجه
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.classList.remove('show');
+  });
+});
+
+// ESC key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+  }
+});
+// ══ تأكيد التصدير للـ Global Scope ══════════════
+window.openModal          = openModal;
+window.closeModal         = closeModal;
+window.openAddEmpModal    = openAddEmpModal;
+window.openEditEmpModal   = openEditEmpModal;
+window.openFireModal      = openFireModal;
+window.openNotifyEmpModal = openNotifyEmpModal;
+window.openBanModal       = openBanModal;
+window.openBroadcastModal = openBroadcastModal;
+window.openSendReportModal= openSendReportModal;
+window.switchTab          = switchTab;
+
+// ══ اختبار فوري ══════════════════════════════════
+console.log('[TAZA] Functions exported:', {
+  openModal:       typeof window.openModal,
+  openAddEmpModal: typeof window.openAddEmpModal,
+  emp_modal_exists: !!document.getElementById('emp-modal'),
+});
+</script>
+
+</body>
+</html>

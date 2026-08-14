@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TAZA 041 | Delivery</title>
+  <link rel="icon" href="assets/images/taza041-logo.jpg?v=20260801" type="image/jpeg" data-restaurant-favicon>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.bundle.css?v=20260801-live-delivery-route">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body data-page="delivery">
+
+<header class="site-header">
+  <div class="container nav-row logged-nav-row">
+    <div class="header-account">
+      <a class="logo" href="home-user.html">
+        <div class="logo-image logo-loaded"><img loading="eager" decoding="async" src="assets/images/taza041-logo.jpg" alt="TAZA 041"></div>
+        <div class="logo-text"><strong>TAZA 041</strong><span data-ar="تجربة العميل" data-en="Customer Experience">تجربة العميل</span></div>
+      </a>
+      <div class="header-user">
+        <div>
+          <strong data-user-name data-ar="جاري التحميل" data-en="Loading">جاري التحميل</strong>
+          <small><span data-ar="نقاط الولاء:" data-en="Loyalty points:">نقاط الولاء:</span> <span data-user-loyalty>—</span></small>
+        </div>
+      </div>
+    </div>
+    <div class="header-status-slot" data-header-status></div>
+    <div class="header-actions">
+      <div class="header-page-context">
+        <span class="header-page-marker" aria-hidden="true"></span>
+        <span><small data-ar="الصفحة الحالية" data-en="Current page">الصفحة الحالية</small><strong data-ar="التوصيل" data-en="Delivery">التوصيل</strong></span>
+      </div>
+      <button class="menu-toggle" data-open-sidebar>☰</button>
+      <div class="header-preferences" aria-label="Preferences">
+        <button class="tool-btn" data-theme-toggle data-theme-label>☾</button>
+        <button class="tool-btn" data-lang-toggle data-ar="AR" data-en="EN">AR</button>
+      </div>
+      <button class="icon-circle" data-open-cart>🛒 <span data-cart-count>0</span></button>
+    </div>
+  </div>
+</header>
+<div class="sidebar" data-sidebar>
+  <div class="row-between"><strong data-ar="القائمة الجانبية" data-en="Side menu">القائمة الجانبية</strong><button class="close-btn" data-close-sidebar>×</button></div>
+  <div class="sidebar-links">
+    <a class="sidebar-link" href="notifications.html"><span>🔔</span><span data-ar="الإشعارات" data-en="Notifications">الإشعارات</span></a>
+    <a class="sidebar-link" href="profile.html"><span>👤</span><span data-ar="إعداد الحساب الشخصي" data-en="Profile settings">إعداد الحساب الشخصي</span></a>
+    <a class="sidebar-link" href="orders.html"><span>🧾</span><span data-ar="الطلبات السابقة" data-en="Previous orders">الطلبات السابقة</span></a>
+    <a class="sidebar-link" href="ai-suggestion.html"><span>🤖</span><span data-ar="اقتراح وجبة بالذكاء الاصطناعي" data-en="AI meal suggestion">اقتراح وجبة بالذكاء الاصطناعي</span></a>
+    <a class="sidebar-link" href="index.html" onclick="localStorage.setItem('taza_logged_in','false')"><span>🚪</span><span data-ar="تسجيل الخروج" data-en="Logout">تسجيل الخروج</span></a>
+  </div>
+</div>
+<div class="cart-drawer" data-cart-drawer>
+  <div class="row-between"><strong data-ar="السلة" data-en="Cart">السلة</strong><button class="close-btn" data-close-cart>×</button></div>
+  <div class="cart-list" data-cart-list></div>
+  <div class="summary-item" style="margin-top:12px;"><div class="row-between"><strong data-ar="الإجمالي" data-en="Total">الإجمالي</strong><span data-cart-total>0 SYP</span></div></div>
+  <div class="hero-actions" style="margin-top:12px;"><a class="btn btn-primary" href="menu.html" data-ar="اذهب إلى المنيو" data-en="Go to menu">اذهب إلى المنيو</a></div>
+</div>
+
+<div class="page-shell">
+  <nav class="page-back-nav" data-page-back-nav>
+    <div class="container"><a class="page-back-link" data-page-back href="menu.html?type=delivery" data-ar="رجوع" data-en="Back">رجوع</a></div>
+  </nav>
+  <main class="section delivery-page">
+    <div class="container delivery-shell">
+      <section class="delivery-hero card">
+        <div class="delivery-hero-copy">
+          <span class="section-tag" data-ar="توصيل الطلب" data-en="Delivery checkout">توصيل الطلب</span>
+          <h1 data-ar="حدد موقعك، واحصل على التكلفة قبل الدفع" data-en="Set your location and see the fee before payment">حدد موقعك، واحصل على التكلفة قبل الدفع</h1>
+          <p class="muted" data-ar="اختر موقع التوصيل بدقة، أضف وصفاً يساعد السائق، ثم تابع للدفع بعد ظهور المسافة والأجور." data-en="Choose your delivery location precisely, add a helpful address note, then continue after the distance and fee appear.">اختر موقع التوصيل بدقة، أضف وصفاً يساعد السائق، ثم تابع للدفع بعد ظهور المسافة والأجور.</p>
+        </div>
+        <div class="delivery-steps" aria-label="Delivery steps">
+          <div class="delivery-step active"><span>01</span><strong data-ar="الموقع" data-en="Location">الموقع</strong><small data-ar="حدد النقطة على الخريطة" data-en="Pin your address">حدد النقطة على الخريطة</small></div>
+          <div class="delivery-step"><span>02</span><strong data-ar="التكلفة" data-en="Fee">التكلفة</strong><small data-ar="نحسب المسافة والأجور" data-en="Distance and fee">نحسب المسافة والأجور</small></div>
+          <div class="delivery-step"><span>03</span><strong data-ar="الدفع" data-en="Payment">الدفع</strong><small data-ar="أكمل الطلب بثقة" data-en="Finish confidently">أكمل الطلب بثقة</small></div>
+        </div>
+      </section>
+
+      <div class="delivery-workspace">
+        <section class="card map-panel delivery-location-card">
+          <div class="delivery-panel-head">
+            <div>
+              <span class="section-tag" data-ar="موقع الزبون" data-en="Customer location">موقع الزبون</span>
+              <h2 data-ar="أين تريد استلام الطلب؟" data-en="Where should we deliver?">أين تريد استلام الطلب؟</h2>
+            </div>
+            <span class="badge" data-delivery-range-label data-ar="نطاق التوصيل 10 كم" data-en="10 km range">نطاق التوصيل 10 كم</span>
+          </div>
+        <div class="delivery-saved-addresses" data-delivery-saved-addresses></div>
+        <button class="location-launcher" type="button" data-open-map>
+          <span class="location-icon" aria-hidden="true">
+            <span class="map-mini-route"></span>
+            <span class="map-pin-icon"></span>
+          </span>
+          <span class="location-copy"><strong data-ar="فتح الخريطة" data-en="Open map">فتح الخريطة</strong><small data-ar="اختر موقعك بدقة ثم اضغط حفظ الموقع" data-en="Choose your location precisely, then save it">اختر موقعك بدقة ثم اضغط حفظ الموقع</small></span>
+          <span class="location-open-indicator" aria-hidden="true"></span>
+        </button>
+        <div class="summary-item selected-location hidden" data-location-preview></div>
+        <div class="delivery-address-row">
+          <div class="form-group"><label class="label" data-ar="وصف العنوان" data-en="Address description">وصف العنوان</label><input class="input" data-delivery-address data-placeholder-ar="مثال: اللاذقية - شارع الزراعة - قرب السكن الجامعي" data-placeholder-en="Example: Latakia - Agriculture Street" placeholder="مثال: اللاذقية - شارع الزراعة - قرب السكن الجامعي"></div>
+          <button class="btn btn-primary" data-confirm-location data-ar="تأكيد الموقع وحساب التكلفة" data-en="Confirm location and fee">تأكيد الموقع وحساب التكلفة</button>
+        </div>
+      </section>
+
+      <aside class="delivery-checkout-stack">
+        <section class="card delivery-summary-panel">
+          <div class="delivery-panel-head compact">
+            <div>
+              <span class="section-tag" data-ar="ملخص التوصيل" data-en="Delivery summary">ملخص التوصيل</span>
+              <h2 data-ar="تفاصيل الطلب" data-en="Order details">تفاصيل الطلب</h2>
+            </div>
+          </div>
+          <div class="summary-list delivery-summary-list">
+            <div class="summary-item"><div class="row-between"><strong data-ar="السائق" data-en="Driver">السائق</strong><span data-delivery-driver-name>—</span></div></div>
+            <div class="summary-item"><div class="row-between"><strong data-ar="المسافة" data-en="Distance">المسافة</strong><span data-delivery-distance>—</span></div></div>
+            <div class="summary-item"><div class="row-between"><strong data-ar="الوقت المتوقع" data-en="Estimated time">الوقت المتوقع</strong><span data-delivery-duration>—</span></div></div>
+            <div class="summary-item"><div class="row-between"><strong data-ar="أجور التوصيل" data-en="Delivery fee">أجور التوصيل</strong><span data-delivery-fee>0 SYP</span></div></div>
+          </div>
+        </section>
+
+        <section class="card delivery-cart-panel">
+          <span class="section-tag" data-ar="السلة" data-en="Cart summary">السلة</span>
+          <div class="summary-list delivery-cart-summary" data-delivery-summary></div>
+          <button class="btn btn-primary delivery-payment-btn" data-go-payment-delivery data-ar="المتابعة إلى الدفع" data-en="Continue to payment">المتابعة إلى الدفع</button>
+        </section>
+      </aside>
+      </div>
+
+      <section class="card delivery-service-panel">
+        <div class="delivery-panel-head compact">
+          <div>
+            <span class="section-tag" data-ar="خدمة التوصيل" data-en="Delivery service">خدمة التوصيل</span>
+            <h2 data-ar="السائق يجهز بعد تأكيد الطلب" data-en="Driver is assigned after confirmation">السائق يجهز بعد تأكيد الطلب</h2>
+          </div>
+          <span class="badge" data-ar="متابعة عبر الإشعارات" data-en="Tracked in notifications">متابعة عبر الإشعارات</span>
+        </div>
+        <div class="drivers-list" data-drivers></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+
+<div class="overlay" data-overlay></div>
+<div class="detail-modal map-modal" data-map-modal>
+  <div class="map-modal-head">
+    <div>
+      <span class="section-tag" data-ar="خريطة التوصيل" data-en="Delivery map">خريطة التوصيل</span>
+      <h2 data-ar="اختر نقطة الاستلام بدقة" data-en="Choose the drop-off point">اختر نقطة الاستلام بدقة</h2>
+      <p class="muted" data-ar="اضغط على مكانك داخل الخريطة، ثم احفظ نقطة التوصيل." data-en="Tap your place on the map, then save the drop-off point.">اضغط على مكانك داخل الخريطة، ثم احفظ نقطة التوصيل.</p>
+    </div>
+    <button class="close-btn" data-close-map aria-label="Close">×</button>
+  </div>
+
+  <div class="map-modal-body">
+    <div class="map-canvas-shell">
+      <div class="placeholder-media map-placeholder" data-delivery-map><span data-map-message>انقر على الخريطة لتحديد موقع التوصيل</span><span class="map-point restaurant"></span><span class="map-point destination"></span></div>
+    </div>
+
+    <aside class="map-side-panel">
+      <div class="map-selection-status" data-map-status>
+        <span class="map-status-dot" aria-hidden="true"></span>
+        <div>
+          <strong data-map-status-title data-ar="لم يتم اختيار موقع" data-en="No location selected">لم يتم اختيار موقع</strong>
+          <small class="muted" data-map-status-detail data-ar="اختر نقطة من الخريطة لعرض المسافة" data-en="Choose a map point to show distance">اختر نقطة من الخريطة لعرض المسافة</small>
+        </div>
+      </div>
+
+      <div class="map-metrics-grid">
+        <div class="map-distance-chip">
+          <span data-ar="المسافة" data-en="Distance">المسافة</span>
+          <strong data-map-distance>—</strong>
+        </div>
+        <div class="map-fee-chip">
+          <span data-ar="تقدير الأجرة" data-en="Estimated fee">تقدير الأجرة</span>
+          <strong data-map-estimated-fee>—</strong>
+        </div>
+        <div class="map-time-chip">
+          <span data-ar="الوقت المتوقع" data-en="Estimated time">الوقت المتوقع</span>
+          <strong data-map-estimated-time>—</strong>
+        </div>
+      </div>
+
+      <div class="map-warning hidden" data-map-warning role="alert"></div>
+
+      <div class="map-help-card">
+        <strong data-ar="طريقة الاختيار" data-en="How to choose">طريقة الاختيار</strong>
+        <small class="muted" data-ar="اختر النقطة ثم اضغط تأكيد الموقع ليحسب النظام مسار الطريق الفعلي والمسافة والوقت والأجرة." data-en="Choose the point, then confirm it so the system calculates the road route, distance, time, and fee.">اختر النقطة ثم اضغط تأكيد الموقع ليحسب النظام مسار الطريق الفعلي والمسافة والوقت والأجرة.</small>
+      </div>
+
+      <div class="map-action-stack">
+        <button class="btn btn-secondary map-current-location-btn" type="button" data-use-current-location data-ar="استخدم موقعي" data-en="Use my location">استخدم موقعي</button>
+        <button class="btn btn-primary" type="button" data-save-map-location data-ar="حفظ الموقع المختار" data-en="Save selected location">حفظ الموقع المختار</button>
+      </div>
+    </aside>
+  </div>
+</div>
+<div class="toast" data-toast></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js"></script>
+<script src="assets/js/core/state.js?v=20260801-live-delivery-route"></script>
+<script src="assets/js/core/delivery-geo.js?v=20260714-shared-map"></script>
+<script src="assets/js/core/map-markers.js?v=20260714-map-markers"></script>
+<script src="assets/js/core/cookies.js?v=20260714-privacy-trigger"></script>
+<script src="assets/js/core/ui.js?v=20260801-authenticated-notifications"></script>
+<script src="assets/js/core/catalog.js?v=20260801-restaurant-favicon"></script>
+<script src="assets/js/core/customer-cart.js"></script>
+<script src="assets/js/pages/router-auth.js?v=20260801-live-delivery-route"></script>
+<script src="assets/js/app.js?v=20260707-ready"></script>
+</body></html>

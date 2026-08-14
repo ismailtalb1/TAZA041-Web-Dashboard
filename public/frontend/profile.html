@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TAZA 041 | Profile Settings</title>
+  <link rel="icon" href="assets/images/taza041-logo.jpg?v=20260801" type="image/jpeg" data-restaurant-favicon>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.bundle.css?v=20260812-loyalty-tiers">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body data-page="profile">
+
+<header class="site-header">
+  <div class="container nav-row logged-nav-row">
+    <div class="header-account">
+      <a class="logo" href="home-user.html">
+        <div class="logo-image logo-loaded"><img loading="eager" decoding="async" src="assets/images/taza041-logo.jpg" alt="TAZA 041"></div>
+        <div class="logo-text"><strong>TAZA 041</strong><span data-ar="تجربة العميل" data-en="Customer Experience">تجربة العميل</span></div>
+      </a>
+      <div class="header-user">
+        <div>
+          <strong data-user-name data-ar="جاري التحميل" data-en="Loading">جاري التحميل</strong>
+          <small><span data-ar="نقاط الولاء:" data-en="Loyalty points:">نقاط الولاء:</span> <span data-user-loyalty>—</span></small>
+        </div>
+      </div>
+    </div>
+    <div class="header-status-slot" data-header-status></div>
+    <div class="header-actions">
+      <div class="header-page-context">
+        <span class="header-page-marker" aria-hidden="true"></span>
+        <span><small data-ar="الصفحة الحالية" data-en="Current page">الصفحة الحالية</small><strong data-ar="الملف الشخصي" data-en="Profile">الملف الشخصي</strong></span>
+      </div>
+      <button class="menu-toggle" data-open-sidebar>☰</button>
+      <div class="header-preferences" aria-label="Preferences">
+        <button class="tool-btn" data-theme-toggle data-theme-label>☾</button>
+        <button class="tool-btn" data-lang-toggle data-ar="AR" data-en="EN">AR</button>
+      </div>
+      <button class="icon-circle" data-open-cart>🛒 <span data-cart-count>0</span></button>
+    </div>
+  </div>
+</header>
+<div class="sidebar" data-sidebar>
+  <div class="row-between"><strong data-ar="القائمة الجانبية" data-en="Side menu">القائمة الجانبية</strong><button class="close-btn" data-close-sidebar>×</button></div>
+  <div class="sidebar-links">
+    <a class="sidebar-link" href="notifications.html"><span>🔔</span><span data-ar="الإشعارات" data-en="Notifications">الإشعارات</span></a>
+    <a class="sidebar-link" href="profile.html"><span>👤</span><span data-ar="إعداد الحساب الشخصي" data-en="Profile settings">إعداد الحساب الشخصي</span></a>
+    <a class="sidebar-link" href="orders.html"><span>🧾</span><span data-ar="الطلبات السابقة" data-en="Previous orders">الطلبات السابقة</span></a>
+    <a class="sidebar-link" href="ai-suggestion.html"><span>🤖</span><span data-ar="اقتراح وجبة بالذكاء الاصطناعي" data-en="AI meal suggestion">اقتراح وجبة بالذكاء الاصطناعي</span></a>
+    <a class="sidebar-link" href="index.html" onclick="localStorage.setItem('taza_logged_in','false')"><span>🚪</span><span data-ar="تسجيل الخروج" data-en="Logout">تسجيل الخروج</span></a>
+  </div>
+</div>
+<div class="cart-drawer" data-cart-drawer>
+  <div class="row-between"><strong data-ar="السلة" data-en="Cart">السلة</strong><button class="close-btn" data-close-cart>×</button></div>
+  <div class="cart-list" data-cart-list></div>
+  <div class="summary-item" style="margin-top:12px;"><div class="row-between"><strong data-ar="الإجمالي" data-en="Total">الإجمالي</strong><span data-cart-total>0 SYP</span></div></div>
+  <div class="hero-actions" style="margin-top:12px;"><a class="btn btn-primary" href="menu.html" data-ar="اذهب إلى المنيو" data-en="Go to menu">اذهب إلى المنيو</a></div>
+</div>
+
+<div class="page-shell">
+  <nav class="page-back-nav" data-page-back-nav>
+    <div class="container"><a class="page-back-link" data-page-back href="home-user.html" data-ar="رجوع" data-en="Back">رجوع</a></div>
+  </nav>
+  <main class="section">
+    <div class="container profile-layout">
+      <section class="profile-card card">
+        <span class="section-tag" data-ar="بطاقة الحساب" data-en="Account card">بطاقة الحساب</span>
+        <div class="placeholder-media profile-avatar" data-profile-avatar><span data-profile-image-name>الصورة الشخصية</span></div>
+        <input class="visually-hidden" type="file" accept="image/*" data-image-change>
+        <div class="profile-image-actions">
+          <button class="btn btn-secondary profile-image-action" type="button" data-image-picker data-ar="اختيار صورة جديدة" data-en="Choose new image">اختيار صورة جديدة</button>
+          <button class="btn btn-secondary profile-image-action hidden" type="button" data-edit-current-image data-ar="تحرير الصورة الحالية" data-en="Edit current image">تحرير الصورة الحالية</button>
+        </div>
+        <h2 data-profile-name data-ar="جاري تحميل بيانات الحساب" data-en="Loading account details">جاري تحميل بيانات الحساب</h2>
+        <p class="muted" data-profile-email>—</p>
+        <p class="muted" data-profile-phone>—</p>
+        <div class="summary-item profile-bio-card hidden" data-profile-bio-card>
+          <strong data-ar="نبذة شخصية" data-en="About me">نبذة شخصية</strong>
+          <p class="muted" data-profile-bio></p>
+        </div>
+        <div class="profile-widget-stack">
+          <div class="summary-item"><div class="row-between"><strong data-ar="مستوى الولاء" data-en="Loyalty tier">مستوى الولاء</strong><span data-profile-tier>🥉 برونزي</span></div><p class="muted" style="margin-top:6px" data-profile-tier-progress>يتم تحديث المستوى حسب رصيد النقاط</p></div>
+          <div class="summary-item"><div class="row-between"><strong data-ar="نقاط الولاء" data-en="Loyalty points">نقاط الولاء</strong><span data-profile-points>—</span></div></div>
+          <div class="summary-item"><div class="row-between"><strong data-ar="مضاعف الاكتساب" data-en="Earning multiplier">مضاعف الاكتساب</strong><span class="profile-loyalty-multiplier" data-profile-multiplier>1.0×</span></div></div>
+        </div>
+      </section>
+      <div class="profile-main-column">
+      <section class="card loyalty-program-panel">
+        <div class="loyalty-program-head">
+          <div>
+            <span class="section-tag" data-ar="برنامج مكافآت TAZA" data-en="TAZA REWARDS">برنامج مكافآت TAZA</span>
+            <h2 data-ar="مستويات الولاء ومضاعفات النقاط" data-en="Loyalty tiers and point multipliers">مستويات الولاء ومضاعفات النقاط</h2>
+            <p class="muted" data-ar="تكسب نقطة أساسية لكل 10 ل.س، ثم يطبق مضاعف مستواك تلقائياً عند إضافة النقاط." data-en="Earn one base point per 10 SYP, then your tier multiplier is applied automatically.">تكسب نقطة أساسية لكل 10 ل.س، ثم يطبق مضاعف مستواك تلقائياً عند إضافة النقاط.</p>
+          </div>
+          <div class="loyalty-current-badge"><span data-ar="مستواك الحالي" data-en="Current tier">مستواك الحالي</span><strong data-loyalty-current-tier>🥉 برونزي</strong><small><b data-loyalty-current-multiplier>1.0×</b> <span data-ar="نقاط" data-en="points">نقاط</span></small></div>
+        </div>
+        <div class="loyalty-tier-progress-track" aria-hidden="true"><span data-loyalty-tier-progress-bar></span></div>
+        <p class="loyalty-tier-progress-copy" data-loyalty-tier-progress-copy></p>
+        <div class="loyalty-tiers-grid">
+          <article class="loyalty-tier-card bronze" data-loyalty-tier-card="bronze"><span class="loyalty-tier-icon">🥉</span><strong data-ar="برونزي" data-en="Bronze">برونزي</strong><small><b data-tier-minimum>0</b> <span data-ar="نقطة كحد أدنى" data-en="minimum points">نقطة كحد أدنى</span></small><em><b data-tier-multiplier>1.0×</b> <span data-ar="مضاعف" data-en="multiplier">مضاعف</span></em></article>
+          <article class="loyalty-tier-card silver" data-loyalty-tier-card="silver"><span class="loyalty-tier-icon">🥈</span><strong data-ar="فضي" data-en="Silver">فضي</strong><small><b data-tier-minimum>400</b> <span data-ar="نقطة كحد أدنى" data-en="minimum points">نقطة كحد أدنى</span></small><em><b data-tier-multiplier>1.2×</b> <span data-ar="مضاعف" data-en="multiplier">مضاعف</span></em></article>
+          <article class="loyalty-tier-card gold" data-loyalty-tier-card="gold"><span class="loyalty-tier-icon">🥇</span><strong data-ar="ذهبي" data-en="Gold">ذهبي</strong><small><b data-tier-minimum>700</b> <span data-ar="نقطة كحد أدنى" data-en="minimum points">نقطة كحد أدنى</span></small><em><b data-tier-multiplier>1.5×</b> <span data-ar="مضاعف" data-en="multiplier">مضاعف</span></em></article>
+          <article class="loyalty-tier-card platinum" data-loyalty-tier-card="platinum"><span class="loyalty-tier-icon">💎</span><strong data-ar="بلاتينيوم" data-en="Platinum">بلاتينيوم</strong><small><b data-tier-minimum>1000</b> <span data-ar="نقطة كحد أدنى" data-en="minimum points">نقطة كحد أدنى</span></small><em><b data-tier-multiplier>2.0×</b> <span data-ar="مضاعف" data-en="multiplier">مضاعف</span></em></article>
+        </div>
+      </section>
+      <section class="card auth-panel">
+        <div class="row-between profile-settings-head">
+          <span class="section-tag" data-ar="إعدادات الحساب" data-en="Profile settings">إعدادات الحساب</span>
+          <button class="btn btn-secondary" type="button" data-edit-profile data-ar="تعديل البيانات" data-en="Edit details">تعديل البيانات</button>
+        </div>
+        <form data-profile-form>
+          <div class="field-row"><div class="form-group" style="flex:1;"><label class="label" data-ar="الاسم الكامل" data-en="Full name">الاسم الكامل</label><input class="input" name="full_name"></div><div class="form-group" style="flex:1;"><label class="label" data-ar="البريد الإلكتروني" data-en="Email">البريد الإلكتروني</label><input class="input" type="email" name="email"></div></div>
+          <div class="field-row"><div class="form-group" style="flex:1;"><label class="label" data-ar="رقم الهاتف" data-en="Phone">رقم الهاتف</label><input class="input" name="phone"></div><div class="form-group" style="flex:1;"><label class="label" data-ar="تاريخ الميلاد" data-en="Birthday">تاريخ الميلاد</label><input class="input" type="date" name="birthday"></div></div>
+          <div class="form-group"><label class="label" data-ar="المدينة" data-en="City">المدينة</label><input class="input" name="city"></div>
+          <div class="form-group"><label class="label" data-ar="نبذة شخصية" data-en="About me">نبذة شخصية</label><textarea class="textarea" rows="5" name="bio"></textarea></div>
+          <div class="help profile-lock-note" data-profile-lock-note data-ar="اضغط تعديل البيانات قبل تغيير معلوماتك. سيُطلب منك إدخال كلمة المرور عند الحفظ." data-en="Press Edit details before changing your information. Your password will be required when saving.">اضغط تعديل البيانات قبل تغيير معلوماتك. سيُطلب منك إدخال كلمة المرور عند الحفظ.</div>
+          <div class="hero-actions hidden" data-profile-actions><button class="btn btn-primary" type="submit" data-ar="حفظ التعديلات" data-en="Save changes">حفظ التعديلات</button><button class="btn btn-secondary" type="button" data-reset-profile data-ar="إلغاء" data-en="Reset">إلغاء</button></div>
+        </form>
+      </section>
+      <section class="card auth-panel password-security-panel">
+        <div class="row-between profile-settings-head">
+          <div>
+            <span class="section-tag" data-ar="أمان الحساب" data-en="Account security">أمان الحساب</span>
+            <h2 data-ar="تغيير كلمة المرور" data-en="Change password">تغيير كلمة المرور</h2>
+          </div>
+          <span class="password-security-badge" data-ar="حفظ آمن" data-en="Secure save">حفظ آمن</span>
+        </div>
+        <p class="muted password-security-intro" data-ar="أدخل كلمة المرور الحالية، ثم اختر كلمة مرور جديدة من 6 أحرف على الأقل. سيتم تسجيل خروج الأجهزة الأخرى لحماية حسابك." data-en="Enter your current password, then choose a new password of at least 6 characters. Other devices will be signed out to protect your account.">أدخل كلمة المرور الحالية، ثم اختر كلمة مرور جديدة من 6 أحرف على الأقل. سيتم تسجيل خروج الأجهزة الأخرى لحماية حسابك.</p>
+        <form data-password-change-form>
+          <div class="form-group">
+            <label class="label" for="profileCurrentPassword" data-ar="كلمة المرور الحالية" data-en="Current password">كلمة المرور الحالية</label>
+            <div class="field-row password-field"><input class="input" id="profileCurrentPassword" name="current_password" type="password" autocomplete="current-password" required><button type="button" class="btn btn-secondary password-toggle" data-password-toggle="#profileCurrentPassword" aria-label="إظهار كلمة المرور" title="إظهار كلمة المرور">👁</button></div>
+          </div>
+          <div class="field-row password-security-fields">
+            <div class="form-group">
+              <label class="label" for="profileNewPassword" data-ar="كلمة المرور الجديدة" data-en="New password">كلمة المرور الجديدة</label>
+              <div class="field-row password-field"><input class="input" id="profileNewPassword" name="new_password" type="password" autocomplete="new-password" minlength="6" required><button type="button" class="btn btn-secondary password-toggle" data-password-toggle="#profileNewPassword" aria-label="إظهار كلمة المرور" title="إظهار كلمة المرور">👁</button></div>
+            </div>
+            <div class="form-group">
+              <label class="label" for="profileNewPasswordConfirmation" data-ar="تأكيد كلمة المرور الجديدة" data-en="Confirm new password">تأكيد كلمة المرور الجديدة</label>
+              <div class="field-row password-field"><input class="input" id="profileNewPasswordConfirmation" name="new_password_confirmation" type="password" autocomplete="new-password" minlength="6" required><button type="button" class="btn btn-secondary password-toggle" data-password-toggle="#profileNewPasswordConfirmation" aria-label="إظهار كلمة المرور" title="إظهار كلمة المرور">👁</button></div>
+            </div>
+          </div>
+          <div class="error password-security-error" data-password-change-error role="alert"></div>
+          <div class="hero-actions password-security-actions"><button class="btn btn-primary" type="submit" data-ar="تغيير كلمة المرور" data-en="Change password">تغيير كلمة المرور</button><button class="btn btn-secondary" type="reset" data-ar="إلغاء" data-en="Cancel">إلغاء</button></div>
+        </form>
+      </section>
+      <section class="card saved-addresses-panel">
+        <div class="row-between profile-settings-head">
+          <div>
+            <span class="section-tag" data-ar="العناوين المحفوظة" data-en="Saved addresses">العناوين المحفوظة</span>
+            <h2 data-ar="اختر عنوانك بسرعة عند التوصيل" data-en="Choose faster at delivery">اختر عنوانك بسرعة عند التوصيل</h2>
+          </div>
+          <div class="saved-addresses-head-actions">
+            <button class="btn btn-secondary" type="button" data-edit-saved-addresses data-ar="تعديل العناوين" data-en="Edit addresses">تعديل العناوين</button>
+            <a class="btn btn-secondary" href="delivery.html" data-ar="اختبار التوصيل" data-en="Try delivery">اختبار التوصيل</a>
+          </div>
+        </div>
+        <p class="muted saved-addresses-intro" data-ar="احفظ عنوان البيت والعمل وأي عنوان آخر. الإحداثيات اختيارية، لكنها تجعل حساب المسافة والأجرة فورياً." data-en="Save home, work, and one extra address. Coordinates are optional, but they make distance and fee calculation instant.">احفظ عنوان البيت والعمل وأي عنوان آخر. الإحداثيات اختيارية، لكنها تجعل حساب المسافة والأجرة فورياً.</p>
+        <div class="saved-addresses-grid" data-saved-addresses-list></div>
+        <div class="help profile-lock-note" data-saved-address-lock-note data-ar="اضغط تعديل العناوين قبل تغييرها. سيُطلب منك إدخال كلمة المرور عند الحفظ." data-en="Press Edit addresses before changing them. Your password will be required when saving.">اضغط تعديل العناوين قبل تغييرها. سيُطلب منك إدخال كلمة المرور عند الحفظ.</div>
+        <div class="hero-actions hidden" data-saved-address-actions>
+          <button class="btn btn-primary" type="button" data-save-saved-addresses data-ar="حفظ العناوين" data-en="Save addresses">حفظ العناوين</button>
+          <button class="btn btn-secondary" type="button" data-reset-saved-addresses data-ar="إلغاء" data-en="Cancel">إلغاء</button>
+        </div>
+      </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="profile-dialog" data-profile-password-dialog role="dialog" aria-modal="true" aria-labelledby="profilePasswordTitle">
+  <button class="close-btn modal-close" type="button" data-close-profile-password>×</button>
+  <h3 id="profilePasswordTitle" data-ar="تأكيد حفظ التعديلات" data-en="Confirm changes">تأكيد حفظ التعديلات</h3>
+  <p class="muted" data-profile-password-message data-ar="أدخل كلمة المرور الحالية لحماية بيانات حسابك." data-en="Enter your current password to protect your account details.">أدخل كلمة المرور الحالية لحماية بيانات حسابك.</p>
+  <div class="form-group"><label class="label" data-ar="كلمة المرور" data-en="Password">كلمة المرور</label><div class="field-row password-field"><input class="input" name="profile_current_password" type="password" autocomplete="current-password"><button type="button" class="btn btn-secondary password-toggle" data-password-toggle="[name='profile_current_password']" aria-label="إظهار كلمة المرور" title="إظهار كلمة المرور">👁</button></div><div class="error password" data-profile-password-error></div></div>
+  <div class="hero-actions"><button class="btn btn-primary" type="button" data-confirm-profile-save data-ar="تأكيد الحفظ" data-en="Confirm save">تأكيد الحفظ</button><button class="btn btn-secondary" type="button" data-close-profile-password data-ar="إلغاء" data-en="Cancel">إلغاء</button></div>
+</div>
+
+<div class="profile-dialog profile-image-editor" data-profile-image-editor role="dialog" aria-modal="true" aria-labelledby="profileImageEditorTitle">
+  <div class="crop-editor-head"><button class="close-btn modal-close" type="button" data-cancel-image-edit>×</button><h3 id="profileImageEditorTitle" data-ar="تعديل الصورة قبل الرفع" data-en="Edit image before upload">تعديل الصورة قبل الرفع</h3></div>
+  <div class="crop-editor-workspace"><div class="crop-stage" data-crop-stage><img alt="" data-crop-image></div></div>
+  <div class="crop-editor-toolbar">
+    <button class="btn btn-secondary crop-cancel-btn" type="button" data-cancel-image-edit data-ar="إلغاء" data-en="Cancel">إلغاء</button>
+    <label class="crop-zoom-control" for="profileCropZoom"><span aria-hidden="true">−</span><input id="profileCropZoom" class="input crop-range" type="range" min="1" max="3" step="0.05" value="1" data-crop-zoom><span aria-hidden="true">+</span></label>
+    <button class="btn btn-primary crop-use-btn" type="button" data-confirm-image-edit data-ar="اعتماد الصورة" data-en="Use image">اعتماد الصورة</button>
+  </div>
+</div>
+
+<div class="detail-modal map-modal saved-address-map-modal" data-saved-address-map-modal>
+  <div class="map-modal-head">
+    <div>
+      <span class="section-tag" data-ar="العناوين السريعة" data-en="Quick addresses">العناوين السريعة</span>
+      <h2 data-ar="ثبّت عنوانك واحصل على تقدير فوري" data-en="Pin your address and get an instant estimate">ثبّت عنوانك واحصل على تقدير فوري</h2>
+      <p class="muted" data-ar="اختر نقطة على اليابسة ضمن نطاق التوصيل لعرض المسافة وأجرة التوصيل التقديرية." data-en="Choose a land location within the delivery range to see the distance and estimated delivery fee.">اختر نقطة على اليابسة ضمن نطاق التوصيل لعرض المسافة وأجرة التوصيل التقديرية.</p>
+    </div>
+    <button class="close-btn" type="button" data-close-saved-address-map aria-label="إغلاق">×</button>
+  </div>
+  <div class="map-modal-body">
+    <div class="map-canvas-shell">
+      <div class="placeholder-media map-placeholder" data-saved-address-map><span data-saved-address-map-message>انقر على الخريطة لتحديد موقع العنوان</span></div>
+      <div class="saved-map-floating-legend" aria-hidden="true">
+        <span class="saved-map-legend-swatch"></span>
+        <strong data-delivery-range-label data-ar="نطاق التوصيل البري · 10 كم" data-en="Land delivery range · 10 km">نطاق التوصيل البري · 10 كم</strong>
+      </div>
+    </div>
+    <aside class="map-side-panel">
+      <div class="map-selection-status" data-saved-address-map-status>
+        <span class="map-status-dot" aria-hidden="true"></span>
+        <div>
+          <strong data-saved-address-map-title data-ar="لم يتم اختيار موقع" data-en="No location selected">لم يتم اختيار موقع</strong>
+          <small class="muted" data-saved-address-map-detail data-ar="اختر نقطة داخل النطاق البرتقالي" data-en="Choose a point inside the orange range">اختر نقطة داخل النطاق البرتقالي</small>
+        </div>
+      </div>
+      <div class="map-metrics-grid saved-address-map-metrics">
+        <div class="map-distance-chip">
+          <span data-ar="المسافة عن المطعم" data-en="Distance from restaurant">المسافة عن المطعم</span>
+          <strong data-saved-address-map-distance>—</strong>
+        </div>
+        <div class="map-fee-chip">
+          <span data-ar="أجرة تقديرية" data-en="Estimated fee">أجرة تقديرية</span>
+          <strong data-saved-address-map-fee>—</strong>
+        </div>
+      </div>
+      <div class="map-warning hidden" data-saved-address-map-warning role="alert"></div>
+      <div class="map-help-card saved-address-map-help">
+        <strong data-ar="اختيار دقيق وسريع" data-en="Fast, precise selection">اختيار دقيق وسريع</strong>
+        <small class="muted" data-ar="استخدم عجلة الماوس للتكبير. لا يمكن حفظ نقطة في البحر أو خارج نطاق التوصيل المحدد." data-en="Use the mouse wheel to zoom. Sea locations and points beyond the configured delivery range cannot be saved.">استخدم عجلة الماوس للتكبير. لا يمكن حفظ نقطة في البحر أو خارج نطاق التوصيل المحدد.</small>
+      </div>
+      <div class="map-action-stack">
+        <button class="btn btn-secondary map-current-location-btn" type="button" data-use-current-saved-address-location data-ar="استخدم موقعي الحالي" data-en="Use my current location">استخدم موقعي الحالي</button>
+        <button class="btn btn-secondary" type="button" data-clear-map-location data-ar="مسح الموقع" data-en="Clear location">مسح الموقع</button>
+        <button class="btn btn-primary" type="button" data-use-saved-address-map data-ar="حفظ الموقع لهذا العنوان" data-en="Save location for this address">حفظ الموقع لهذا العنوان</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<div class="overlay" data-overlay></div>
+<div class="toast" data-toast></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js"></script>
+<script src="assets/js/core/state.js?v=20260812-loyalty-tiers"></script>
+<script src="assets/js/core/delivery-geo.js?v=20260714-shared-map"></script>
+<script src="assets/js/core/map-markers.js?v=20260714-map-markers"></script>
+<script src="assets/js/core/cookies.js?v=20260714-privacy-trigger"></script>
+<script src="assets/js/core/ui.js?v=20260801-authenticated-notifications"></script>
+<script src="assets/js/core/catalog.js?v=20260801-restaurant-favicon"></script>
+<script src="assets/js/core/customer-cart.js?v=20260808-address-sync"></script>
+<script src="assets/js/pages/router-auth.js?v=20260812-loyalty-tiers"></script>
+<script src="assets/js/app.js?v=20260707-ready"></script>
+</body></html>

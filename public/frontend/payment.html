@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TAZA 041 | Payment</title>
+  <link rel="icon" href="assets/images/taza041-logo.jpg?v=20260801" type="image/jpeg" data-restaurant-favicon>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.bundle.css?v=20260714-privacy-trigger">
+</head>
+<body data-page="payment">
+
+<header class="site-header">
+  <div class="container nav-row logged-nav-row">
+    <div class="header-account">
+      <a class="logo" href="home-user.html">
+        <div class="logo-image logo-loaded"><img loading="eager" decoding="async" src="assets/images/taza041-logo.jpg" alt="TAZA 041"></div>
+        <div class="logo-text"><strong>TAZA 041</strong><span data-ar="تجربة العميل" data-en="Customer Experience">تجربة العميل</span></div>
+      </a>
+      <div class="header-user">
+        <div>
+          <strong data-user-name data-ar="جاري التحميل" data-en="Loading">جاري التحميل</strong>
+          <small><span data-ar="نقاط الولاء:" data-en="Loyalty points:">نقاط الولاء:</span> <span data-user-loyalty>—</span></small>
+        </div>
+      </div>
+    </div>
+    <div class="header-status-slot" data-header-status></div>
+    <div class="header-actions">
+      <div class="header-page-context">
+        <span class="header-page-marker" aria-hidden="true"></span>
+        <span><small data-ar="الصفحة الحالية" data-en="Current page">الصفحة الحالية</small><strong data-ar="الدفع" data-en="Payment">الدفع</strong></span>
+      </div>
+      <button class="menu-toggle" data-open-sidebar>☰</button>
+      <div class="header-preferences" aria-label="Preferences">
+        <button class="tool-btn" data-theme-toggle data-theme-label>☾</button>
+        <button class="tool-btn" data-lang-toggle data-ar="AR" data-en="EN">AR</button>
+      </div>
+      <button class="icon-circle" data-open-cart>🛒 <span data-cart-count>0</span></button>
+    </div>
+  </div>
+</header>
+<div class="sidebar" data-sidebar>
+  <div class="row-between"><strong data-ar="القائمة الجانبية" data-en="Side menu">القائمة الجانبية</strong><button class="close-btn" data-close-sidebar>×</button></div>
+  <div class="sidebar-links">
+    <a class="sidebar-link" href="notifications.html"><span>🔔</span><span data-ar="الإشعارات" data-en="Notifications">الإشعارات</span></a>
+    <a class="sidebar-link" href="profile.html"><span>👤</span><span data-ar="إعداد الحساب الشخصي" data-en="Profile settings">إعداد الحساب الشخصي</span></a>
+    <a class="sidebar-link" href="orders.html"><span>🧾</span><span data-ar="الطلبات السابقة" data-en="Previous orders">الطلبات السابقة</span></a>
+    <a class="sidebar-link" href="ai-suggestion.html"><span>🤖</span><span data-ar="اقتراح وجبة بالذكاء الاصطناعي" data-en="AI meal suggestion">اقتراح وجبة بالذكاء الاصطناعي</span></a>
+    <a class="sidebar-link" href="index.html" onclick="localStorage.setItem('taza_logged_in','false')"><span>🚪</span><span data-ar="تسجيل الخروج" data-en="Logout">تسجيل الخروج</span></a>
+  </div>
+</div>
+<div class="cart-drawer" data-cart-drawer>
+  <div class="row-between"><strong data-ar="السلة" data-en="Cart">السلة</strong><button class="close-btn" data-close-cart>×</button></div>
+  <div class="cart-list" data-cart-list></div>
+  <div class="summary-item" style="margin-top:12px;"><div class="row-between"><strong data-ar="الإجمالي" data-en="Total">الإجمالي</strong><span data-cart-total>0 SYP</span></div></div>
+  <div class="hero-actions" style="margin-top:12px;"><a class="btn btn-primary" href="menu.html" data-ar="اذهب إلى المنيو" data-en="Go to menu">اذهب إلى المنيو</a></div>
+</div>
+
+<div class="page-shell">
+  <nav class="page-back-nav" data-page-back-nav>
+    <div class="container"><a class="page-back-link" data-page-back href="menu.html" data-ar="رجوع" data-en="Back">رجوع</a></div>
+  </nav>
+  <main class="section payment-page">
+    <div class="container payment-shell">
+      <section class="payment-hero">
+        <div class="payment-hero-copy">
+          <span class="section-tag" data-ar="إنهاء الطلب" data-en="Checkout">إنهاء الطلب</span>
+          <h1 data-ar="تأكيد الطلب والدفع" data-en="Confirm order and payment">تأكيد الطلب والدفع</h1>
+          <p class="muted" data-ar="ملخص واضح، طرق دفع محلية، وتأكيد سريع للطلب من نفس المكان." data-en="A clear summary, local payment methods, and fast order confirmation in one place.">ملخص واضح، طرق دفع محلية، وتأكيد سريع للطلب من نفس المكان.</p>
+        </div>
+        <div class="payment-steps" aria-label="Checkout progress">
+          <span class="done" data-ar="السلة" data-en="Cart">السلة</span>
+          <span class="active" data-ar="الدفع" data-en="Payment">الدفع</span>
+          <span data-ar="التأكيد" data-en="Confirm">التأكيد</span>
+        </div>
+      </section>
+
+      <div class="payment-layout">
+        <section class="card payment-summary-card">
+          <div class="payment-card-head">
+            <div>
+              <span class="section-tag" data-ar="ملخص الطلب" data-en="Order summary">ملخص الطلب</span>
+              <h2 data-ar="راجع سلتك قبل الدفع" data-en="Review your cart before payment">راجع سلتك قبل الدفع</h2>
+            </div>
+            <span class="payment-mini-badge" data-ar="جاهز" data-en="Ready">جاهز</span>
+          </div>
+          <div class="summary-list payment-summary-list" data-payment-summary></div>
+          <div class="payment-total-card">
+            <span data-ar="الإجمالي النهائي" data-en="Final total">الإجمالي النهائي</span>
+            <strong data-payment-total>0 SYP</strong>
+          </div>
+          <div class="payment-assurance">
+            <span data-ar="طلبك محفوظ حتى التأكيد" data-en="Your order is held until confirmation">طلبك محفوظ حتى التأكيد</span>
+            <span data-ar="يتم تحديث النقاط بعد الدفع" data-en="Points update after payment">يتم تحديث النقاط بعد الدفع</span>
+          </div>
+        </section>
+
+        <section class="card payment-method-card">
+          <div class="payment-card-head">
+            <div>
+              <span class="section-tag" data-ar="طرق الدفع" data-en="Payment methods">طرق الدفع</span>
+              <h2 data-ar="اختر الطريقة المناسبة" data-en="Choose the most convenient method">اختر الطريقة المناسبة</h2>
+            </div>
+          </div>
+          <div class="payment-methods payment-image-methods" role="listbox" aria-label="Payment methods">
+            <button class="payment-method is-disabled" data-payment-method="seriatel" type="button" role="option" aria-pressed="false" aria-selected="false" aria-disabled="true" disabled>
+              <span class="payment-method-visual"><img class="payment-method-image" src="assets/images/payment-syriatel-cash.png" alt="" loading="eager" decoding="async"></span>
+              <span class="payment-method-copy">
+                <strong data-ar="سيريتل كاش" data-en="Syriatel Cash">سيريتل كاش</strong>
+                <small data-ar="غير متاح حالياً" data-en="Currently unavailable">غير متاح حالياً</small>
+              </span>
+              <span class="payment-method-check" aria-hidden="true"></span>
+            </button>
+            <button class="payment-method is-disabled" data-payment-method="sham" type="button" role="option" aria-pressed="false" aria-selected="false" aria-disabled="true" disabled>
+              <span class="payment-method-visual"><img class="payment-method-image" src="assets/images/payment-sham-cash.png" alt="" loading="eager" decoding="async"></span>
+              <span class="payment-method-copy">
+                <strong data-ar="شام كاش" data-en="Sham Cash">شام كاش</strong>
+                <small data-ar="غير متاح حالياً" data-en="Currently unavailable">غير متاح حالياً</small>
+              </span>
+              <span class="payment-method-check" aria-hidden="true"></span>
+            </button>
+            <button class="payment-method" data-payment-method="loyalty" type="button" role="option" aria-pressed="false" aria-selected="false">
+              <span class="payment-method-visual"><img class="payment-method-image" src="assets/images/payment-loyalty-points.png" alt="" loading="eager" decoding="async"></span>
+              <span class="payment-method-copy">
+                <strong data-ar="نقاط الولاء" data-en="Loyalty points">نقاط الولاء</strong>
+                <small data-ar="استخدم رصيد نقاطك المتاح" data-en="Use your available points balance">استخدم رصيد نقاطك المتاح</small>
+              </span>
+              <span class="payment-method-check" aria-hidden="true"></span>
+            </button>
+            <button class="payment-method hidden" data-test-payment-only data-payment-method="test_payment" type="button" role="option" aria-pressed="false" aria-selected="false" hidden>
+              <span class="payment-method-visual"><img class="payment-method-image" src="assets/images/payment-manual-cash.png" alt="" loading="eager" decoding="async"></span>
+              <span class="payment-method-copy">
+                <strong data-ar="دفع اختباري" data-en="Test payment">دفع اختباري</strong>
+                <small data-ar="تأكيد فوري لاختبار الدفع والنقاط" data-en="Instantly test payment and loyalty points">تأكيد فوري لاختبار الدفع والنقاط</small>
+              </span>
+              <span class="payment-method-check" aria-hidden="true"></span>
+            </button>
+            <button class="payment-method active" data-payment-method="cash" type="button" role="option" aria-pressed="true" aria-selected="true">
+              <span class="payment-method-visual"><img class="payment-method-image" src="assets/images/payment-manual-cash.png" alt="" loading="eager" decoding="async"></span>
+              <span class="payment-method-copy">
+                <strong data-ar="الدفع عند الاستلام" data-en="Cash on delivery">الدفع عند الاستلام</strong>
+                <small data-ar="ادفع عند استلام طلبك" data-en="Pay when your order arrives">ادفع عند استلام طلبك</small>
+              </span>
+              <span class="payment-method-check" aria-hidden="true"></span>
+            </button>
+          </div>
+
+          <div class="payment-form-panel hidden" data-payment-form="seriatel">
+            <div class="payment-form-title">
+              <strong data-ar="سيريتل كاش" data-en="Syriatel Cash">سيريتل كاش</strong>
+              <span data-ar="دفع محلي مباشر" data-en="Local direct payment">دفع محلي مباشر</span>
+            </div>
+            <div class="payment-input-grid">
+              <div class="form-group"><label class="label" for="seriatel-phone" data-ar="رقم الهاتف" data-en="Phone">رقم الهاتف</label><input class="input" id="seriatel-phone" type="tel" inputmode="tel" autocomplete="tel" data-placeholder-ar="09xxxxxxxx" data-placeholder-en="09xxxxxxxx" placeholder="09xxxxxxxx"></div>
+              <div class="form-group"><label class="label" for="seriatel-pin" data-ar="الرمز السري" data-en="PIN">الرمز السري</label><input class="input" id="seriatel-pin" type="password" inputmode="numeric" autocomplete="one-time-code" data-placeholder-ar="••••" data-placeholder-en="••••" placeholder="••••"></div>
+            </div>
+          </div>
+          <div class="payment-form-panel hidden" data-payment-form="sham">
+            <div class="payment-form-title">
+              <strong data-ar="شام كاش" data-en="Sham Cash">شام كاش</strong>
+              <span data-ar="دفع محلي مباشر" data-en="Local direct payment">دفع محلي مباشر</span>
+            </div>
+            <div class="payment-input-grid">
+              <div class="form-group"><label class="label" for="sham-phone" data-ar="رقم الهاتف" data-en="Phone">رقم الهاتف</label><input class="input" id="sham-phone" type="tel" inputmode="tel" autocomplete="tel" data-placeholder-ar="09xxxxxxxx" data-placeholder-en="09xxxxxxxx" placeholder="09xxxxxxxx"></div>
+              <div class="form-group"><label class="label" for="sham-pin" data-ar="الرمز السري" data-en="PIN">الرمز السري</label><input class="input" id="sham-pin" type="password" inputmode="numeric" autocomplete="one-time-code" data-placeholder-ar="••••" data-placeholder-en="••••" placeholder="••••"></div>
+            </div>
+          </div>
+          <div class="payment-form-panel hidden" data-payment-form="loyalty">
+            <div class="payment-form-title">
+              <strong data-ar="الدفع بنقاط الولاء" data-en="Pay with loyalty points">الدفع بنقاط الولاء</strong>
+              <span data-ar="سيتم احتساب النقاط من الإجمالي" data-en="Points are calculated from the total">سيتم احتساب النقاط من الإجمالي</span>
+            </div>
+            <div class="loyalty-grid">
+              <div><span data-ar="رصيد نقاطك" data-en="Your loyalty balance">رصيد نقاطك</span><strong data-loyalty-balance>—</strong></div>
+              <div><span data-ar="النقاط المطلوبة" data-en="Points required">النقاط المطلوبة</span><strong data-loyalty-needed>0</strong></div>
+            </div>
+            <p class="loyalty-warning hidden" data-loyalty-warning></p>
+          </div>
+          <div class="payment-form-panel hidden" data-test-payment-only data-payment-form="test_payment" hidden>
+            <div class="payment-form-title">
+              <strong data-ar="وضع الاختبار" data-en="Test mode">وضع الاختبار</strong>
+              <span data-ar="سيُسجَّل الدفع كمكتمل وتُضاف نقاط الولاء دون تحويل مالي حقيقي." data-en="Payment will be completed and loyalty points awarded without a real money transfer.">سيُسجَّل الدفع كمكتمل وتُضاف نقاط الولاء دون تحويل مالي حقيقي.</span>
+            </div>
+          </div>
+          <div class="payment-form-panel" data-payment-form="cash">
+            <div class="payment-form-title">
+              <strong data-ar="الدفع عند الاستلام" data-en="Cash on delivery">الدفع عند الاستلام</strong>
+              <span data-ar="سيتم تسجيل الطلب الآن، ويتم تأكيد الدفع عند الاستلام." data-en="The order will be placed now and payment is confirmed on delivery.">سيتم تسجيل الطلب الآن، ويتم تأكيد الدفع عند الاستلام.</span>
+            </div>
+          </div>
+          <div class="payment-actions">
+            <button class="btn btn-primary" data-confirm-payment data-ar="تأكيد الدفع" data-en="Confirm payment">تأكيد الدفع</button>
+            <a class="btn btn-secondary" href="menu.html" data-ar="العودة إلى السلة" data-en="Back to cart">العودة إلى السلة</a>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+
+<div class="overlay" data-overlay></div>
+<div class="toast" data-toast></div>
+
+<script src="assets/js/core/state.js?v=20260801-api-origin"></script>
+<script src="assets/js/core/cookies.js?v=20260714-privacy-trigger"></script>
+<script src="assets/js/core/ui.js?v=20260801-authenticated-notifications"></script>
+<script src="assets/js/core/catalog.js?v=20260801-restaurant-favicon"></script>
+<script src="assets/js/core/customer-cart.js"></script>
+<script src="assets/js/pages/payment.js?v=20260801-test-payment"></script>
+<script src="assets/js/pages/router-auth.js?v=20260801-auth-direct-submit"></script>
+<script src="assets/js/app.js?v=20260707-ready"></script>
+</body></html>

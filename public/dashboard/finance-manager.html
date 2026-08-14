@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TAZA 041 — المدير المالي</title>
+  <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="assets/css/dashboard.css">
+
+  <style>
+    .section-content{display:none}
+    .section-content.active{display:block;animation:fadeIn .25s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    .nav-tabs-custom{display:flex;gap:4px;flex-wrap:wrap;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--border-radius);padding:6px;margin-bottom:24px}
+    .nav-tab{padding:8px 18px;border-radius:var(--border-radius-sm);font-size:.825rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text-muted);transition:var(--transition-fast);font-family:inherit;display:flex;align-items:center;gap:7px}
+    .nav-tab:hover{background:var(--primary-soft);color:var(--primary)}
+    .nav-tab.active{background:var(--primary);color:white}
+
+    /* Account Card */
+    .account-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--border-radius);padding:20px;transition:var(--transition);position:relative;overflow:hidden}
+    .account-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+    .account-card.primary-account{border-color:var(--primary)}
+    .account-card.primary-account::before{content:'';position:absolute;top:0;right:0;left:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--accent))}
+    .account-card.near-capacity{border-color:var(--warning)}
+    .account-card.near-capacity::before{content:'';position:absolute;top:0;right:0;left:0;height:3px;background:var(--warning)}
+    .account-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+    .account-type-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+    .account-type-icon.syriatel{background:linear-gradient(135deg,rgba(37,99,235,.15),rgba(37,99,235,.05));color:var(--primary)}
+    .account-type-icon.sham    {background:linear-gradient(135deg,rgba(16,185,129,.15),rgba(16,185,129,.05));color:var(--success)}
+    .account-name{font-size:.9rem;font-weight:700;color:var(--text-primary)}
+    .account-number{font-size:.72rem;color:var(--text-muted);font-family:var(--font-latin)}
+    .account-balance{font-size:1.6rem;font-weight:800;color:var(--text-primary);margin-bottom:4px;font-variant-numeric:tabular-nums}
+    .balance-label{font-size:.72rem;color:var(--text-muted);margin-bottom:10px}
+    .capacity-bar{margin:10px 0}
+    .capacity-pct{display:flex;justify-content:space-between;font-size:.72rem;color:var(--text-muted);margin-bottom:4px}
+
+    /* Transaction Row */
+    .tx-method-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:var(--border-radius-full);font-size:.72rem;font-weight:600}
+    .tx-method-cash    {background:#F0FDF4;color:#15803D}
+    .tx-method-syriatel{background:var(--primary-light);color:var(--primary)}
+    .tx-method-sham    {background:var(--success-light);color:var(--success)}
+    .tx-method-loyalty {background:var(--accent-light);color:var(--accent)}
+
+    /* Revenue Card */
+    .revenue-card{background:linear-gradient(135deg,var(--primary),#1D4ED8);color:white;border-radius:var(--border-radius);padding:24px;position:relative;overflow:hidden}
+    .revenue-card::before{content:'';position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.06);top:-60px;left:-60px}
+    .revenue-card::after {content:'';position:absolute;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.04);bottom:-40px;right:-40px}
+    .theme-night .revenue-card{background:linear-gradient(135deg,#1E3A5F,#1A2850)}
+    .revenue-period-tabs{display:flex;gap:4px;background:rgba(255,255,255,.12);border-radius:8px;padding:3px;width:fit-content}
+    .rev-tab{padding:4px 12px;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.7);transition:var(--transition-fast);font-family:inherit}
+    .rev-tab.active{background:rgba(255,255,255,.2);color:white}
+
+    /* Report card */
+    .report-gen-card{background:linear-gradient(135deg,var(--bg-card),var(--bg-main));border:1px solid var(--border);border-radius:var(--border-radius);padding:28px;text-align:center}
+
+    /* Notif */
+    .notif-item-full{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--border-radius-sm);padding:14px 16px;display:flex;gap:12px;align-items:flex-start;transition:var(--transition-fast)}
+    .notif-item-full:hover{background:var(--primary-soft)}
+    .notif-item-full.unread{border-color:var(--primary);background:var(--primary-soft)}
+    .notif-icon-wrap{width:40px;height:40px;border-radius:10px;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+    @media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+    #notif-panel{left:80px}
+    body.lang-en #notif-panel{left:auto;right:80px}
+  </style>
+  <link rel="stylesheet" href="assets/css/finance-manager.css">
+</head>
+<body class="finance-workspace">
+<div id="toast-container" class="toast-container"></div>
+<div class="dashboard-wrapper">
+
+<!-- ══ Sidebar ═══════════════════════════════ -->
+<aside class="sidebar" id="sidebar">
+  <a href="#" class="sidebar-logo">
+    <div class="sidebar-logo-icon">
+      <img src="assets/images/logo.jpg" alt="TAZA"
+           onerror="this.parentElement.innerHTML='<span style=\'font-weight:900;color:var(--primary);font-family:var(--font-latin)\'>T</span>'">
+    </div>
+    <div class="sidebar-logo-text">
+      <div class="sidebar-logo-title">TAZA 041</div>
+      <div class="sidebar-logo-sub" data-lang-ar="المدير المالي" data-lang-en="Finance Manager">المدير المالي</div>
+    </div>
+  </a>
+  <nav class="sidebar-nav">
+    <div class="sidebar-section-title" data-lang-ar="القائمة" data-lang-en="MENU">القائمة</div>
+    <a class="sidebar-item active" data-tab="overview"  data-tooltip="نظرة عامة" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-gauge-high"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="نظرة عامة"      data-lang-en="Overview">نظرة عامة</span>
+    </a>
+    <a class="sidebar-item" data-tab="accounts"  data-tooltip="الحسابات" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-landmark"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="حسابات الدفع"   data-lang-en="Payment Accounts">حسابات الدفع</span>
+      <span class="sidebar-badge" id="sb-near-capacity" style="display:none;background:var(--warning)">!</span>
+    </a>
+    <a class="sidebar-item" data-tab="transactions" data-tooltip="المعاملات" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-receipt"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="المعاملات المالية" data-lang-en="Transactions">المعاملات المالية</span>
+    </a>
+    <a class="sidebar-item" data-tab="reports" data-tooltip="التقارير" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="التقارير المالية" data-lang-en="Financial Reports">التقارير المالية</span>
+    </a>
+    <a class="sidebar-item" data-tab="notifications" data-tooltip="الإشعارات" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-bell"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="الإشعارات"       data-lang-en="Notifications">الإشعارات</span>
+      <span class="sidebar-badge notif-count" id="sb-notif-count" style="display:none">0</span>
+    </a>
+    <div class="sidebar-section-title" data-lang-ar="حسابي" data-lang-en="ACCOUNT">حسابي</div>
+    <a class="sidebar-item" data-tab="profile" data-tooltip="ملفي" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-user-pen"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="ملفي الشخصي" data-lang-en="My Profile">ملفي الشخصي</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-user-avatar" id="sidebar-user-avatar"></div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sidebar-user-name">—</div>
+        <div class="sidebar-user-role" data-lang-ar="المدير المالي" data-lang-en="Finance Manager">المدير المالي</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ══ Main ═══════════════════════════════════ -->
+<div class="main-content" id="main-content">
+  <header class="topbar">
+    <div class="topbar-title">
+      <button class="topbar-btn" id="sidebar-toggle"><i class="fa-solid fa-bars"></i></button>
+      <div>
+        <div class="topbar-page-title" id="page-title" data-lang-ar="نظرة عامة" data-lang-en="Overview">نظرة عامة</div>
+        <div class="topbar-breadcrumb">
+          <span>TAZA 041</span><span>›</span>
+          <span class="current" data-lang-ar="المدير المالي" data-lang-en="Finance Manager">المدير المالي</span>
+        </div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <div class="topbar-clock">
+        <div class="topbar-time" id="topbar-time">--:--</div>
+        <div class="topbar-date"  id="topbar-date"></div>
+      </div>
+      <button class="theme-indicator" id="theme-toggle" type="button" aria-label="تبديل المظهر">
+        <span class="theme-dot" id="theme-dot"></span>
+        <span id="theme-indicator-text"></span>
+      </button>
+      <div class="lang-toggle">
+        <button class="lang-btn active" data-lang="ar">ع</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+      </div>
+      <button class="topbar-btn" id="notif-btn">
+        <i class="fa-solid fa-bell"></i>
+        <span class="badge-dot notif-count-dot" style="display:none"></span>
+      </button>
+      <button class="topbar-btn" id="logout-btn"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+  </header>
+
+  <!-- Notif Panel -->
+  <div class="notification-panel" id="notif-panel">
+    <div class="notification-panel-header">
+      <div class="notification-panel-heading"><span class="notification-panel-title" data-lang-ar="الإشعارات" data-lang-en="Notifications">الإشعارات</span><span class="notification-panel-summary" id="notif-panel-summary">تحديثات الحركة المالية</span></div>
+      <button class="btn btn-ghost btn-sm" id="panel-mark-all"
+              data-lang-ar="تعيين الكل مقروء" data-lang-en="Mark all read">تعيين الكل مقروء</button>
+    </div>
+    <div class="notification-list" id="notif-list-panel">
+      <div class="empty-state" style="padding:24px">
+        <div class="empty-icon">🔔</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ Content ════════════════════ -->
+  <div class="page-container">
+
+    <div class="nav-tabs-custom">
+      <button class="nav-tab active" data-tab="overview">
+        <i class="fa-solid fa-gauge-high"></i>
+        <span data-lang-ar="نظرة عامة"        data-lang-en="Overview">نظرة عامة</span>
+      </button>
+      <button class="nav-tab" data-tab="accounts">
+        <i class="fa-solid fa-landmark"></i>
+        <span data-lang-ar="الحسابات"          data-lang-en="Accounts">الحسابات</span>
+        <span id="near-cap-badge" class="badge badge-warning" style="display:none;font-size:.65rem">!</span>
+      </button>
+      <button class="nav-tab" data-tab="transactions">
+        <i class="fa-solid fa-receipt"></i>
+        <span data-lang-ar="المعاملات"         data-lang-en="Transactions">المعاملات</span>
+      </button>
+      <button class="nav-tab" data-tab="reports">
+        <i class="fa-solid fa-file-invoice-dollar"></i>
+        <span data-lang-ar="التقارير"           data-lang-en="Reports">التقارير</span>
+      </button>
+      <button class="nav-tab" data-tab="notifications">
+        <i class="fa-solid fa-bell"></i>
+        <span data-lang-ar="الإشعارات"         data-lang-en="Notifications">الإشعارات</span>
+      </button>
+      <button class="nav-tab" data-tab="profile">
+        <i class="fa-solid fa-user-pen"></i>
+        <span data-lang-ar="ملفي"              data-lang-en="Profile">ملفي</span>
+      </button>
+    </div>
+
+    <!-- ═══════════════════════
+         [1] Overview
+         ═══════════════════════ -->
+    <div id="tab-overview" class="section-content active">
+
+      <div class="workspace-heading">
+        <div><span class="section-kicker">مركز الرقابة المالية</span><h1>الوضع المالي اليوم</h1><p>راقب الإيرادات والأرصدة أولًا، ثم راجع المعاملات والتقارير.</p></div>
+        <div class="workspace-shortcuts"><button class="btn btn-outline" onclick="switchTab('transactions')"><i class="fa-solid fa-receipt"></i> المعاملات</button><button class="btn btn-outline" onclick="switchTab('accounts')"><i class="fa-solid fa-landmark"></i> الحسابات</button></div>
+      </div>
+
+      <!-- Revenue Card -->
+      <div class="revenue-card finance-hero" id="revenue-hero">
+        <div style="position:relative;z-index:1">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+            <div>
+              <div style="font-size:.82rem;color:rgba(255,255,255,.7);margin-bottom:4px"
+                   data-lang-ar="إجمالي الإيرادات" data-lang-en="Total Revenue">إجمالي الإيرادات</div>
+              <div style="font-size:2.4rem;font-weight:800;letter-spacing:-1px;line-height:1"
+                   id="hero-revenue">—</div>
+              <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-top:4px"
+                   id="hero-period-label" data-lang-ar="هذا الشهر" data-lang-en="This Month">هذا الشهر</div>
+            </div>
+            <div class="revenue-period-tabs">
+              <button class="rev-tab" data-period="today"
+                      data-lang-ar="اليوم" data-lang-en="Today">اليوم</button>
+              <button class="rev-tab" data-period="this_week"
+                      data-lang-ar="الأسبوع" data-lang-en="Week">الأسبوع</button>
+              <button class="rev-tab active" data-period="this_month"
+                      data-lang-ar="الشهر" data-lang-en="Month">الشهر</button>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+            <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:12px">
+              <div style="font-size:.7rem;color:rgba(255,255,255,.6)" data-lang-ar="اليوم" data-lang-en="Today">اليوم</div>
+              <div style="font-size:1.1rem;font-weight:700" id="rev-today">—</div>
+            </div>
+            <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:12px">
+              <div style="font-size:.7rem;color:rgba(255,255,255,.6)" data-lang-ar="هذا الأسبوع" data-lang-en="This Week">هذا الأسبوع</div>
+              <div style="font-size:1.1rem;font-weight:700" id="rev-week">—</div>
+            </div>
+            <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:12px">
+              <div style="font-size:.7rem;color:rgba(255,255,255,.6)" data-lang-ar="كل الوقت" data-lang-en="All Time">كل الوقت</div>
+              <div style="font-size:1.1rem;font-weight:700" id="rev-all">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-row" id="overview-stats">
+        <div class="stat-card skeleton" style="height:110px"></div>
+        <div class="stat-card skeleton" style="height:110px"></div>
+        <div class="stat-card skeleton" style="height:110px"></div>
+        <div class="stat-card skeleton" style="height:110px"></div>
+      </div>
+
+      <div class="finance-status" id="finance-status" aria-live="polite"><div class="finance-status-icon"><i class="fa-solid fa-spinner fa-spin"></i></div><div class="finance-status-copy"><strong>جاري فحص الحسابات</strong><span>ستظهر هنا أولوية العمل الحالية.</span></div></div>
+
+      <!-- Charts -->
+      <div class="finance-insights-grid">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-heading"><div class="chart-card-title"><i class="fa-solid fa-chart-line"></i><span data-lang-ar="الإيرادات الشهرية" data-lang-en="Monthly Revenue">الإيرادات الشهرية</span></div><span class="chart-card-subtitle">اتجاه الإيرادات خلال الشهر</span></div>
+          </div>
+          <div class="chart-card-body"><div class="chart-container-lg"><canvas id="chart-monthly-rev"></canvas></div></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-heading"><div class="chart-card-title"><i class="fa-solid fa-credit-card"></i><span data-lang-ar="طرق الدفع" data-lang-en="Payment Methods">طرق الدفع</span></div><span class="chart-card-subtitle">توزيع العمليات حسب الطريقة</span></div>
+          </div>
+          <div class="chart-card-body"><div class="chart-container-donut"><canvas id="chart-payment-methods"></canvas></div></div>
+        </div>
+      </div>
+
+      <!-- Accounts quick view -->
+      <div id="accounts-quick-grid" class="accounts-quick-grid">
+        <div class="stat-card skeleton" style="height:160px"></div>
+        <div class="stat-card skeleton" style="height:160px"></div>
+        <div class="stat-card skeleton" style="height:160px"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════
+         [2] Accounts
+         ═══════════════════════ -->
+    <div id="tab-accounts" class="section-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 data-lang-ar="حسابات الدفع" data-lang-en="Payment Accounts">حسابات الدفع</h1>
+          <p data-lang-ar="إدارة حسابات سيريتل كاش وشام كاش"
+             data-lang-en="Manage Syriatel Cash and Sham Cash accounts">
+            إدارة حسابات سيريتل كاش وشام كاش
+          </p>
+        </div>
+        <button class="btn btn-primary" id="btn-add-account">
+          <i class="fa-solid fa-plus"></i>
+          <span data-lang-ar="حساب جديد" data-lang-en="New Account">حساب جديد</span>
+        </button>
+      </div>
+
+      <div id="accounts-grid" class="accounts-grid">
+        <div class="stat-card skeleton" style="height:220px"></div>
+        <div class="stat-card skeleton" style="height:220px"></div>
+        <div class="stat-card skeleton" style="height:220px"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════
+         [3] Transactions
+         ═══════════════════════ -->
+    <div id="tab-transactions" class="section-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 data-lang-ar="المعاملات المالية" data-lang-en="Financial Transactions">المعاملات المالية</h1>
+        </div>
+        <div class="section-actions transaction-filters">
+          <select class="form-control" id="tx-method-filter">
+            <option value="" data-lang-ar="كل الطرق" data-lang-en="All Methods">كل الطرق</option>
+            <option value="cash"          data-lang-ar="كاش"           data-lang-en="Cash">كاش</option>
+            <option value="syriatel_cash" data-lang-ar="سيريتل كاش"   data-lang-en="Syriatel Cash">سيريتل كاش</option>
+            <option value="sham_cash"     data-lang-ar="شام كاش"      data-lang-en="Sham Cash">شام كاش</option>
+            <option value="loyalty_points"data-lang-ar="نقاط الولاء"  data-lang-en="Loyalty Points">نقاط الولاء</option>
+          </select>
+          <select class="form-control" id="tx-status-filter">
+            <option value="" data-lang-ar="كل الحالات" data-lang-en="All">كل الحالات</option>
+            <option value="completed" data-lang-ar="ناجحة"    data-lang-en="Completed">ناجحة</option>
+            <option value="pending"   data-lang-ar="معلقة"    data-lang-en="Pending">معلقة</option>
+            <option value="failed"    data-lang-ar="فاشلة"    data-lang-en="Failed">فاشلة</option>
+            <option value="refunded"  data-lang-ar="مستردة"   data-lang-en="Refunded">مستردة</option>
+          </select>
+          <input type="date" class="form-control" id="tx-date-filter">
+        </div>
+      </div>
+
+      <!-- Tx Stats Row -->
+      <div class="transaction-stats-grid" id="tx-stats-row">
+        <div class="stat-card skeleton" style="height:80px"></div>
+        <div class="stat-card skeleton" style="height:80px"></div>
+        <div class="stat-card skeleton" style="height:80px"></div>
+        <div class="stat-card skeleton" style="height:80px"></div>
+      </div>
+
+      <div class="card data-card">
+        <div class="table-responsive">
+          <table class="taza-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th data-lang-ar="الطلب"        data-lang-en="Order">#الطلب</th>
+                <th data-lang-ar="الزبون"       data-lang-en="Customer">الزبون</th>
+                <th data-lang-ar="طريقة الدفع"  data-lang-en="Method">طريقة الدفع</th>
+                <th data-lang-ar="المبلغ"        data-lang-en="Amount">المبلغ</th>
+                <th data-lang-ar="الحالة"        data-lang-en="Status">الحالة</th>
+                <th data-lang-ar="التاريخ"       data-lang-en="Date">التاريخ</th>
+                <th data-lang-ar="الإجراءات"     data-lang-en="Actions">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="transactions-tbody">
+              <tr><td colspan="8" class="text-center p-5">
+                <div class="loader-ring" style="margin:0 auto"></div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════
+         [4] Reports
+         ═══════════════════════ -->
+    <div id="tab-reports" class="section-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 data-lang-ar="التقارير المالية" data-lang-en="Financial Reports">التقارير المالية</h1>
+        </div>
+      </div>
+
+      <div class="reports-grid">
+
+        <!-- Generate Report -->
+        <div class="report-gen-card">
+          <div style="font-size:3rem;margin-bottom:16px">📊</div>
+          <h3 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:8px"
+              data-lang-ar="توليد تقرير مالي" data-lang-en="Generate Financial Report">توليد تقرير مالي</h3>
+          <p style="font-size:.825rem;color:var(--text-muted);margin-bottom:20px;line-height:1.6"
+             data-lang-ar="يُولَّد تقرير شامل عن الإيرادات وطرق الدفع وأرصدة الحسابات ويُرسَل للمدير العام تلقائياً."
+             data-lang-en="A comprehensive report on revenues, payment methods and account balances is generated and sent to the General Manager.">
+            يُولَّد تقرير شامل عن الإيرادات وطرق الدفع وأرصدة الحسابات ويُرسَل للمدير العام تلقائياً.
+          </p>
+          <button class="btn btn-primary w-full" id="generate-report-btn" style="height:46px;font-size:.95rem">
+            <i class="fa-solid fa-file-chart-column"></i>
+            <span data-lang-ar="توليد وإرسال التقرير" data-lang-en="Generate & Send Report">توليد وإرسال التقرير</span>
+          </button>
+          <div style="margin-top:14px;font-size:.75rem;color:var(--text-muted)" id="last-report-info">
+            <i class="fa-regular fa-clock"></i>
+            <span data-lang-ar="آخر تقرير: جارٍ التحميل..." data-lang-en="Last report: loading...">آخر تقرير: جارٍ التحميل...</span>
+          </div>
+        </div>
+
+        <!-- Report Preview -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fa-solid fa-file-lines" style="color:var(--primary)"></i>
+              <span data-lang-ar="ملخص مالي سريع" data-lang-en="Quick Financial Summary">ملخص مالي سريع</span>
+            </div>
+          </div>
+          <div class="card-body" id="report-preview-content">
+            <div class="loader-ring" style="margin:0 auto"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Received Reports from GM -->
+      <div style="margin-top:20px">
+        <h3 style="font-size:.95rem;font-weight:700;color:var(--text-primary);margin-bottom:14px;display:flex;align-items:center;gap:8px">
+          <i class="fa-solid fa-inbox" style="color:var(--primary)"></i>
+          <span data-lang-ar="تعليمات من المدير العام" data-lang-en="Instructions from GM">تعليمات من المدير العام</span>
+        </h3>
+        <div id="gm-reports-list" class="gm-reports-list">
+          <div class="stat-card skeleton" style="height:80px"></div>
+          <div class="stat-card skeleton" style="height:80px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════
+         [5] Notifications
+         ═══════════════════════ -->
+    <div id="tab-notifications" class="section-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 data-lang-ar="الإشعارات" data-lang-en="Notifications">الإشعارات</h1>
+          <p>تنبيهات الحسابات والمعاملات والتقارير المالية.</p>
+        </div>
+        <button class="btn btn-outline" id="mark-all-read-btn">
+          <i class="fa-solid fa-check-double"></i>
+          <span data-lang-ar="تعيين الكل مقروء" data-lang-en="Mark All Read">تعيين الكل مقروء</span>
+        </button>
+      </div>
+      <div id="notifs-full-list" class="notifications-page-list">
+        <div class="stat-card skeleton" style="height:72px"></div>
+        <div class="stat-card skeleton" style="height:72px"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════
+         [6] Profile
+         ═══════════════════════ -->
+    <div id="tab-profile" class="section-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 data-lang-ar="ملفي الشخصي" data-lang-en="My Profile">ملفي الشخصي</h1>
+        </div>
+      </div>
+      <div class="profile-layout">
+        <div class="card profile-identity-card">
+          <div class="avatar avatar-xl" id="profile-avatar"
+               style="margin:0 auto 16px;font-size:1.6rem;background:var(--primary-soft);color:var(--primary)"></div>
+          <div style="font-weight:700;font-size:1rem;margin-bottom:4px" id="profile-name-display">—</div>
+          <div class="badge badge-primary" id="profile-role-display">—</div>
+          <div style="margin-top:16px">
+            <label class="btn btn-outline btn-sm" style="cursor:pointer;width:100%">
+              <i class="fa-solid fa-camera"></i>
+              <span data-lang-ar="تغيير الصورة" data-lang-en="Change Photo">تغيير الصورة</span>
+              <input type="file" id="avatar-input" accept="image/*" style="display:none">
+            </label>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fa-solid fa-pen-to-square" style="color:var(--primary)"></i>
+              <span data-lang-ar="تعديل البيانات" data-lang-en="Edit Info">تعديل البيانات</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label" data-lang-ar="البريد الإلكتروني" data-lang-en="Email">البريد الإلكتروني</label>
+              <input type="email" class="form-control" id="profile-email">
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-lang-ar="رقم الهاتف" data-lang-en="Phone">رقم الهاتف</label>
+              <input type="text" class="form-control" id="profile-phone">
+            </div>
+            <div class="divider"></div>
+            <div class="form-group">
+              <label class="form-label" data-lang-ar="كلمة المرور الحالية" data-lang-en="Current Password">كلمة المرور الحالية</label>
+              <input type="password" class="form-control" id="profile-current-pass">
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-lang-ar="كلمة المرور الجديدة" data-lang-en="New Password">كلمة المرور الجديدة</label>
+              <input type="password" class="form-control" id="profile-new-pass">
+            </div>
+            <button class="btn btn-primary" id="save-profile-btn">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span data-lang-ar="حفظ التغييرات" data-lang-en="Save Changes">حفظ التغييرات</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- ══ Modals ════════════════════════════════ -->
+
+<!-- Modal: Add/Edit Account -->
+<div class="modal-overlay" id="modal-account">
+  <div class="modal-box" style="max-width:500px">
+    <div class="modal-header">
+      <span class="modal-title" id="account-modal-title"
+            data-lang-ar="حساب جديد" data-lang-en="New Account">حساب جديد</span>
+      <button class="modal-close" id="close-account-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="account-modal-id">
+      <div class="form-group">
+        <label class="form-label" data-lang-ar="نوع الحساب" data-lang-en="Account Type">نوع الحساب <span class="required">*</span></label>
+        <select class="form-control" id="account-type">
+          <option value="" data-lang-ar="اختر النوع" data-lang-en="Select type">اختر النوع</option>
+          <option value="syriatel_cash" data-lang-ar="سيريتل كاش"  data-lang-en="Syriatel Cash">سيريتل كاش</option>
+          <option value="sham_cash"     data-lang-ar="شام كاش"     data-lang-en="Sham Cash">شام كاش</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-lang-ar="اسم الحساب" data-lang-en="Account Name">اسم الحساب <span class="required">*</span></label>
+        <input type="text" class="form-control" id="account-name"
+               data-placeholder-ar="مثال: سيريتل رئيسي" data-placeholder-en="e.g. Syriatel Main"
+               placeholder="مثال: سيريتل رئيسي">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-lang-ar="رقم الحساب / الهاتف" data-lang-en="Account / Phone Number">رقم الحساب / الهاتف <span class="required">*</span></label>
+        <input type="text" class="form-control" id="account-number" placeholder="09XX-XXXXXX">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label" data-lang-ar="الحد الأقصى للرصيد (ل.س)" data-lang-en="Max Balance (SYP)">الحد الأقصى <span class="required">*</span></label>
+          <input type="number" class="form-control" id="account-max-balance" placeholder="5000" min="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-lang-ar="الرصيد الحالي (ل.س)" data-lang-en="Current Balance (SYP)">الرصيد الحالي</label>
+          <input type="number" class="form-control" id="account-current-balance" placeholder="0" min="0">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" id="cancel-account-btn"
+              data-lang-ar="إلغاء" data-lang-en="Cancel">إلغاء</button>
+      <button class="btn btn-primary btn-sm" id="save-account-btn">
+        <i class="fa-solid fa-floppy-disk"></i>
+        <span data-lang-ar="حفظ الحساب" data-lang-en="Save Account">حفظ الحساب</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Update Balance -->
+<div class="modal-overlay" id="modal-balance">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-header">
+      <span class="modal-title" data-lang-ar="تحديث الرصيد" data-lang-en="Update Balance">تحديث الرصيد</span>
+      <button class="modal-close" id="close-balance-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="balance-account-id">
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:.85rem;color:var(--text-muted)" id="balance-account-name">—</div>
+        <div style="font-size:1.8rem;font-weight:700;color:var(--text-primary);margin:8px 0" id="balance-current">0 ل.س</div>
+        <div style="font-size:.72rem;color:var(--text-muted)" data-lang-ar="الرصيد الحالي" data-lang-en="Current Balance">الرصيد الحالي</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-lang-ar="الرصيد الجديد (ل.س)" data-lang-en="New Balance (SYP)">الرصيد الجديد (ل.س) <span class="required">*</span></label>
+        <input type="number" class="form-control" id="balance-new-value" min="0"
+               style="font-size:1.1rem;text-align:center;height:48px">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" id="cancel-balance-btn"
+              data-lang-ar="إلغاء" data-lang-en="Cancel">إلغاء</button>
+      <button class="btn btn-primary btn-sm" id="save-balance-btn">
+        <i class="fa-solid fa-floppy-disk"></i>
+        <span data-lang-ar="تحديث الرصيد" data-lang-en="Update Balance">تحديث الرصيد</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Withdraw -->
+<div class="modal-overlay" id="modal-withdraw">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-header">
+      <span class="modal-title" data-lang-ar="سحب رصيد" data-lang-en="Withdraw Funds">سحب رصيد</span>
+      <button class="modal-close" id="close-withdraw-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="withdraw-account-id">
+      <div style="background:var(--bg-main);border-radius:8px;padding:12px;margin-bottom:14px;text-align:center">
+        <div style="font-size:.75rem;color:var(--text-muted)" id="withdraw-account-name">—</div>
+        <div style="font-size:1.4rem;font-weight:700;color:var(--success);margin-top:4px" id="withdraw-available">0 ل.س</div>
+        <div style="font-size:.7rem;color:var(--text-muted)" data-lang-ar="الرصيد المتاح" data-lang-en="Available Balance">الرصيد المتاح</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-lang-ar="مبلغ السحب (ل.س)" data-lang-en="Withdrawal Amount (SYP)">مبلغ السحب <span class="required">*</span></label>
+        <input type="number" class="form-control" id="withdraw-amount" min="1"
+               style="font-size:1.1rem;text-align:center;height:48px">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-lang-ar="سبب السحب" data-lang-en="Reason">سبب السحب</label>
+        <input type="text" class="form-control" id="withdraw-reason"
+               data-placeholder-ar="مثال: رواتب موظفين" data-placeholder-en="e.g. Staff salaries"
+               placeholder="مثال: رواتب موظفين">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" id="cancel-withdraw-btn"
+              data-lang-ar="إلغاء" data-lang-en="Cancel">إلغاء</button>
+      <button class="btn btn-success btn-sm" id="confirm-withdraw-btn">
+        <i class="fa-solid fa-money-bill-transfer"></i>
+        <span data-lang-ar="تأكيد السحب" data-lang-en="Confirm Withdrawal">تأكيد السحب</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/config.js?v=20260810-live-sync"></script>
+<script src="assets/js/employee-profile.js"></script>
+<script src="assets/js/charts.js"></script>
+<script>
+'use strict';
+
+let _accounts      = [];
+let _transactions  = [];
+let _finStats      = {};
+let _activeTab     = 'overview';
+
+document.addEventListener('DOMContentLoaded', () => {
+  TAZA.initDashboardPage(['finance_manager', 'general_manager']);
+  initTabs();
+  initEventListeners();
+  loadOverview();
+  loadNotificationsPage();
+  startAutoRefresh();
+  document.querySelectorAll('.lang-btn').forEach(btn => btn.addEventListener('click', refreshActiveTabLanguage));
+});
+
+function refreshActiveTabLanguage() {
+  const refreshers = { overview:loadOverview, accounts:loadAccounts, transactions:loadTransactions, reports:loadReports, notifications:loadNotificationsPage, profile:loadProfile };
+  refreshers[_activeTab]?.();
+}
+
+function startAutoRefresh() {
+  TAZA.LiveSync.subscribe(async () => {
+    if (_activeTab === 'overview') return loadOverview();
+    if (_activeTab === 'accounts') return loadAccounts();
+    if (_activeTab === 'transactions') return loadTransactions();
+    if (_activeTab === 'reports') return loadReports();
+    if (_activeTab === 'notifications') return loadNotificationsPage();
+  });
+}
+
+function escapeHtml(value=''){return String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')}
+
+// ── Tabs ──────────────────────────────────────
+function initTabs() {
+  document.querySelectorAll('.nav-tab[data-tab]').forEach(btn =>
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+  document.querySelectorAll('.sidebar-item[data-tab]').forEach(el =>
+    el.addEventListener('click', (e) => { e.preventDefault(); switchTab(el.dataset.tab); }));
+}
+
+function switchTab(tab) {
+  _activeTab = tab;
+  document.querySelectorAll('.nav-tab[data-tab]').forEach(t =>
+    t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.sidebar-item[data-tab]').forEach(t =>
+    t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.section-content').forEach(s =>
+    s.classList.toggle('active', s.id === `tab-${tab}`));
+
+  const titles = {
+    overview:     {ar:'نظرة عامة',         en:'Overview'},
+    accounts:     {ar:'حسابات الدفع',      en:'Payment Accounts'},
+    transactions: {ar:'المعاملات المالية',  en:'Transactions'},
+    reports:      {ar:'التقارير المالية',   en:'Financial Reports'},
+    notifications:{ar:'الإشعارات',         en:'Notifications'},
+    profile:      {ar:'ملفي الشخصي',       en:'My Profile'},
+  };
+  const lang = TAZA.Lang.current;
+  const pt   = document.getElementById('page-title');
+  if (pt && titles[tab]) pt.textContent = titles[tab][lang];
+
+  const loaders = {
+    accounts:     () => { _accounts.length ? renderAccountsGrid(_accounts) : loadAccounts(); },
+    transactions: () => { _transactions.length || loadTransactions(); },
+    reports:      loadReports,
+    notifications: loadNotificationsPage,
+    profile:      loadProfile,
+  };
+  loaders[tab]?.();
+}
+
+// ── Events ────────────────────────────────────
+function initEventListeners() {
+  // Accounts
+  document.getElementById('btn-add-account')
+    ?.addEventListener('click', openAddAccountModal);
+  document.getElementById('accounts-grid')
+    ?.addEventListener('click', handleAccountAction);
+  document.getElementById('accounts-quick-grid')
+    ?.addEventListener('click', (e) => {
+      if (e.target.closest('[data-action]')) switchTab('accounts');
+    });
+
+  // Account Modal
+  document.getElementById('close-account-modal')
+    ?.addEventListener('click', () => closeModal('modal-account'));
+  document.getElementById('cancel-account-btn')
+    ?.addEventListener('click', () => closeModal('modal-account'));
+  document.getElementById('save-account-btn')
+    ?.addEventListener('click', saveAccount);
+
+  // Balance Modal
+  document.getElementById('close-balance-modal')
+    ?.addEventListener('click', () => closeModal('modal-balance'));
+  document.getElementById('cancel-balance-btn')
+    ?.addEventListener('click', () => closeModal('modal-balance'));
+  document.getElementById('save-balance-btn')
+    ?.addEventListener('click', saveBalance);
+
+  // Withdraw Modal
+  document.getElementById('close-withdraw-modal')
+    ?.addEventListener('click', () => closeModal('modal-withdraw'));
+  document.getElementById('cancel-withdraw-btn')
+    ?.addEventListener('click', () => closeModal('modal-withdraw'));
+  document.getElementById('confirm-withdraw-btn')
+    ?.addEventListener('click', confirmWithdraw);
+
+  // Transactions filters
+  document.getElementById('tx-method-filter')
+    ?.addEventListener('change', loadTransactions);
+  document.getElementById('tx-status-filter')
+    ?.addEventListener('change', loadTransactions);
+  document.getElementById('tx-date-filter')
+    ?.addEventListener('change', loadTransactions);
+  document.getElementById('transactions-tbody')
+    ?.addEventListener('click', handleTxAction);
+
+  // Reports
+  document.getElementById('generate-report-btn')
+    ?.addEventListener('click', generateReport);
+
+  // Revenue period tabs
+  document.querySelectorAll('.rev-tab').forEach(btn =>
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('.rev-tab').forEach(b => b.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      updateHeroRevenue(e.currentTarget.dataset.period);
+    }));
+
+  // Notifications
+  document.getElementById('mark-all-read-btn')
+    ?.addEventListener('click', markAllRead);
+  document.getElementById('panel-mark-all')
+    ?.addEventListener('click', markAllRead);
+
+  // Profile
+  document.getElementById('save-profile-btn')
+    ?.addEventListener('click', saveProfile);
+  document.getElementById('avatar-input')
+    ?.addEventListener('change', uploadAvatar);
+
+  // Close modals
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('modal-overlay') && e.target.classList.contains('show')) {
+      e.target.classList.remove('show'); document.body.style.overflow = '';
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+      document.body.style.overflow = '';
+    }
+  });
+}
+
+// ═══════════════════════════════════════════
+// [1] Overview
+// ═══════════════════════════════════════════
+async function loadOverview() {
+  try {
+    const [statsRes, accsRes] = await Promise.all([
+      TAZA.Http.get(TAZA.API.FINANCE.PAYMENT_STATS),
+      TAZA.Http.get(TAZA.API.FINANCE.ACCOUNTS),
+    ]);
+    _finStats  = statsRes?.data ?? {};
+    _accounts  = accsRes?.data?.accounts ?? [];
+
+    renderHeroRevenue(_finStats);
+    renderOverviewStats(_finStats, accsRes?.data ?? {});
+    renderOverviewCharts(_finStats);
+    renderAccountsQuickGrid(_accounts);
+    checkNearCapacityAlert(accsRes?.data ?? {});
+  } catch(e) {
+    TAZA.Toast.apiError(e);
+  }
+}
+
+function renderHeroRevenue(stats) {
+  const rev = stats.revenue ?? {};
+  const isAr = TAZA.Lang.current === 'ar';
+
+  const setEl = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = TAZA.Utils.formatMoney(val ?? 0);
+  };
+  setEl('rev-today', rev.today);
+  setEl('rev-week',  rev.this_week);
+  setEl('rev-all',   rev.all_time);
+
+  // Default hero = this_month
+  const heroEl = document.getElementById('hero-revenue');
+  if (heroEl) heroEl.textContent = TAZA.Utils.formatMoney(rev.this_month ?? 0);
+}
+
+function updateHeroRevenue(period) {
+  const rev    = _finStats.revenue ?? {};
+  const heroEl = document.getElementById('hero-revenue');
+  const lblEl  = document.getElementById('hero-period-label');
+  const isAr   = TAZA.Lang.current === 'ar';
+
+  const vals = {
+    today:      { val: rev.today,      ar: 'هذا اليوم',    en: 'Today'      },
+    this_week:  { val: rev.this_week,  ar: 'هذا الأسبوع', en: 'This Week'  },
+    this_month: { val: rev.this_month, ar: 'هذا الشهر',   en: 'This Month' },
+  };
+  const chosen = vals[period] ?? vals.this_month;
+  if (heroEl) heroEl.textContent = TAZA.Utils.formatMoney(chosen.val ?? 0);
+  if (lblEl)  lblEl.textContent  = isAr ? chosen.ar : chosen.en;
+}
+
+function renderOverviewStats(stats, accsData) {
+  const isAr   = TAZA.Lang.current === 'ar';
+  const rev    = stats.revenue ?? {};
+  const grid   = document.getElementById('overview-stats');
+  const totalBal = accsData.stats?.total_balance ?? accsData.accounts?.reduce((s,a) => s+(a.current_balance??0), 0) ?? 0;
+
+  grid.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="fa-solid fa-money-bill-wave"></i></div>
+      <div class="stat-content">
+        <div class="stat-label">${isAr?'إيرادات اليوم':'Today\'s Revenue'}</div>
+        <div class="stat-value" style="font-size:1.2rem">${TAZA.Utils.formatMoney(rev.today)}</div>
+        <div class="stat-change up"><i class="fa-solid fa-arrow-up"></i> ${isAr?'اليوم':'Today'}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="fa-solid fa-chart-bar"></i></div>
+      <div class="stat-content">
+        <div class="stat-label">${isAr?'إيرادات الشهر':'Monthly Revenue'}</div>
+        <div class="stat-value" style="font-size:1.2rem">${TAZA.Utils.formatMoney(rev.this_month)}</div>
+        <div class="stat-change up"><i class="fa-solid fa-calendar"></i> ${isAr?'هذا الشهر':'This month'}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon amber"><i class="fa-solid fa-landmark"></i></div>
+      <div class="stat-content">
+        <div class="stat-label">${isAr?'إجمالي الأرصدة':'Total Balances'}</div>
+        <div class="stat-value" style="font-size:1.1rem">${TAZA.Utils.formatMoney(totalBal)}</div>
+        <div class="stat-change neutral"><i class="fa-solid fa-circle-info"></i>
+          ${accsData.stats?.active_accounts ?? _accounts.length} ${isAr?'حساب':'accounts'}
+        </div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon ${(accsData.stats?.near_capacity ?? 0)>0 ? 'red' : 'green'}">
+        <i class="fa-solid ${(accsData.stats?.near_capacity ?? 0)>0 ? 'fa-triangle-exclamation' : 'fa-circle-check'}"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">${isAr?'حسابات قريبة من الامتلاء':'Near Capacity'}</div>
+        <div class="stat-value" style="color:${(accsData.stats?.near_capacity ?? 0)>0?'var(--warning)':'var(--success)'}">
+          ${accsData.stats?.near_capacity ?? 0}
+        </div>
+        <div class="stat-change ${(accsData.stats?.near_capacity ?? 0)>0?'down':'up'}">
+          <i class="fa-solid fa-circle-dot"></i>
+          ${(accsData.stats?.near_capacity ?? 0)>0
+            ? (isAr?'تحتاج مراجعة':'Needs review')
+            : (isAr?'كل شيء طبيعي':'All good')}
+        </div>
+      </div>
+    </div>
+  `;
+
+  renderFinanceStatus(accsData, stats);
+}
+
+function renderFinanceStatus(accsData = {}, stats = {}) {
+  const panel = document.getElementById('finance-status');
+  if (!panel) return;
+  const isAr = TAZA.Lang.current === 'ar';
+  const near = Number(accsData.stats?.near_capacity ?? 0);
+  const failed = Number(stats.failed ?? stats.payments?.failed ?? 0);
+  const needsWork = near > 0 || failed > 0;
+  const title = near > 0 ? (isAr ? `${near} ${near === 1 ? 'حساب قريب' : 'حسابات قريبة'} من الحد الأعلى` : `${near} account${near === 1 ? '' : 's'} near capacity`) : failed > 0 ? (isAr ? `${failed} معاملات فاشلة تحتاج مراجعة` : `${failed} failed transactions need review`) : (isAr ? 'الوضع المالي مستقر' : 'Financial status is stable');
+  const desc = near > 0 ? (isAr ? 'راجع الأرصدة قبل استقبال عمليات دفع جديدة.' : 'Review balances before receiving new payments.') : (isAr ? 'لا توجد تنبيهات حرجة؛ تابع المعاملات والتقارير الدورية.' : 'No critical alerts; continue monitoring transactions and reports.');
+  panel.className = `finance-status ${needsWork ? 'has-alerts' : 'is-clear'}`;
+  panel.innerHTML = `<div class="finance-status-icon"><i class="fa-solid ${near > 0 ? 'fa-triangle-exclamation' : failed > 0 ? 'fa-receipt' : 'fa-circle-check'}"></i></div><div class="finance-status-copy"><strong>${title}</strong><span>${desc}</span></div><button class="btn btn-outline btn-sm" onclick="switchTab('${near > 0 ? 'accounts' : 'transactions'}')"><i class="fa-solid fa-arrow-left-long"></i>${isAr?'فتح المراجعة':'Open review'}</button>`;
+}
+
+function renderOverviewCharts(stats) {
+  const monthly = stats.monthly_revenue ?? [];
+  TAZA.Charts.dashboard.monthlyRevenue('chart-monthly-rev', {
+    labels: monthly.map(point => TAZA.Charts.dateLabel(point.month, { month: 'short', year: 'numeric' })),
+    values: monthly.map(point => Number(point.amount ?? 0)),
+  });
+  TAZA.Charts.dashboard.paymentMethods('chart-payment-methods',
+    stats.by_method ? {
+      labels: Object.values(stats.by_method).map(m => m.label),
+      values: Object.values(stats.by_method).map(m => m.count),
+    } : null
+  );
+}
+
+function renderAccountsQuickGrid(accounts) {
+  const grid = document.getElementById('accounts-quick-grid');
+  if (!accounts.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-icon">🏦</div>
+      <div class="empty-title">لا توجد حسابات</div>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = accounts.slice(0, 4).map(a => buildAccountCard(a, true)).join('');
+}
+
+function checkNearCapacityAlert(accsData) {
+  const near = accsData.near_capacity_alert ?? [];
+  ['near-cap-badge','sb-near-capacity'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = near.length; el.style.display = near.length > 0 ? 'inline-block' : 'none'; }
+  });
+}
+
+// ═══════════════════════════════════════════
+// [2] Accounts
+// ═══════════════════════════════════════════
+async function loadAccounts() {
+  try {
+    const res  = await TAZA.Http.get(TAZA.API.FINANCE.ACCOUNTS);
+    _accounts  = res?.data?.accounts ?? res?.accounts ?? [];
+    renderAccountsGrid(_accounts);
+    checkNearCapacityAlert(res?.data ?? {});
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+function renderAccountsGrid(accounts) {
+  const grid = document.getElementById('accounts-grid');
+  if (!accounts.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-icon">🏦</div>
+      <div class="empty-title">${TAZA.Lang.current === 'ar' ? 'لا توجد حسابات بعد' : 'No accounts yet'}</div>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = accounts.map(a => buildAccountCard(a)).join('');
+}
+
+function buildAccountCard(acc, compact = false) {
+  const isAr    = TAZA.Lang.current === 'ar';
+  const pct     = acc.max_balance > 0
+    ? Math.round((acc.current_balance / acc.max_balance) * 100)
+    : 0;
+  const near    = pct >= 80;
+  const barColor= pct >= 90 ? 'var(--danger)' : pct >= 70 ? 'var(--warning)' : 'var(--primary)';
+
+  const typeIcons = {
+    syriatel_cash: { icon:'📱', cls:'syriatel', label: isAr?'سيريتل كاش':'Syriatel Cash' },
+    sham_cash:     { icon:'💳', cls:'sham',     label: isAr?'شام كاش':'Sham Cash' },
+  };
+  const ti = typeIcons[acc.type] ?? { icon:'💰', cls:'syriatel', label: acc.type };
+
+  return `
+    <div class="account-card ${acc.is_primary ? 'primary-account' : ''} ${near ? 'near-capacity' : ''}">
+      <div class="account-header">
+        <div class="account-type-icon ${ti.cls}">${ti.icon}</div>
+        <div style="flex:1;min-width:0">
+          <div class="account-name">${escapeHtml(acc.account_name)}</div>
+          <div class="account-number">${escapeHtml(acc.account_number)}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          ${acc.is_primary ? `<span class="badge badge-primary" style="font-size:.62rem">
+            ⭐ ${isAr?'أساسي':'Primary'}</span>` : ''}
+          <span class="badge ${acc.is_active?'badge-success':'badge-danger'}" style="font-size:.62rem">
+            ${acc.is_active ? (isAr?'نشط':'Active') : (isAr?'معطّل':'Inactive')}
+          </span>
+        </div>
+      </div>
+
+      <div class="account-balance">${TAZA.Utils.formatMoney(acc.current_balance)}</div>
+      <div class="balance-label">
+        ${isAr?'من':'from'} ${TAZA.Utils.formatMoney(acc.max_balance)}
+        ${near ? `<span style="color:var(--warning);font-weight:600;margin-right:6px">⚠️ ${isAr?'قريب من الامتلاء':'Near capacity'}</span>` : ''}
+      </div>
+
+      <div class="capacity-bar">
+        <div class="capacity-pct">
+          <span>${ti.label}</span>
+          <span style="color:${barColor};font-weight:700">${pct}%</span>
+        </div>
+        <div class="progress" style="height:6px">
+          <div class="progress-bar" style="width:${pct}%;background:${barColor}"></div>
+        </div>
+      </div>
+
+      ${!compact ? `
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+          <button class="btn btn-outline btn-sm" style="flex:1"
+                  data-action="edit-account" data-id="${acc.id}">
+            <i class="fa-solid fa-pen"></i> ${isAr?'تعديل':'Edit'}
+          </button>
+          <button class="btn btn-ghost btn-sm"
+                  data-action="update-balance" data-id="${acc.id}"
+                  data-name="${acc.account_name}" data-balance="${acc.current_balance}"
+                  title="${isAr?'تحديث الرصيد':'Update Balance'}">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
+          <button class="btn btn-ghost btn-sm"
+                  data-action="withdraw" data-id="${acc.id}"
+                  data-name="${acc.account_name}" data-balance="${acc.current_balance}"
+                  title="${isAr?'سحب':'Withdraw'}">
+            <i class="fa-solid fa-money-bill-transfer"></i>
+          </button>
+          ${!acc.is_primary ? `
+            <button class="btn btn-ghost btn-sm"
+                    data-action="make-primary" data-id="${acc.id}"
+                    title="${isAr?'جعله أساسي':'Make Primary'}">
+              <i class="fa-solid fa-star"></i>
+            </button>
+            <button class="btn btn-danger btn-sm"
+                    data-action="delete-account" data-id="${acc.id}" data-name="${acc.account_name}">
+              <i class="fa-solid fa-trash"></i>
+            </button>` : ''}
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+async function handleAccountAction(e) {
+  const btn    = e.target.closest('[data-action]');
+  if (!btn) return;
+  const action = btn.dataset.action;
+  const id     = parseInt(btn.dataset.id);
+  const isAr   = TAZA.Lang.current === 'ar';
+
+  if (action === 'edit-account')  openEditAccountModal(id);
+  if (action === 'update-balance') openBalanceModal(id, btn.dataset.name, parseFloat(btn.dataset.balance));
+  if (action === 'withdraw')      openWithdrawModal(id, btn.dataset.name, parseFloat(btn.dataset.balance));
+  if (action === 'make-primary') {
+    try {
+      await TAZA.Http.patch(TAZA.API.FINANCE.ACCOUNT_PRIMARY(id));
+      TAZA.Toast.success(isAr ? 'تم تعيينه كحساب أساسي' : 'Set as primary account');
+      _accounts = []; loadAccounts();
+    } catch(err) { TAZA.Toast.apiError(err); }
+  }
+  if (action === 'delete-account') {
+    TAZA.Confirm.show(
+      `${isAr?'حذف حساب':'Delete account'} "${btn.dataset.name}"?`,
+      async () => {
+        try {
+          await TAZA.Http.delete(TAZA.API.FINANCE.ACCOUNT_DELETE(id));
+          TAZA.Toast.success(isAr ? 'تم حذف الحساب' : 'Account deleted');
+          _accounts = []; loadAccounts();
+        } catch(err) { TAZA.Toast.apiError(err); }
+      },
+      { danger: true }
+    );
+  }
+}
+
+// Account CRUD Modals
+function openAddAccountModal() {
+  document.getElementById('account-modal-id').value       = '';
+  document.getElementById('account-type').value           = '';
+  document.getElementById('account-name').value           = '';
+  document.getElementById('account-number').value         = '';
+  document.getElementById('account-max-balance').value    = '';
+  document.getElementById('account-current-balance').value= '';
+  document.getElementById('account-type').disabled        = false;
+  document.getElementById('account-modal-title').textContent =
+    TAZA.Lang.current === 'ar' ? 'حساب جديد' : 'New Account';
+  openModal('modal-account');
+}
+
+function openEditAccountModal(id) {
+  const acc  = _accounts.find(a => a.id === id);
+  if (!acc) return;
+  const isAr = TAZA.Lang.current === 'ar';
+  document.getElementById('account-modal-id').value       = acc.id;
+  document.getElementById('account-type').value           = acc.type;
+  document.getElementById('account-type').disabled        = true;
+  document.getElementById('account-name').value           = acc.account_name   ?? '';
+  document.getElementById('account-number').value         = acc.account_number ?? '';
+  document.getElementById('account-max-balance').value    = acc.max_balance    ?? '';
+  document.getElementById('account-current-balance').value= '';
+  document.getElementById('account-modal-title').textContent = isAr ? 'تعديل حساب' : 'Edit Account';
+  openModal('modal-account');
+}
+
+async function saveAccount() {
+  const id     = document.getElementById('account-modal-id').value;
+  const isEdit = !!id;
+  const isAr   = TAZA.Lang.current === 'ar';
+  const btn    = document.getElementById('save-account-btn');
+
+  const payload = {
+    account_name:   document.getElementById('account-name').value.trim(),
+    account_number: document.getElementById('account-number').value.trim(),
+    max_balance:    parseFloat(document.getElementById('account-max-balance').value),
+  };
+  if (!isEdit) {
+    payload.type = document.getElementById('account-type').value;
+    const curr   = document.getElementById('account-current-balance').value;
+    if (curr) payload.current_balance = parseFloat(curr);
+  }
+
+  if (!payload.account_name || !payload.account_number || isNaN(payload.max_balance) ||
+      (!isEdit && !payload.type)) {
+    TAZA.Toast.warning(isAr ? 'يرجى ملء الحقول المطلوبة' : 'Fill required fields');
+    return;
+  }
+
+  TAZA.Utils.disableBtn(btn);
+  try {
+    if (isEdit) {
+      await TAZA.Http.put(TAZA.API.FINANCE.ACCOUNT_UPDATE(id), payload);
+      TAZA.Toast.success(isAr ? 'تم تحديث الحساب' : 'Account updated');
+    } else {
+      await TAZA.Http.post(TAZA.API.FINANCE.ACCOUNT_STORE, payload);
+      TAZA.Toast.success(isAr ? 'تم إضافة الحساب' : 'Account added');
+    }
+    closeModal('modal-account');
+    _accounts = []; loadAccounts(); loadOverview();
+  } catch(e) { TAZA.Toast.apiError(e); }
+  finally    { TAZA.Utils.enableBtn(btn); }
+}
+
+function openBalanceModal(id, name, current) {
+  document.getElementById('balance-account-id').value   = id;
+  document.getElementById('balance-account-name').textContent = name;
+  document.getElementById('balance-current').textContent  = TAZA.Utils.formatMoney(current);
+  document.getElementById('balance-new-value').value     = current;
+  openModal('modal-balance');
+}
+
+async function saveBalance() {
+  const id  = parseInt(document.getElementById('balance-account-id').value);
+  const val = parseFloat(document.getElementById('balance-new-value').value);
+  const isAr = TAZA.Lang.current === 'ar';
+  const btn  = document.getElementById('save-balance-btn');
+
+  if (isNaN(val) || val < 0) {
+    TAZA.Toast.warning(isAr ? 'أدخل قيمة صحيحة' : 'Enter valid value');
+    return;
+  }
+  TAZA.Utils.disableBtn(btn);
+  try {
+    await TAZA.Http.patch(TAZA.API.FINANCE.ACCOUNT_BALANCE(id), { balance: val });
+    TAZA.Toast.success(isAr ? 'تم تحديث الرصيد' : 'Balance updated');
+    closeModal('modal-balance');
+    _accounts = []; loadAccounts(); loadOverview();
+  } catch(e) { TAZA.Toast.apiError(e); }
+  finally    { TAZA.Utils.enableBtn(btn); }
+}
+
+function openWithdrawModal(id, name, balance) {
+  document.getElementById('withdraw-account-id').value          = id;
+  document.getElementById('withdraw-account-name').textContent  = name;
+  document.getElementById('withdraw-available').textContent     = TAZA.Utils.formatMoney(balance);
+  document.getElementById('withdraw-amount').value              = '';
+  document.getElementById('withdraw-reason').value              = '';
+  openModal('modal-withdraw');
+}
+
+async function confirmWithdraw() {
+  const id     = parseInt(document.getElementById('withdraw-account-id').value);
+  const amount = parseFloat(document.getElementById('withdraw-amount').value);
+  const isAr   = TAZA.Lang.current === 'ar';
+  const btn    = document.getElementById('confirm-withdraw-btn');
+
+  if (isNaN(amount) || amount <= 0) {
+    TAZA.Toast.warning(isAr ? 'أدخل مبلغ صحيح' : 'Enter valid amount');
+    return;
+  }
+  TAZA.Utils.disableBtn(btn);
+  try {
+    await TAZA.Http.post(TAZA.API.FINANCE.ACCOUNT_WITHDRAW(id), { amount });
+    TAZA.Toast.success(`${isAr?'تم سحب':'Withdrew'} ${TAZA.Utils.formatMoney(amount)}`);
+    closeModal('modal-withdraw');
+    _accounts = []; loadAccounts(); loadOverview();
+  } catch(e) { TAZA.Toast.apiError(e); }
+  finally    { TAZA.Utils.enableBtn(btn); }
+}
+
+// ═══════════════════════════════════════════
+// [3] Transactions
+// ═══════════════════════════════════════════
+async function loadTransactions() {
+  const method = document.getElementById('tx-method-filter')?.value ?? '';
+  const status = document.getElementById('tx-status-filter')?.value ?? '';
+  const date   = document.getElementById('tx-date-filter')?.value   ?? '';
+  const tbody  = document.getElementById('transactions-tbody');
+  const isAr   = TAZA.Lang.current === 'ar';
+
+  try {
+    const params = {};
+    if (method) params.method = method;
+    if (status) params.status = status;
+    if (date)   params.date   = date;
+
+    const res   = await TAZA.Http.get(TAZA.API.FINANCE.PAYMENTS, params);
+    _transactions = res?.data?.payments ?? [];
+    const stats   = res?.data?.stats    ?? {};
+    renderTxStats(stats);
+    renderTransactionsTable(_transactions);
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+function renderTxStats(stats) {
+  const isAr  = TAZA.Lang.current === 'ar';
+  const row   = document.getElementById('tx-stats-row');
+  if (!row) return;
+  row.innerHTML = `
+    <div class="stat-card" style="padding:14px">
+      <div style="font-size:.72rem;color:var(--text-muted)">${isAr?'إجمالي المعاملات':'Total'}</div>
+      <div style="font-size:1.4rem;font-weight:700">${stats.total ?? 0}</div>
+    </div>
+    <div class="stat-card" style="padding:14px">
+      <div style="font-size:.72rem;color:var(--text-muted)">${isAr?'ناجحة':'Completed'}</div>
+      <div style="font-size:1.4rem;font-weight:700;color:var(--success)">${stats.completed ?? 0}</div>
+    </div>
+    <div class="stat-card" style="padding:14px">
+      <div style="font-size:.72rem;color:var(--text-muted)">${isAr?'المجموع':'Total Amount'}</div>
+      <div style="font-size:1rem;font-weight:700;color:var(--primary)">${TAZA.Utils.formatMoney(stats.total_amount ?? 0)}</div>
+    </div>
+    <div class="stat-card" style="padding:14px">
+      <div style="font-size:.72rem;color:var(--text-muted)">${isAr?'مستردة':'Refunded'}</div>
+      <div style="font-size:1.4rem;font-weight:700;color:var(--warning)">${stats.refunded ?? 0}</div>
+    </div>
+  `;
+}
+
+function renderTransactionsTable(txs) {
+  const tbody = document.getElementById('transactions-tbody');
+  const isAr  = TAZA.Lang.current === 'ar';
+
+  if (!txs.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <div class="empty-title">${isAr?'لا توجد معاملات':'No transactions'}</div>
+    </div></td></tr>`;
+    return;
+  }
+
+  const methodCls = {
+    cash:'tx-method-cash', syriatel_cash:'tx-method-syriatel',
+    sham_cash:'tx-method-sham', loyalty_points:'tx-method-loyalty',
+  };
+
+  tbody.innerHTML = txs.map(tx => `
+    <tr>
+      <td style="font-weight:700;color:var(--primary)">#${tx.id}</td>
+      <td style="font-size:.82rem">#${tx.order_id ?? '—'}</td>
+      <td style="font-size:.82rem">${escapeHtml(tx.customer_name ?? (isAr?'زبون':'Customer'))}</td>
+      <td>
+        <span class="tx-method-badge ${methodCls[tx.method] ?? ''}">
+          ${tx.method_label ?? tx.method}
+        </span>
+      </td>
+      <td style="font-weight:700">${TAZA.Utils.formatMoney(tx.amount)}</td>
+      <td>${TAZA.Utils.statusBadge(tx.status)}</td>
+      <td style="font-size:.78rem;color:var(--text-muted)">${TAZA.Utils.timeAgo(tx.created_at)}</td>
+      <td>
+        ${tx.status === 'completed' ? `
+          <button class="btn btn-warning btn-sm"
+                  data-action="refund-tx" data-id="${tx.id}">
+            <i class="fa-solid fa-rotate-left"></i>
+            ${isAr?'استرداد':'Refund'}
+          </button>` : ''}
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function handleTxAction(e) {
+  const btn    = e.target.closest('[data-action]');
+  if (!btn || btn.dataset.action !== 'refund-tx') return;
+  const id    = parseInt(btn.dataset.id);
+  const isAr  = TAZA.Lang.current === 'ar';
+
+  TAZA.Confirm.show(
+    isAr ? 'تأكيد استرداد هذه العملية؟' : 'Confirm refund this transaction?',
+    async () => {
+      try {
+        await TAZA.Http.post(TAZA.API.FINANCE.PAYMENT_REFUND(id));
+        TAZA.Toast.success(isAr ? 'تم الاسترداد بنجاح' : 'Refund successful');
+        _transactions = []; loadTransactions();
+      } catch(err) { TAZA.Toast.apiError(err); }
+    },
+    { danger: true, btnText: isAr ? 'تأكيد الاسترداد' : 'Confirm Refund' }
+  );
+}
+
+// ═══════════════════════════════════════════
+// [4] Reports
+// ═══════════════════════════════════════════
+async function loadReports() {
+  const isAr = TAZA.Lang.current === 'ar';
+  try {
+    const [statsRes, reportsRes] = await Promise.all([
+      TAZA.Http.get(TAZA.API.FINANCE.PAYMENT_STATS),
+      TAZA.Http.get(TAZA.API.REPORTS.LIST),
+    ]);
+    renderReportPreview(statsRes?.data ?? {});
+    renderGMReports(reportsRes?.data?.received ?? []);
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+function renderReportPreview(stats) {
+  const isAr   = TAZA.Lang.current === 'ar';
+  const rev    = stats.revenue ?? {};
+  const byMethod = stats.by_method ?? {};
+  const content  = document.getElementById('report-preview-content');
+  if (!content) return;
+
+  const rows = [
+    { label: isAr?'إيرادات اليوم':'Today\'s Revenue',  val: TAZA.Utils.formatMoney(rev.today) },
+    { label: isAr?'إيرادات الأسبوع':'Weekly Revenue',   val: TAZA.Utils.formatMoney(rev.this_week) },
+    { label: isAr?'إيرادات الشهر':'Monthly Revenue',    val: TAZA.Utils.formatMoney(rev.this_month) },
+    { label: isAr?'إجمالي كل الوقت':'All-Time Revenue', val: TAZA.Utils.formatMoney(rev.all_time) },
+  ];
+
+  const methodRows = Object.entries(byMethod)
+    .filter(([, m]) => m.count > 0)
+    .map(([method, m]) => `
+      <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:.8rem;border-bottom:1px solid var(--border-light)">
+        <span style="color:var(--text-secondary)">${m.label}</span>
+        <span style="font-weight:600">${m.count} ${isAr?'عملية':'txs'} — ${TAZA.Utils.formatMoney(m.amount)}</span>
+      </div>`).join('');
+
+  content.innerHTML = `
+    ${rows.map(r => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border-light)">
+        <span style="font-size:.825rem;color:var(--text-secondary)">${r.label}</span>
+        <span style="font-weight:700;font-size:.9rem;color:var(--primary)">${r.val}</span>
+      </div>`).join('')}
+    ${methodRows ? `<div style="margin-top:14px;font-size:.78rem;font-weight:600;color:var(--text-muted);margin-bottom:6px">
+      ${isAr?'توزيع طرق الدفع:':'Payment Methods:'}</div>${methodRows}` : ''}
+  `;
+
+  // Last report time
+  TAZA.Http.get(TAZA.API.REPORTS.LIST).then(r => {
+    const reports = r?.data?.sent ?? [];
+    const last    = reports[0];
+    const lrEl    = document.getElementById('last-report-info');
+    if (lrEl) {
+      lrEl.innerHTML = last
+        ? `<i class="fa-regular fa-clock"></i> ${isAr?'آخر تقرير:':'Last report:'} ${TAZA.Utils.timeAgo(last.created_at)}`
+        : `<i class="fa-regular fa-clock"></i> ${isAr?'لم يُرسَل أي تقرير بعد':'No report sent yet'}`;
+    }
+  }).catch(() => {});
+}
+
+function renderGMReports(reports) {
+  const list = document.getElementById('gm-reports-list');
+  const isAr = TAZA.Lang.current === 'ar';
+  if (!reports.length) {
+    list.innerHTML = `<div class="empty-state" style="padding:30px">
+      <div class="empty-icon">📬</div>
+      <div class="empty-title">${isAr?'لا توجد تعليمات واردة':'No instructions received'}</div>
+    </div>`;
+    return;
+  }
+  list.innerHTML = reports.map(r => `
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--border-radius);padding:14px 18px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+        <div>
+          <div style="font-weight:700;font-size:.875rem">${escapeHtml(r.title)}</div>
+          <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px">
+            <i class="fa-solid fa-user"></i> ${escapeHtml(r.sender?.name ?? (isAr?'المدير العام':'GM'))}
+            &nbsp;·&nbsp;
+            <i class="fa-regular fa-clock"></i> ${TAZA.Utils.timeAgo(r.created_at)}
+          </div>
+        </div>
+        <span class="badge ${r.status==='sent'?'badge-warning':'badge-success'}">${r.status_label}</span>
+      </div>
+      ${r.content ? `<div style="margin-top:8px;font-size:.8rem;color:var(--text-secondary);
+        background:var(--bg-main);border-radius:6px;padding:8px;white-space:pre-line">${escapeHtml(r.content)}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+async function generateReport() {
+  const btn  = document.getElementById('generate-report-btn');
+  const isAr = TAZA.Lang.current === 'ar';
+  TAZA.Utils.disableBtn(btn, isAr ? 'جارٍ التوليد...' : 'Generating...');
+  try {
+    const res = await TAZA.Http.get(TAZA.API.FINANCE.REPORT);
+    TAZA.Toast.success(isAr ? 'تم توليد التقرير وإرساله للمدير العام ✓' : 'Report generated and sent to GM ✓');
+    loadReports();
+  } catch(e) { TAZA.Toast.apiError(e); }
+  finally    { TAZA.Utils.enableBtn(btn); }
+}
+
+// ═══════════════════════════════════════════
+// [5] Notifications
+// ═══════════════════════════════════════════
+async function loadNotificationsPage() {
+  const container = document.getElementById('notifs-full-list');
+  const isAr      = TAZA.Lang.current === 'ar';
+  try {
+    const res    = await TAZA.Http.get(TAZA.API.NOTIFICATIONS.LIST);
+    const notifs = res?.data?.notifications ?? [];
+    const unread = res?.data?.unread_count  ?? 0;
+    document.querySelector('.badge-dot')?.style &&
+      (document.querySelector('.badge-dot').style.display = unread > 0 ? 'block' : 'none');
+    loadNotifPanel(notifs.slice(0, 8));
+
+    if (!notifs.length) {
+      container.innerHTML = `<div class="empty-state">
+        <div class="empty-icon"><i class="fa-regular fa-bell"></i></div>
+        <div class="empty-title">${isAr?'لا توجد إشعارات':'No notifications'}</div>
+        <div class="empty-desc">${isAr?'ستظهر هنا تنبيهات الحسابات والمعاملات المهمة.':'Important account and transaction alerts will appear here.'}</div>
+      </div>`;
+      return;
+    }
+    container.innerHTML = notifs.map(n => buildFinanceNotification(n)).join('');
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+function financeNotificationVisual(n={}){const s=`${n.type??''} ${n.title??''} ${n.message??''}`.toLowerCase();if(/فشل|failed|رفض|استرداد|refund/.test(s))return{tone:'danger',icon:'fa-rotate-left'};if(/حد|رصيد|capacity|balance|تحذير/.test(s))return{tone:'warning',icon:'fa-triangle-exclamation'};if(/نجاح|completed|تم /.test(s))return{tone:'success',icon:'fa-circle-check'};return{tone:'money',icon:'fa-coins'}}
+function buildFinanceNotification(n,compact=false){const isAr=TAZA.Lang.current==='ar';const v=financeNotificationVisual(n);const unread=n.is_read?'':'unread';const title=escapeHtml(n.title||(isAr?'إشعار مالي':'Financial notification'));const message=escapeHtml(n.message||'');const time=TAZA.Utils.timeAgo(n.created_at);if(compact)return`<div class="notification-item notification-tone-${v.tone} ${unread}"><div class="notification-icon"><i class="fa-solid ${v.icon}"></i></div><div><div class="notification-item-title">${title}</div><div class="notification-item-time">${time}</div></div></div>`;return`<article class="notif-item-full notification-tone-${v.tone} ${unread}"><div class="notif-icon-wrap"><i class="fa-solid ${v.icon}"></i></div><div class="notif-copy"><div class="notif-title">${title}</div>${message?`<div class="notif-message">${message}</div>`:''}<div class="notif-time"><i class="fa-regular fa-clock"></i> ${time}</div></div><span></span></article>`}
+
+function loadNotifPanel(notifs) {
+  const panel = document.getElementById('notif-list-panel');
+  if (!panel) return;
+  const isAr=TAZA.Lang.current==='ar';
+  panel.innerHTML=notifs.length?notifs.map(n=>buildFinanceNotification(n,true)).join(''):`<div class="empty-state" style="padding:34px 20px"><div class="empty-icon"><i class="fa-regular fa-bell"></i></div><div class="empty-title">${isAr?'لا توجد إشعارات جديدة':'No new notifications'}</div></div>`;
+  const unread = notifs.filter(n=>!n.is_read).length;
+  const dot    = document.querySelector('.badge-dot');
+  if (dot) dot.style.display = unread > 0 ? 'block' : 'none';
+  const markAll = document.getElementById('panel-mark-all');
+  if (markAll) markAll.style.display = unread > 0 ? '' : 'none';
+  const summary=document.getElementById('notif-panel-summary');if(summary)summary.textContent=unread?(isAr?`${unread} إشعارات غير مقروءة`:`${unread} unread notifications`):(isAr?'أنت مطّلع على كل التحديثات':'You are up to date');
+}
+
+async function markAllRead() {
+  try {
+    await TAZA.Http.put(TAZA.API.NOTIFICATIONS.MARK_ALL_READ);
+    document.querySelectorAll('.notif-item-full.unread,.notification-item.unread')
+      .forEach(el => el.classList.remove('unread'));
+    const dot = document.querySelector('.badge-dot');
+    if (dot) dot.style.display = 'none';
+    const markAll = document.getElementById('panel-mark-all');
+    if (markAll) markAll.style.display = 'none';
+    const summary=document.getElementById('notif-panel-summary');if(summary)summary.textContent=TAZA.Lang.current==='ar'?'أنت مطّلع على كل التحديثات':'You are up to date';
+    TAZA.Toast.success(TAZA.Lang.current === 'ar' ? 'تمت القراءة' : 'All read');
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+// ═══════════════════════════════════════════
+// [6] Profile
+// ═══════════════════════════════════════════
+async function loadProfile() {
+  const user = TAZA.Auth.getUser();
+  if (!user) return;
+  ['profile-name-display','sidebar-user-name'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.textContent = user.name ?? '—';
+  });
+  const roleEl = document.getElementById('profile-role-display');
+  if (roleEl) roleEl.textContent = TAZA.Utils.statusLabel(user.role) || 'Finance Manager';
+  ['profile-avatar','sidebar-user-avatar'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    el.textContent = TAZA.Utils.initials(user.name);
+    if (user.avatar) el.innerHTML = `<img src="${TAZA.Media.url(user.avatar)}" alt="${escapeHtml(user.name)}"
+        onerror="this.style.display='none';this.parentElement.textContent='${TAZA.Utils.initials(user.name)}'">`;
+  });
+  const emailEl = document.getElementById('profile-email');
+  const phoneEl = document.getElementById('profile-phone');
+  if (emailEl) emailEl.value = user.email ?? '';
+  if (phoneEl) phoneEl.value = user.phone ?? '';
+}
+
+async function saveProfile() {
+  const email    = document.getElementById('profile-email')?.value.trim()        ?? '';
+  const phone    = document.getElementById('profile-phone')?.value.trim()        ?? '';
+  const currPass = document.getElementById('profile-current-pass')?.value.trim() ?? '';
+  const newPass  = document.getElementById('profile-new-pass')?.value.trim()     ?? '';
+  const isAr     = TAZA.Lang.current === 'ar';
+  const btn      = document.getElementById('save-profile-btn');
+  const payload  = {};
+  if (email) payload.email = email;
+  if (phone) payload.phone = phone;
+  if (newPass) {
+    if (!currPass) { TAZA.Toast.warning(isAr?'أدخل كلمة المرور الحالية':'Enter current password'); return; }
+    payload.current_password = currPass;
+    payload.new_password     = newPass;
+    payload.new_password_confirmation = newPass;
+  }
+  if (!Object.keys(payload).length) { TAZA.Toast.info(isAr?'لم يتغير شيء':'Nothing changed'); return; }
+  TAZA.Utils.disableBtn(btn);
+  try {
+    const res = await TAZA.Http.put(TAZA.API.AUTH.UPDATE_PROFILE, payload);
+    TAZA.Toast.success(isAr?'تم التحديث':'Updated');
+    if (res?.data?.employee) TAZA.Auth.save(TAZA.Auth.getToken(), res.data.employee);
+    document.getElementById('profile-current-pass').value = '';
+    document.getElementById('profile-new-pass').value     = '';
+  } catch(e) { TAZA.Toast.apiError(e); }
+  finally    { TAZA.Utils.enableBtn(btn); }
+}
+
+async function uploadAvatar(e) {
+  const file = e.target.files?.[0];
+  if (!file || !TAZA.Utils.isImageFile(file)) return;
+  const fd = new FormData(); fd.append('image', file);
+  try {
+    await TAZA.Http.upload(TAZA.API.AUTH.UPLOAD_AVATAR, fd);
+    TAZA.Toast.success(TAZA.Lang.current === 'ar' ? 'تم تحديث صورتك' : 'Avatar updated');
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+// ── Modal Helpers ──────────────────────────────
+function openModal(id) {
+  const m = document.getElementById(id);
+  if (!m) return;
+  m.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+  const m = document.getElementById(id);
+  if (m) m.classList.remove('show');
+  document.body.style.overflow = '';
+}
+</script>
+</body>
+</html>

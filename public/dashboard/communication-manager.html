@@ -1,0 +1,2109 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TAZA 041 — مدير التواصل</title>
+  <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="assets/css/dashboard.css">
+
+  <style>
+    .section-content{display:none}
+    .section-content.active{display:block;animation:fadeIn .25s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    .nav-tabs-custom{display:flex;gap:4px;flex-wrap:wrap;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--border-radius);padding:6px;margin-bottom:24px}
+    .nav-tab{padding:8px 18px;border-radius:var(--border-radius-sm);font-size:.825rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text-muted);transition:var(--transition-fast);font-family:inherit;display:flex;align-items:center;gap:7px}
+    .nav-tab:hover{background:var(--primary-soft);color:var(--primary)}
+    .nav-tab.active{background:var(--primary);color:white}
+
+    /* Working Hours Grid */
+    .hours-grid{display:grid;grid-template-columns:1fr;gap:8px}
+    .hours-row{display:grid;grid-template-columns:minmax(110px,1fr) minmax(130px,1fr) minmax(130px,1fr) 94px;gap:10px;align-items:center}
+    .hours-day{font-size:.825rem;font-weight:600;color:var(--text-secondary)}
+    .hours-toggle{width:42px;height:24px;background:var(--border);border-radius:12px;cursor:pointer;position:relative;transition:background .2s;border:none;flex-shrink:0}
+    .hours-toggle.on{background:var(--primary)}
+    .hours-toggle::after{content:'';position:absolute;top:3px;width:18px;height:18px;background:white;border-radius:50%;transition:left .2s,right .2s;right:3px;box-shadow:0 2px 5px rgba(0,0,0,.16)}
+    .hours-toggle.on::after{right:21px}
+
+    /* Gallery Grid */
+    .gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+    .gallery-item{position:relative;border-radius:var(--border-radius);overflow:hidden;aspect-ratio:4/3;background:var(--bg-main);border:2px solid var(--border);cursor:pointer}
+    .gallery-item img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+    .gallery-item:hover img{transform:scale(1.05)}
+    .gallery-item-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;gap:8px;opacity:0;transition:opacity .2s}
+    .gallery-item:hover .gallery-item-overlay{opacity:1}
+    .gallery-add{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--bg-main);border:2px dashed var(--border);border-radius:var(--border-radius);aspect-ratio:4/3;cursor:pointer;transition:var(--transition-fast);color:var(--text-muted)}
+    .gallery-add:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-soft)}
+    .gallery-add-icon{font-size:1.8rem}
+    .gallery-add-text{font-size:.78rem;font-weight:600}
+
+    /* Suggestion Card */
+    .suggestion-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--border-radius);padding:18px 20px;transition:var(--transition)}
+    .suggestion-card:hover{box-shadow:var(--shadow-md)}
+    .suggestion-card.pending{border-color:var(--warning)}
+    .suggestion-card.implemented{border-color:var(--success)}
+    .suggestion-card.rejected{opacity:.65}
+    .suggestion-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+    .suggestion-meal-name{font-size:.95rem;font-weight:700;color:var(--text-primary)}
+    .customer-info-chip{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--text-muted)}
+
+    /* Review Card */
+    .review-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--border-radius);padding:16px 20px;transition:var(--transition)}
+    .review-card:hover{box-shadow:var(--shadow-sm)}
+    .star-display{color:var(--accent);font-size:.95rem}
+
+    /* Info form layout */
+    .info-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--border-radius);padding:22px;margin-bottom:16px}
+    .info-section h3{font-size:.95rem;font-weight:700;color:var(--text-primary);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+
+    /* Logo Upload */
+    .logo-upload-wrap{width:100px;height:100px;border-radius:16px;border:2px dashed var(--border);background:var(--bg-main);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;transition:var(--transition-fast);position:relative}
+    .logo-upload-wrap:hover{border-color:var(--primary);background:var(--primary-soft)}
+    .logo-upload-wrap img{width:100%;height:100%;object-fit:contain}
+    .logo-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;color:white;font-size:.75rem}
+    .logo-upload-wrap:hover .logo-overlay{opacity:1}
+    .restaurant-map-box{height:320px;border:1px solid var(--border);border-radius:16px;overflow:hidden;background:var(--bg-main)}
+    .restaurant-map-hint{font-size:.78rem;color:var(--text-muted);margin-top:8px;line-height:1.7}
+    .map-coordinate-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+    .content-editor-note{margin:-4px 0 18px;color:var(--text-muted);font-size:.8rem;line-height:1.8}
+    .content-editor-group{margin-top:16px;padding:18px;border:1px solid var(--border);border-radius:14px;background:var(--bg-main)}
+    .content-editor-group-title{display:flex;align-items:center;gap:8px;margin-bottom:14px;color:var(--text-primary);font-size:.86rem;font-weight:700}
+    .content-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .content-editor-grid .wide{grid-column:1/-1}
+    .footer-links-editor{display:grid;gap:10px}
+    .footer-link-row{display:grid;grid-template-columns:1fr 1fr 1.35fr 42px;gap:10px;align-items:end;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--bg-main)}
+    .footer-link-row .form-group{margin:0}
+    .footer-link-remove{width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--danger);border-radius:10px;background:var(--danger-light);color:var(--danger);cursor:pointer}
+    .footer-editor-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;flex-wrap:wrap}
+    @media(max-width:700px){.map-coordinate-row{grid-template-columns:1fr}.restaurant-map-box{height:260px}}
+    @media(max-width:800px){.content-editor-grid{grid-template-columns:1fr}.content-editor-grid .wide{grid-column:auto}.footer-link-row{grid-template-columns:1fr}.footer-link-remove{width:100%}}
+
+    /* Notif */
+    .notif-item-full{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--border-radius-sm);padding:14px 16px;display:flex;gap:12px;align-items:flex-start;transition:var(--transition-fast);cursor:pointer}
+    .notif-item-full:hover{background:var(--primary-soft)}
+    .notif-item-full.unread{border-color:var(--primary);background:var(--primary-soft)}
+    .notif-icon-wrap{width:40px;height:40px;border-radius:10px;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+    @media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+    #notif-panel{left:80px}
+    body.lang-en #notif-panel{left:auto;right:80px}
+  </style>
+  <link rel="stylesheet" href="assets/css/communication-manager.css">
+</head>
+<body class="communication-workspace">
+<div id="toast-container" class="toast-container"></div>
+<div class="dashboard-wrapper">
+
+<!-- ══ Sidebar ════════════════════════════════ -->
+<aside class="sidebar" id="sidebar">
+  <a href="#" class="sidebar-logo">
+    <div class="sidebar-logo-icon">
+      <img src="assets/images/logo.jpg" alt="TAZA"
+           onerror="this.parentElement.innerHTML='<span style=\'font-weight:900;color:var(--primary);font-family:var(--font-latin)\'>T</span>'">
+    </div>
+    <div class="sidebar-logo-text">
+      <div class="sidebar-logo-title">TAZA 041</div>
+      <div class="sidebar-logo-sub" data-lang-ar="مدير التواصل" data-lang-en="Comm. Manager">مدير التواصل</div>
+    </div>
+  </a>
+  <nav class="sidebar-nav">
+    <div class="sidebar-section-title" data-lang-ar="القائمة" data-lang-en="MENU">القائمة</div>
+    <a class="sidebar-item active" data-tab="overview"     data-tooltip="نظرة عامة" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-gauge-high"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="نظرة عامة"           data-lang-en="Overview">نظرة عامة</span>
+    </a>
+    <a class="sidebar-item" data-tab="restaurant-info"     data-tooltip="معلومات المطعم" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-store"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="معلومات المطعم"       data-lang-en="Restaurant Info">معلومات المطعم</span>
+    </a>
+    <a class="sidebar-item" data-tab="gallery"             data-tooltip="معرض الصور" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-images"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="معرض الصور"           data-lang-en="Gallery">معرض الصور</span>
+    </a>
+    <a class="sidebar-item" data-tab="suggestions"         data-tooltip="اقتراحات الوجبات" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-lightbulb"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="اقتراحات الوجبات"    data-lang-en="Meal Suggestions">اقتراحات الوجبات</span>
+      <span class="sidebar-badge" id="sb-suggestions" style="display:none">0</span>
+    </a>
+    <a class="sidebar-item" data-tab="reviews"             data-tooltip="تقييمات الزبائن" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-star-half-stroke"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="تقييمات الزبائن"     data-lang-en="Customer Reviews">تقييمات الزبائن</span>
+    </a>
+    <a class="sidebar-item" data-tab="notifications"       data-tooltip="الإشعارات" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-bell"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="الإشعارات"           data-lang-en="Notifications">الإشعارات</span>
+      <span class="sidebar-badge notif-count" id="sb-notif-count" style="display:none">0</span>
+    </a>
+    <div class="sidebar-section-title" data-lang-ar="حسابي" data-lang-en="ACCOUNT">حسابي</div>
+    <a class="sidebar-item" data-tab="profile"             data-tooltip="ملفي" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-user-pen"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="ملفي الشخصي"         data-lang-en="My Profile">ملفي الشخصي</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-user-avatar" id="sidebar-user-avatar"></div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sidebar-user-name">—</div>
+        <div class="sidebar-user-role" data-lang-ar="مدير التواصل" data-lang-en="Comm. Manager">مدير التواصل</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ══ Main ════════════════════════════════════ -->
+<div class="main-content" id="main-content">
+  <header class="topbar">
+    <div class="topbar-title">
+      <button class="topbar-btn" id="sidebar-toggle"><i class="fa-solid fa-bars"></i></button>
+      <div>
+        <div class="topbar-page-title" id="page-title" data-lang-ar="نظرة عامة" data-lang-en="Overview">نظرة عامة</div>
+        <div class="topbar-breadcrumb">
+          <span>TAZA 041</span><span>›</span>
+          <span class="current" data-lang-ar="مدير التواصل" data-lang-en="Comm. Manager">مدير التواصل</span>
+        </div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <div class="topbar-clock">
+        <div class="topbar-time" id="topbar-time">--:--</div>
+        <div class="topbar-date"  id="topbar-date"></div>
+      </div>
+      <button class="theme-indicator" id="theme-toggle" type="button" aria-label="تبديل المظهر">
+        <span class="theme-dot" id="theme-dot"></span>
+        <span id="theme-indicator-text"></span>
+      </button>
+      <div class="lang-toggle">
+        <button class="lang-btn active" data-lang="ar">ع</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+      </div>
+      <button class="topbar-btn" id="notif-btn">
+        <i class="fa-solid fa-bell"></i>
+        <span class="badge-dot notif-count-dot" style="display:none"></span>
+      </button>
+      <button class="topbar-btn" id="logout-btn"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+  </header>
+
+  <div class="notification-panel" id="notif-panel">
+    <div class="notification-panel-header">
+      <div class="notification-panel-heading">
+        <span class="notification-panel-title" data-lang-ar="الإشعارات" data-lang-en="Notifications">الإشعارات</span>
+        <span class="notification-panel-summary" id="notif-panel-summary">تحديثات المحتوى والتواصل</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="panel-mark-all"
+              data-lang-ar="تعيين الكل مقروء" data-lang-en="Mark all read">تعيين الكل مقروء</button>
+    </div>
+    <div class="notification-list" id="notif-list-panel">
+      <div class="empty-state" style="padding:24px"><div class="empty-icon">🔔</div></div>
+    </div>
+  </div>
+
+  <!-- ════════ Content ════════════════════ -->
+  <div class="page-container">
+
+    <div class="nav-tabs-custom">
+      <button class="nav-tab active" data-tab="overview">
+        <i class="fa-solid fa-gauge-high"></i>
+        <span data-lang-ar="نظرة عامة"         data-lang-en="Overview">نظرة عامة</span>
+      </button>
+      <button class="nav-tab" data-tab="restaurant-info">
+        <i class="fa-solid fa-store"></i>
+        <span data-lang-ar="معلومات المطعم"    data-lang-en="Restaurant">معلومات المطعم</span>
+      </button>
+      <button class="nav-tab" data-tab="gallery">
+        <i class="fa-solid fa-images"></i>
+        <span data-lang-ar="معرض الصور"        data-lang-en="Gallery">معرض الصور</span>
+      </button>
+      <button class="nav-tab" data-tab="suggestions">
+        <i class="fa-solid fa-lightbulb"></i>
+        <span data-lang-ar="اقتراحات الوجبات" data-lang-en="Suggestions">اقتراحات الوجبات</span>
+        <span id="suggestions-badge" class="badge badge-warning" style="display:none;font-size:.65rem">0</span>
+      </button>
+      <button class="nav-tab" data-tab="reviews">
+        <i class="fa-solid fa-star-half-stroke"></i>
+        <span data-lang-ar="التقييمات"          data-lang-en="Reviews">التقييمات</span>
+      </button>
+      <button class="nav-tab" data-tab="notifications">
+        <i class="fa-solid fa-bell"></i>
+        <span data-lang-ar="الإشعارات"          data-lang-en="Notifications">الإشعارات</span>
+      </button>
+      <button class="nav-tab" data-tab="profile">
+        <i class="fa-solid fa-user-pen"></i>
+        <span data-lang-ar="ملفي"               data-lang-en="Profile">ملفي</span>
+      </button>
+    </div>
+
+    <!-- ═══════════════════
+         [1] Overview
+         ═══════════════════ -->
+    <div id="tab-overview" class="section-content active">
+      <div class="workspace-heading">
+        <div>
+          <span class="section-kicker">مركز المحتوى والتواصل</span>
+          <h1>صورة المطعم أمام الزبون</h1>
+          <p>راجع الاقتراحات أولًا، ثم تأكد من معلومات المطعم والصور والتقييمات.</p>
+        </div>
+        <div class="workspace-shortcuts">
+          <button class="btn btn-outline" onclick="switchTab('restaurant-info')"><i class="fa-solid fa-store"></i> معلومات المطعم</button>
+          <button class="btn btn-outline" onclick="switchTab('gallery')"><i class="fa-solid fa-images"></i> معرض الصور</button>
+        </div>
+      </div>
+      <div class="stats-row" id="overview-stats">
+        <div class="stat-card skeleton" style="height:110px"></div>
+        <div class="stat-card skeleton" style="height:110px"></div>
+        <div class="stat-card skeleton" style="height:110px"></div>
+        <div class="stat-card skeleton" style="height:110px"></div>
+      </div>
+
+      <div class="communication-status" id="communication-status" aria-live="polite">
+        <div class="communication-status-icon"><i class="fa-solid fa-spinner fa-spin"></i></div>
+        <div class="communication-status-copy"><strong>جاري فحص المحتوى</strong><span>ستظهر هنا أولوية العمل الحالية.</span></div>
+      </div>
+
+      <div class="communication-primary-grid">
+        <!-- Recent Suggestions -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fa-solid fa-lightbulb" style="color:var(--accent)"></i>
+              <span data-lang-ar="آخر اقتراحات الوجبات" data-lang-en="Latest Meal Suggestions">آخر اقتراحات الوجبات</span>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="switchTab('suggestions')">
+              <span data-lang-ar="عرض الكل" data-lang-en="View All">عرض الكل</span>
+            </button>
+          </div>
+          <div class="card-body" id="overview-suggestions">
+            <div class="loader-ring" style="margin:0 auto"></div>
+          </div>
+        </div>
+
+        <!-- Charts: Ratings -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-heading"><div class="chart-card-title"><i class="fa-solid fa-star"></i><span data-lang-ar="توزيع تقييمات الزبائن" data-lang-en="Rating Distribution">توزيع تقييمات الزبائن</span></div><span class="chart-card-subtitle">قراءة سريعة لانطباع الزبائن</span></div>
+          </div>
+          <div class="chart-card-body">
+            <div class="chart-container-donut"><canvas id="chart-ratings"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Restaurant quick preview -->
+      <div id="restaurant-preview-card" class="card restaurant-preview-card">
+        <div class="card-body" style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+          <div id="restaurant-logo-preview"
+               style="width:72px;height:72px;border-radius:14px;background:var(--bg-main);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0">
+            🍽️
+          </div>
+          <div style="flex:1;min-width:200px">
+            <div style="font-size:1.2rem;font-weight:800;color:var(--text-primary)" id="restaurant-name-preview">—</div>
+            <div style="font-size:.8rem;color:var(--text-muted);margin-top:2px" id="restaurant-desc-preview">—</div>
+            <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;font-size:.78rem">
+              <span id="restaurant-phone-preview" style="color:var(--text-secondary)"><i class="fa-solid fa-phone"></i> —</span>
+              <span id="restaurant-status-preview"></span>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="switchTab('restaurant-info')">
+            <i class="fa-solid fa-pen"></i>
+            <span data-lang-ar="تعديل المعلومات" data-lang-en="Edit Info">تعديل المعلومات</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════
+         [2] Restaurant Info
+         ═══════════════════ -->
+    <div id="tab-restaurant-info" class="section-content">
+      <div class="page-header restaurant-info-header sticky-section-header">
+        <div class="page-header-left">
+          <span class="section-kicker" data-lang-ar="إدارة الواجهة العامة" data-lang-en="PUBLIC PRESENCE">إدارة الواجهة العامة</span>
+          <h1 data-lang-ar="معلومات المطعم" data-lang-en="Restaurant Information">معلومات المطعم</h1>
+          <p data-lang-ar="تحكّم بالمعلومات التي يراها الزبائن في الموقع والتطبيق من مكان واحد"
+             data-lang-en="Control the information customers see across the website and app from one place">
+            تحكّم بالمعلومات التي يراها الزبائن في الموقع والتطبيق من مكان واحد
+          </p>
+        </div>
+        <div class="restaurant-save-wrap">
+          <div class="restaurant-save-state is-saved" id="restaurant-save-state" role="status" aria-live="polite">
+            <i class="fa-solid fa-circle-check"></i>
+            <span data-lang-ar="كل التغييرات محفوظة" data-lang-en="All changes saved">كل التغييرات محفوظة</span>
+          </div>
+          <button class="btn btn-primary" id="save-info-btn">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span data-lang-ar="حفظ التغييرات" data-lang-en="Save Changes">حفظ التغييرات</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="restaurant-editor-shell" id="restaurant-editor-shell">
+        <aside class="restaurant-editor-aside">
+          <div class="restaurant-public-preview">
+            <div class="restaurant-preview-cover" aria-hidden="true"></div>
+            <label class="logo-upload-wrap restaurant-preview-logo" id="logo-upload-wrap" title="تغيير شعار المطعم">
+              <img id="logo-preview-img" src="assets/images/logo.jpg" alt="Logo"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+              <span id="logo-placeholder" class="restaurant-logo-placeholder">🍽️</span>
+              <div class="logo-overlay"><i class="fa-solid fa-camera"></i><span data-lang-ar="تغيير" data-lang-en="Change">تغيير</span></div>
+              <input type="file" id="logo-input" accept="image/png,image/jpeg,image/webp" hidden>
+            </label>
+            <div class="restaurant-preview-copy">
+              <span class="restaurant-preview-label" data-lang-ar="معاينة بطاقة المطعم" data-lang-en="Restaurant card preview">معاينة بطاقة المطعم</span>
+              <strong id="restaurant-editor-preview-name">TAZA 041</strong>
+              <p id="restaurant-editor-preview-description" data-lang-ar="أضف وصفاً موجزاً وواضحاً للمطعم" data-lang-en="Add a clear, concise restaurant description">أضف وصفاً موجزاً وواضحاً للمطعم</p>
+            </div>
+            <div class="restaurant-preview-contact">
+              <span><i class="fa-solid fa-phone"></i><b id="restaurant-editor-preview-phone">—</b></span>
+              <span><i class="fa-solid fa-location-dot"></i><b id="restaurant-editor-preview-address">—</b></span>
+            </div>
+            <div class="restaurant-completeness">
+              <div class="restaurant-completeness-heading">
+                <span data-lang-ar="اكتمال المعلومات" data-lang-en="Information completeness">اكتمال المعلومات</span>
+                <strong id="restaurant-completeness-value">0%</strong>
+              </div>
+              <div class="restaurant-completeness-track"><span id="restaurant-completeness-bar"></span></div>
+              <small id="restaurant-completeness-note" data-lang-ar="أكمل البيانات الأساسية لتحسين تجربة الزبون" data-lang-en="Complete the basics to improve customer experience">أكمل البيانات الأساسية لتحسين تجربة الزبون</small>
+            </div>
+            <div class="restaurant-logo-help">
+              <i class="fa-solid fa-circle-info"></i>
+              <span data-lang-ar="الشعار: PNG أو JPG أو WebP، بحد أقصى 2 MB" data-lang-en="Logo: PNG, JPG or WebP, maximum 2 MB">الشعار: PNG أو JPG أو WebP، بحد أقصى 2 MB</span>
+            </div>
+          </div>
+          <nav class="restaurant-section-nav" aria-label="أقسام معلومات المطعم">
+            <a href="#restaurant-section-basics"><i class="fa-solid fa-address-card"></i><span data-lang-ar="البيانات الأساسية" data-lang-en="Basic details">البيانات الأساسية</span></a>
+            <a href="#restaurant-section-about"><i class="fa-solid fa-pen-ruler"></i><span data-lang-ar="صفحة عن المطعم" data-lang-en="About page">صفحة عن المطعم</span></a>
+            <a href="#restaurant-section-footer"><i class="fa-solid fa-link"></i><span data-lang-ar="محتوى الفوتر" data-lang-en="Footer content">محتوى الفوتر</span></a>
+            <a href="#restaurant-section-location"><i class="fa-solid fa-map-location-dot"></i><span data-lang-ar="الموقع الجغرافي" data-lang-en="Location">الموقع الجغرافي</span></a>
+            <a href="#restaurant-section-hours"><i class="fa-solid fa-clock"></i><span data-lang-ar="ساعات العمل" data-lang-en="Working hours">ساعات العمل</span></a>
+          </nav>
+        </aside>
+
+        <div class="restaurant-editor-content">
+          <section class="info-section restaurant-editor-card" id="restaurant-section-basics">
+            <div class="restaurant-card-heading">
+              <span class="restaurant-card-icon"><i class="fa-solid fa-address-card"></i></span>
+              <div><h3 data-lang-ar="الهوية وبيانات التواصل" data-lang-en="Identity & Contact Details">الهوية وبيانات التواصل</h3><p data-lang-ar="البيانات الرئيسية التي يعتمد عليها الزبون للوصول والتواصل" data-lang-en="Core details customers use to find and contact you">البيانات الرئيسية التي يعتمد عليها الزبون للوصول والتواصل</p></div>
+              <span class="restaurant-section-badge" data-lang-ar="أساسي" data-lang-en="Essential">أساسي</span>
+            </div>
+            <div class="restaurant-fields-grid">
+              <div class="form-group">
+                <label class="form-label" for="info-name"><span data-lang-ar="اسم المطعم" data-lang-en="Restaurant Name">اسم المطعم</span><span class="required">*</span></label>
+                <div class="restaurant-input-wrap"><i class="fa-solid fa-store"></i><input type="text" class="form-control" id="info-name" placeholder="TAZA 041" readonly></div>
+                <small class="restaurant-field-help" data-lang-ar="اسم ثابت ومعتمد في النظام" data-lang-en="System-approved fixed name">اسم ثابت ومعتمد في النظام</small>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="info-phone" data-lang-ar="رقم الهاتف" data-lang-en="Phone Number">رقم الهاتف</label>
+                <div class="restaurant-input-wrap"><i class="fa-solid fa-phone"></i><input type="tel" dir="ltr" class="form-control" id="info-phone" placeholder="+963 11 000 0000"></div>
+              </div>
+              <div class="form-group restaurant-field-wide">
+                <div class="restaurant-label-row"><label class="form-label" for="info-description" data-lang-ar="الوصف المختصر" data-lang-en="Short Description">الوصف المختصر</label><small id="restaurant-description-count">0 / 2000</small></div>
+                <textarea class="form-control restaurant-description-input" id="info-description" rows="4" maxlength="2000" data-placeholder-ar="عرّف الزبون بالمطعم وما الذي يميّزه بجملة واضحة..." data-placeholder-en="Tell customers what makes the restaurant special in one clear statement..." placeholder="عرّف الزبون بالمطعم وما الذي يميّزه بجملة واضحة..."></textarea>
+              </div>
+              <div class="form-group restaurant-field-wide">
+                <label class="form-label" for="info-address" data-lang-ar="العنوان الظاهر للزبائن" data-lang-en="Customer-facing Address">العنوان الظاهر للزبائن</label>
+                <div class="restaurant-input-wrap"><i class="fa-solid fa-location-dot"></i><input type="text" class="form-control" id="info-address" data-placeholder-ar="مثال: دمشق، الميدان، جانب..." data-placeholder-en="e.g. Damascus, Midan, near..." placeholder="مثال: دمشق، الميدان، جانب..."></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="info-email" data-lang-ar="البريد الإلكتروني" data-lang-en="Email Address">البريد الإلكتروني</label>
+                <div class="restaurant-input-wrap"><i class="fa-solid fa-envelope"></i><input type="email" dir="ltr" class="form-control" id="info-email" placeholder="info@taza041.com"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="info-whatsapp" data-lang-ar="رقم واتساب" data-lang-en="WhatsApp Number">رقم واتساب</label>
+                <div class="restaurant-input-wrap"><i class="fa-brands fa-whatsapp"></i><input type="tel" dir="ltr" class="form-control" id="info-whatsapp" placeholder="+963 9XX XXX XXX"></div>
+              </div>
+            </div>
+            <div class="restaurant-subsection">
+              <div class="restaurant-subsection-heading"><div><strong data-lang-ar="قنوات التواصل الاجتماعي" data-lang-en="Social channels">قنوات التواصل الاجتماعي</strong><span data-lang-ar="أدخل الروابط الكاملة للحسابات الرسمية فقط" data-lang-en="Use full links to official accounts only">أدخل الروابط الكاملة للحسابات الرسمية فقط</span></div></div>
+              <div class="restaurant-social-grid">
+                <label class="restaurant-social-field instagram"><span><i class="fa-brands fa-instagram"></i>Instagram</span><input type="url" dir="ltr" class="form-control" id="info-instagram" placeholder="https://instagram.com/taza041"></label>
+                <label class="restaurant-social-field facebook"><span><i class="fa-brands fa-facebook-f"></i>Facebook</span><input type="url" dir="ltr" class="form-control" id="info-facebook" placeholder="https://facebook.com/taza041"></label>
+                <label class="restaurant-social-field telegram"><span><i class="fa-brands fa-telegram"></i>Telegram</span><input type="url" dir="ltr" class="form-control" id="info-telegram" placeholder="https://t.me/taza041"></label>
+              </div>
+            </div>
+          </section>
+
+          <section class="info-section restaurant-editor-card" id="restaurant-section-about">
+            <div class="restaurant-card-heading"><span class="restaurant-card-icon"><i class="fa-solid fa-pen-ruler"></i></span><div><h3 data-lang-ar="محتوى صفحة عن المطعم" data-lang-en="About Page Content">محتوى صفحة عن المطعم</h3><p data-lang-ar="حرّر القصة والرسائل العامة بالعربية والإنجليزية" data-lang-en="Edit the story and public messaging in Arabic and English">حرّر القصة والرسائل العامة بالعربية والإنجليزية</p></div><span class="restaurant-section-badge muted" data-lang-ar="ثنائي اللغة" data-lang-en="Bilingual">ثنائي اللغة</span></div>
+            <div class="restaurant-editor-tip"><i class="fa-solid fa-language"></i><span data-lang-ar="حافظ على نفس المعنى في اللغتين، واجعل النصوص قصيرة وسهلة القراءة." data-lang-en="Keep the same meaning in both languages and make the copy concise and easy to scan.">حافظ على نفس المعنى في اللغتين، واجعل النصوص قصيرة وسهلة القراءة.</span></div>
+            <div id="about-content-editor"></div>
+          </section>
+
+          <section class="info-section restaurant-editor-card" id="restaurant-section-footer">
+            <div class="restaurant-card-heading"><span class="restaurant-card-icon"><i class="fa-solid fa-link"></i></span><div><h3 data-lang-ar="محتوى وروابط الفوتر" data-lang-en="Footer Content & Links">محتوى وروابط الفوتر</h3><p data-lang-ar="المعلومات المختصرة والروابط المتكررة في جميع صفحات الموقع" data-lang-en="Short content and links repeated across website pages">المعلومات المختصرة والروابط المتكررة في جميع صفحات الموقع</p></div><span class="restaurant-section-badge muted" data-lang-ar="حتى 8 روابط" data-lang-en="Up to 8 links">حتى 8 روابط</span></div>
+            <div id="footer-content-editor"></div>
+            <div class="content-editor-group footer-links-group">
+              <div class="content-editor-group-title"><i class="fa-solid fa-arrow-up-right-from-square"></i><span data-lang-ar="الروابط السريعة" data-lang-en="Quick Links">الروابط السريعة</span></div>
+              <div class="footer-links-editor" id="footer-links-editor"></div>
+              <div class="footer-editor-actions"><button class="btn btn-outline btn-sm" type="button" id="add-footer-link-btn"><i class="fa-solid fa-plus"></i><span data-lang-ar="إضافة رابط جديد" data-lang-en="Add New Link">إضافة رابط جديد</span></button><small data-lang-ar="استخدم رابطاً داخلياً مثل menu.html أو رابط https:// آمناً." data-lang-en="Use an internal link such as menu.html or a secure https:// URL.">استخدم رابطاً داخلياً مثل menu.html أو رابط https:// آمناً.</small></div>
+            </div>
+          </section>
+
+          <section class="info-section restaurant-editor-card" id="restaurant-section-location">
+            <div class="restaurant-card-heading"><span class="restaurant-card-icon"><i class="fa-solid fa-map-location-dot"></i></span><div><h3 data-lang-ar="الموقع الجغرافي" data-lang-en="Restaurant Location">الموقع الجغرافي</h3><p data-lang-ar="حدد نقطة دقيقة لأنها تُستخدم في التوصيل وزر الخريطة للزبون" data-lang-en="Set an accurate point used for delivery and customer map links">حدد نقطة دقيقة لأنها تُستخدم في التوصيل وزر الخريطة للزبون</p></div></div>
+            <div class="restaurant-map-instruction"><i class="fa-solid fa-hand-pointer"></i><span data-lang-ar="انقر على الخريطة أو اسحب العلامة لتحديد المدخل الرئيسي للمطعم." data-lang-en="Click the map or drag the marker to the restaurant's main entrance.">انقر على الخريطة أو اسحب العلامة لتحديد المدخل الرئيسي للمطعم.</span></div>
+            <div id="restaurant-location-map" class="restaurant-map-box"></div>
+            <div class="map-coordinate-row">
+              <div class="form-group"><label class="form-label" for="info-latitude" data-lang-ar="خط العرض" data-lang-en="Latitude">خط العرض</label><input type="number" step="any" dir="ltr" class="form-control" id="info-latitude" placeholder="35.5317"></div>
+              <div class="form-group"><label class="form-label" for="info-longitude" data-lang-ar="خط الطول" data-lang-en="Longitude">خط الطول</label><input type="number" step="any" dir="ltr" class="form-control" id="info-longitude" placeholder="35.7901"></div>
+            </div>
+          </section>
+
+          <section class="info-section restaurant-editor-card" id="restaurant-section-hours">
+            <div class="restaurant-card-heading"><span class="restaurant-card-icon"><i class="fa-solid fa-clock"></i></span><div><h3 data-lang-ar="ساعات العمل الأسبوعية" data-lang-en="Weekly Working Hours">ساعات العمل الأسبوعية</h3><p data-lang-ar="فعّل أيام العمل وحدد وقت الفتح والإغلاق لكل يوم" data-lang-en="Enable working days and set opening and closing time">فعّل أيام العمل وحدد وقت الفتح والإغلاق لكل يوم</p></div></div>
+            <div class="hours-table-heading" aria-hidden="true"><span data-lang-ar="اليوم" data-lang-en="Day">اليوم</span><span data-lang-ar="يفتح" data-lang-en="Opens">يفتح</span><span data-lang-ar="يغلق" data-lang-en="Closes">يغلق</span><span data-lang-ar="الحالة" data-lang-en="Status">الحالة</span></div>
+            <div class="hours-grid" id="hours-grid"></div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════
+         [3] Gallery
+         ═══════════════════ -->
+    <div id="tab-gallery" class="section-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 data-lang-ar="معرض صور المطعم" data-lang-en="Restaurant Gallery">معرض صور المطعم</h1>
+          <p data-lang-ar="الصور التي تظهر في الموقع الإلكتروني وتطبيق الزبائن"
+             data-lang-en="Photos shown on the website and customer app">الصور التي تظهر في الموقع الإلكتروني وتطبيق الزبائن</p>
+        </div>
+        <label class="btn btn-primary" style="cursor:pointer">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <span data-lang-ar="رفع صور" data-lang-en="Upload Photos">رفع صور</span>
+          <input type="file" id="gallery-upload-input" accept="image/*" multiple style="display:none">
+        </label>
+      </div>
+
+      <!-- Upload Progress -->
+      <div id="upload-progress-wrap" style="display:none;margin-bottom:16px">
+        <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:6px" id="upload-progress-text">جارٍ الرفع...</div>
+        <div class="progress" style="height:6px">
+          <div class="progress-bar" id="upload-progress-bar" style="width:0%;transition:width .3s"></div>
+        </div>
+      </div>
+
+      <div class="gallery-grid communication-gallery" id="gallery-grid">
+        <div class="stat-card skeleton" style="aspect-ratio:4/3"></div>
+        <div class="stat-card skeleton" style="aspect-ratio:4/3"></div>
+        <div class="stat-card skeleton" style="aspect-ratio:4/3"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════
+         [4] Meal Suggestions
+         ═══════════════════ -->
+    <div id="tab-suggestions" class="section-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 data-lang-ar="اقتراحات الوجبات" data-lang-en="Meal Suggestions">اقتراحات الوجبات</h1>
+          <p data-lang-ar="اقتراحات الزبائن لإضافة وجبات جديدة للقائمة"
+             data-lang-en="Customer suggestions for adding new meals to the menu">اقتراحات الزبائن لإضافة وجبات جديدة للقائمة</p>
+        </div>
+      </div>
+
+      <div class="filter-bar suggestion-filters" id="suggestions-filter">
+        <button class="filter-chip active" data-filter="">
+          <span data-lang-ar="الكل" data-lang-en="All">الكل</span>
+        </button>
+        <button class="filter-chip" data-filter="pending">
+          <span data-lang-ar="🟡 قيد المراجعة" data-lang-en="🟡 Pending">🟡 قيد المراجعة</span>
+        </button>
+        <button class="filter-chip" data-filter="reviewed">
+          <span data-lang-ar="🔵 تمت المراجعة" data-lang-en="🔵 Reviewed">🔵 تمت المراجعة</span>
+        </button>
+        <button class="filter-chip" data-filter="implemented">
+          <span data-lang-ar="🟢 تم التطبيق" data-lang-en="🟢 Implemented">🟢 تم التطبيق</span>
+        </button>
+        <button class="filter-chip" data-filter="rejected">
+          <span data-lang-ar="🔴 مرفوضة" data-lang-en="🔴 Rejected">🔴 مرفوضة</span>
+        </button>
+      </div>
+
+      <div id="suggestions-grid" class="suggestions-grid">
+        <div class="stat-card skeleton" style="height:180px"></div>
+        <div class="stat-card skeleton" style="height:180px"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════
+         [5] Reviews
+         ═══════════════════ -->
+    <div id="tab-reviews" class="section-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 data-lang-ar="تقييمات الزبائن" data-lang-en="Customer Reviews">تقييمات الزبائن</h1>
+          <p>تابع الانطباع العام وحدد الملاحظات التي تحتاج اهتمامًا.</p>
+        </div>
+        <div class="section-actions">
+          <select class="form-control reviews-filter" id="reviews-rating-filter">
+            <option value="" data-lang-ar="كل التقييمات" data-lang-en="All Ratings">كل التقييمات</option>
+            <option value="5">⭐⭐⭐⭐⭐ 5</option>
+            <option value="4">⭐⭐⭐⭐ 4</option>
+            <option value="3">⭐⭐⭐ 3</option>
+            <option value="2">⭐⭐ 2</option>
+            <option value="1">⭐ 1</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Rating Summary -->
+      <div id="reviews-summary" class="card mb-4" style="display:none">
+        <div class="card-body" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;padding:20px">
+          <div style="text-align:center">
+            <div style="font-size:3rem;font-weight:800;color:var(--accent)" id="avg-rating-big">—</div>
+            <div class="star-display" id="avg-stars-display"></div>
+            <div style="font-size:.75rem;color:var(--text-muted)" id="total-reviews-count">0 تقييم</div>
+          </div>
+          <div style="flex:1;min-width:200px" id="rating-bars"></div>
+        </div>
+      </div>
+
+      <div class="reviews-list" id="reviews-list">
+        <div class="stat-card skeleton" style="height:100px"></div>
+        <div class="stat-card skeleton" style="height:100px"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════
+         [6] Notifications
+         ═══════════════════ -->
+    <div id="tab-notifications" class="section-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 data-lang-ar="الإشعارات" data-lang-en="Notifications">الإشعارات</h1>
+          <p>تنبيهات المحتوى والاقتراحات والتقييمات الجديدة.</p>
+        </div>
+        <button class="btn btn-outline" id="mark-all-read-btn">
+          <i class="fa-solid fa-check-double"></i>
+          <span data-lang-ar="تعيين الكل مقروء" data-lang-en="Mark All Read">تعيين الكل مقروء</span>
+        </button>
+      </div>
+      <div id="notifs-full-list" class="notifications-page-list">
+        <div class="stat-card skeleton" style="height:72px"></div>
+        <div class="stat-card skeleton" style="height:72px"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════
+         [7] Profile
+         ═══════════════════ -->
+    <div id="tab-profile" class="section-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 data-lang-ar="ملفي الشخصي" data-lang-en="My Profile">ملفي الشخصي</h1>
+        </div>
+      </div>
+      <div class="profile-layout">
+        <div class="card profile-identity-card">
+          <div class="avatar avatar-xl" id="profile-avatar"
+               style="margin:0 auto 16px;font-size:1.6rem;background:var(--primary-soft);color:var(--primary)"></div>
+          <div style="font-weight:700;font-size:1rem;margin-bottom:4px" id="profile-name-display">—</div>
+          <div class="badge badge-primary" id="profile-role-display">—</div>
+          <div style="margin-top:16px">
+            <label class="btn btn-outline btn-sm" style="cursor:pointer;width:100%">
+              <i class="fa-solid fa-camera"></i>
+              <span data-lang-ar="تغيير الصورة" data-lang-en="Change Photo">تغيير الصورة</span>
+              <input type="file" id="avatar-input" accept="image/*" style="display:none">
+            </label>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fa-solid fa-pen-to-square" style="color:var(--primary)"></i>
+              <span data-lang-ar="تعديل البيانات" data-lang-en="Edit Info">تعديل البيانات</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label" data-lang-ar="البريد الإلكتروني" data-lang-en="Email">البريد الإلكتروني</label>
+              <input type="email" class="form-control" id="profile-email">
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-lang-ar="رقم الهاتف" data-lang-en="Phone">رقم الهاتف</label>
+              <input type="text" class="form-control" id="profile-phone">
+            </div>
+            <div class="divider"></div>
+            <div class="form-group">
+              <label class="form-label" data-lang-ar="كلمة المرور الحالية" data-lang-en="Current Password">كلمة المرور الحالية</label>
+              <input type="password" class="form-control" id="profile-current-pass">
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-lang-ar="كلمة المرور الجديدة" data-lang-en="New Password">كلمة المرور الجديدة</label>
+              <input type="password" class="form-control" id="profile-new-pass">
+            </div>
+            <button class="btn btn-primary" id="save-profile-btn">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span data-lang-ar="حفظ التغييرات" data-lang-en="Save Changes">حفظ التغييرات</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- ══ Modal: Suggestion Detail ════════════════ -->
+<div class="modal-overlay" id="modal-suggestion">
+  <div class="modal-box" style="max-width:540px">
+    <div class="modal-header">
+      <span class="modal-title" data-lang-ar="تفاصيل الاقتراح" data-lang-en="Suggestion Details">تفاصيل الاقتراح</span>
+      <button class="modal-close" id="close-suggestion-modal">✕</button>
+    </div>
+    <div class="modal-body" id="suggestion-modal-content">
+      <div class="loader-ring" style="margin:0 auto"></div>
+    </div>
+    <div class="modal-footer" id="suggestion-modal-footer">
+      <button class="btn btn-outline btn-sm" id="cancel-suggestion-btn"
+              data-lang-ar="إغلاق" data-lang-en="Close">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="assets/js/config.js?v=20260810-live-sync"></script>
+<script src="assets/js/employee-profile.js"></script>
+<script src="assets/js/charts.js"></script>
+<script>
+'use strict';
+
+let _restaurantInfo = {};
+let _galleryImages  = [];
+let _suggestions    = [];
+let _reviews        = [];
+let _workingHours   = {};
+let _activeTab      = 'overview';
+let _restaurantFormReady = false;
+
+const DAYS = [
+  { key:'saturday',  ar:'السبت',     en:'Saturday'  },
+  { key:'sunday',    ar:'الأحد',     en:'Sunday'    },
+  { key:'monday',    ar:'الاثنين',   en:'Monday'    },
+  { key:'tuesday',  ar:'الثلاثاء',  en:'Tuesday'   },
+  { key:'wednesday', ar:'الأربعاء',  en:'Wednesday' },
+  { key:'thursday',  ar:'الخميس',    en:'Thursday'  },
+  { key:'friday',    ar:'الجمعة',    en:'Friday'    },
+];
+
+const WEBSITE_CONTENT_GROUPS = [
+  { key:'hero', icon:'fa-wand-magic-sparkles', ar:'واجهة الصفحة الرئيسية', en:'Page Hero', fields:[
+    ['hero_eyebrow_ar','العبارة العلوية — عربي','Top label — Arabic','input'],
+    ['hero_eyebrow_en','العبارة العلوية — إنجليزي','Top label — English','input'],
+    ['hero_title_ar','العنوان الرئيسي — عربي','Main title — Arabic','input'],
+    ['hero_title_en','العنوان الرئيسي — إنجليزي','Main title — English','input'],
+    ['hero_title_accent_ar','العنوان المميز — عربي','Accent title — Arabic','input'],
+    ['hero_title_accent_en','العنوان المميز — إنجليزي','Accent title — English','input'],
+    ['hero_description_ar','الوصف — عربي','Description — Arabic','textarea'],
+    ['hero_description_en','الوصف — إنجليزي','Description — English','textarea'],
+  ]},
+  { key:'story', icon:'fa-book-open', ar:'حكايتنا', en:'Our Story', fields:[
+    ['story_title_ar','العنوان — عربي','Title — Arabic','input'],
+    ['story_title_en','العنوان — إنجليزي','Title — English','input'],
+    ['story_paragraph_one_ar','الفقرة الأولى — عربي','First paragraph — Arabic','textarea'],
+    ['story_paragraph_one_en','الفقرة الأولى — إنجليزي','First paragraph — English','textarea'],
+    ['story_paragraph_two_ar','الفقرة الثانية — عربي','Second paragraph — Arabic','textarea'],
+    ['story_paragraph_two_en','الفقرة الثانية — إنجليزي','Second paragraph — English','textarea'],
+  ]},
+  { key:'values', icon:'fa-gem', ar:'القيم والمميزات', en:'Values & Benefits', fields:[
+    ['value_one_title_ar','الميزة 1 — عربي','Value 1 — Arabic','input'],
+    ['value_one_title_en','الميزة 1 — إنجليزي','Value 1 — English','input'],
+    ['value_one_description_ar','وصف الميزة 1 — عربي','Value 1 description — Arabic','textarea'],
+    ['value_one_description_en','وصف الميزة 1 — إنجليزي','Value 1 description — English','textarea'],
+    ['value_two_title_ar','الميزة 2 — عربي','Value 2 — Arabic','input'],
+    ['value_two_title_en','الميزة 2 — إنجليزي','Value 2 — English','input'],
+    ['value_two_description_ar','وصف الميزة 2 — عربي','Value 2 description — Arabic','textarea'],
+    ['value_two_description_en','وصف الميزة 2 — إنجليزي','Value 2 description — English','textarea'],
+    ['value_three_title_ar','الميزة 3 — عربي','Value 3 — Arabic','input'],
+    ['value_three_title_en','الميزة 3 — إنجليزي','Value 3 — English','input'],
+    ['value_three_description_ar','وصف الميزة 3 — عربي','Value 3 description — Arabic','textarea'],
+    ['value_three_description_en','وصف الميزة 3 — إنجليزي','Value 3 description — English','textarea'],
+  ]},
+  { key:'visit', icon:'fa-location-dot', ar:'قسم الزيارة', en:'Visit Section', fields:[
+    ['visit_title_ar','العنوان — عربي','Title — Arabic','input'],
+    ['visit_title_en','العنوان — إنجليزي','Title — English','input'],
+    ['visit_description_ar','الوصف — عربي','Description — Arabic','textarea'],
+    ['visit_description_en','الوصف — إنجليزي','Description — English','textarea'],
+  ]},
+];
+
+const FOOTER_CONTENT_FIELDS = [
+  ['footer_tagline_ar','الشعار النصي — عربي','Tagline — Arabic','input'],
+  ['footer_tagline_en','الشعار النصي — إنجليزي','Tagline — English','input'],
+  ['footer_description_ar','وصف الفوتر — عربي','Footer description — Arabic','textarea'],
+  ['footer_description_en','وصف الفوتر — إنجليزي','Footer description — English','textarea'],
+  ['hours_weekdays_ar','ساعات السبت–الخميس — عربي','Sat–Thu hours — Arabic','input'],
+  ['hours_weekdays_en','ساعات السبت–الخميس — إنجليزي','Sat–Thu hours — English','input'],
+  ['hours_friday_ar','ساعات الجمعة — عربي','Friday hours — Arabic','input'],
+  ['hours_friday_en','ساعات الجمعة — إنجليزي','Friday hours — English','input'],
+];
+
+const WEBSITE_CONTENT_DEFAULTS = {
+  hero_eyebrow_ar:'من قلب اللاذقية', hero_eyebrow_en:'From the heart of Latakia',
+  hero_title_ar:'نكهة قريبة،', hero_title_en:'Familiar flavor,',
+  hero_title_accent_ar:'وتجربة صُنعت لتبقى.', hero_title_accent_en:'crafted to stay with you.',
+  hero_description_ar:'في TAZA 041 نجمع بين الطعام المحضّر بعناية والخدمة السريعة والتجربة الرقمية السهلة؛ من أول تصفّح للمنيو وحتى وصول طلبك.',
+  hero_description_en:'At TAZA 041, carefully prepared food, fast service, and a seamless digital journey come together—from the first menu browse until your order arrives.',
+  story_title_ar:'أكثر من وجبة؛ لحظة يومية بطابعنا الخاص.', story_title_en:'More than a meal—a daily moment with our signature.',
+  story_paragraph_one_ar:'بدأت فكرتنا من رغبة بسيطة: أن نقدّم طعامًا مألوفًا بجودة يمكن ملاحظتها في كل تفصيل. لذلك نهتم بالمكوّن، بطريقة التحضير، وبالوقت الذي يصل فيه الطلب إليك.',
+  story_paragraph_one_en:'Our story began with a simple wish: serve familiar food with quality you can notice in every detail. That means caring about the ingredients, preparation, and the moment your order reaches you.',
+  story_paragraph_two_ar:'وصمّمنا تجربتنا الرقمية لتكون امتدادًا للمطعم: واضحة، سريعة، وبدون خطوات مربكة.',
+  story_paragraph_two_en:'We designed our digital experience as an extension of the restaurant: clear, quick, and free of confusing steps.',
+  value_one_title_ar:'جودة يمكن تذوّقها', value_one_title_en:'Quality you can taste',
+  value_one_description_ar:'مكوّنات مختارة وتحضير يومي يحافظ على النكهة كما يجب أن تكون.', value_one_description_en:'Selected ingredients and daily preparation keep every flavor at its best.',
+  value_two_title_ar:'خدمة تحترم وقتك', value_two_title_en:'Service that respects your time',
+  value_two_description_ar:'خطوات واضحة، متابعة سهلة، وفريق جاهز للمساعدة عند الحاجة.', value_two_description_en:'Clear steps, easy tracking, and a team ready to help whenever needed.',
+  value_three_title_ar:'تجربة قريبة منك', value_three_title_en:'An experience close to you',
+  value_three_description_ar:'سواء زرتنا أو طلبت من مكانك، نحرص أن تشعر بنفس الاهتمام.', value_three_description_en:'Whether you visit or order from home, you receive the same level of care.',
+  visit_title_ar:'زيارتك تسعدنا، وطلبك يصل إليك.', visit_title_en:'We would love your visit—or bring your order to you.',
+  visit_description_ar:'تجدنا في اللاذقية، شارع الزراعة، مقابل السكن الجامعي. تواصل معنا قبل الزيارة أو ابدأ طلبك مباشرة.',
+  visit_description_en:'Find us in Latakia, Agriculture Street, opposite the university dorms. Contact us before visiting or start your order now.',
+  footer_tagline_ar:'نكهة تجمعنا', footer_tagline_en:'Flavor brings us together',
+  footer_description_ar:'طعام نحبه، وتجربة نصنعها بعناية من أجلك.', footer_description_en:'Food we love and an experience made carefully for you.',
+  hours_weekdays_ar:'10:00 صباحًا – 12:00 ليلًا', hours_weekdays_en:'10:00 AM – 12:00 AM',
+  hours_friday_ar:'الجمعة: 1:00 ظهرًا – 12:00 ليلًا', hours_friday_en:'Friday: 1:00 PM – 12:00 AM',
+};
+
+const DEFAULT_FOOTER_LINKS = [
+  {label_ar:'الرئيسية', label_en:'Home', url:'index.html'},
+  {label_ar:'المنيو', label_en:'Menu', url:'menu.html'},
+  {label_ar:'عن المطعم', label_en:'About', url:'about.html'},
+];
+
+document.addEventListener('DOMContentLoaded', () => {
+  TAZA.initDashboardPage(['communication_manager', 'general_manager']);
+  initTabs();
+  initEventListeners();
+  loadOverview();
+  loadNotificationsPage();
+  TAZA.LiveSync.subscribe(async () => {
+    if (_activeTab === 'overview') return loadOverview();
+    if (_activeTab === 'suggestions') return loadSuggestions();
+    if (_activeTab === 'reviews') return loadReviews();
+    if (_activeTab === 'notifications') return loadNotificationsPage();
+  });
+  document.querySelectorAll('.lang-btn').forEach(btn => btn.addEventListener('click', refreshActiveTabLanguage));
+});
+
+function refreshActiveTabLanguage() {
+  if (_activeTab === 'restaurant-info') {
+    const isAr = TAZA.Lang.current === 'ar';
+    document.querySelectorAll('#hours-grid .hours-row').forEach((row, index) => {
+      const day = DAYS[index];
+      const label = row.querySelector('.hours-day');
+      const toggle = row.querySelector('.hours-toggle');
+      const state = row.querySelector('.hours-state-label');
+      const isOpen = toggle?.classList.contains('on');
+      if (label && day) label.textContent = isAr ? day.ar : day.en;
+      if (state) state.textContent = isOpen ? (isAr ? 'مفتوح' : 'Open') : (isAr ? 'مغلق' : 'Closed');
+      if (toggle) toggle.title = isOpen ? (isAr ? 'مفتوح' : 'Open') : (isAr ? 'مغلق' : 'Closed');
+    });
+    const saveState = document.getElementById('restaurant-save-state');
+    setRestaurantSaveState(saveState?.classList.contains('is-dirty') ? 'dirty' : saveState?.classList.contains('is-saving') ? 'saving' : 'saved');
+    updateRestaurantEditorPreview();
+    return;
+  }
+  const refreshers = { overview:loadOverview, 'restaurant-info':loadRestaurantInfo, gallery:loadGallery, suggestions:loadSuggestions, reviews:loadReviews, notifications:loadNotificationsPage, profile:loadProfile };
+  refreshers[_activeTab]?.();
+}
+
+// ── Tabs ──────────────────────────────────────
+function initTabs() {
+  document.querySelectorAll('.nav-tab[data-tab]').forEach(btn =>
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+  document.querySelectorAll('.sidebar-item[data-tab]').forEach(el =>
+    el.addEventListener('click', (e) => { e.preventDefault(); switchTab(el.dataset.tab); }));
+}
+
+function switchTab(tab) {
+  _activeTab = tab;
+  document.querySelectorAll('.nav-tab[data-tab]').forEach(t =>
+    t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.sidebar-item[data-tab]').forEach(t =>
+    t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.section-content').forEach(s =>
+    s.classList.toggle('active', s.id === `tab-${tab}`));
+
+  const titles = {
+    overview:         {ar:'نظرة عامة',           en:'Overview'},
+    'restaurant-info':{ar:'معلومات المطعم',       en:'Restaurant Info'},
+    gallery:          {ar:'معرض الصور',            en:'Gallery'},
+    suggestions:      {ar:'اقتراحات الوجبات',     en:'Meal Suggestions'},
+    reviews:          {ar:'تقييمات الزبائن',      en:'Customer Reviews'},
+    notifications:    {ar:'الإشعارات',            en:'Notifications'},
+    profile:          {ar:'ملفي الشخصي',          en:'My Profile'},
+  };
+  const lang = TAZA.Lang.current;
+  const pt   = document.getElementById('page-title');
+  if (pt && titles[tab]) pt.textContent = titles[tab][lang];
+
+  const loaders = {
+    'restaurant-info': loadRestaurantInfo,
+    gallery:           () => { _galleryImages.length ? renderGallery(_galleryImages) : loadGallery(); },
+    suggestions:       () => { _suggestions.length ? renderSuggestionsGrid(_suggestions) : loadSuggestions(); },
+    reviews:           () => { if (_reviews.length) { renderReviewsSummary(_reviews); renderReviewsList(_reviews); } else loadReviews(); },
+    notifications:     loadNotificationsPage,
+    profile:           loadProfile,
+  };
+  loaders[tab]?.();
+  if (tab === 'restaurant-info') {
+    setTimeout(() => _restaurantMap?.invalidateSize?.(), 250);
+  }
+}
+
+// ── Events ────────────────────────────────────
+function initEventListeners() {
+  // Restaurant Info
+  document.getElementById('save-info-btn')
+    ?.addEventListener('click', saveRestaurantInfo);
+  document.getElementById('logo-input')
+    ?.addEventListener('change', uploadLogo);
+  document.getElementById('add-footer-link-btn')
+    ?.addEventListener('click', () => {
+      const rows = document.querySelectorAll('#footer-links-editor .footer-link-row');
+      if (rows.length >= 8) {
+        TAZA.Toast.warning(TAZA.Lang.current === 'ar' ? 'الحد الأقصى 8 روابط' : 'Maximum 8 links');
+        return;
+      }
+      appendFooterLinkRow({label_ar:'', label_en:'', url:''});
+      markRestaurantInfoDirty();
+    });
+  document.getElementById('footer-links-editor')
+    ?.addEventListener('click', (e) => {
+      const remove = e.target.closest('[data-remove-footer-link]');
+      if (remove) {
+        remove.closest('.footer-link-row')?.remove();
+        markRestaurantInfoDirty();
+      }
+    });
+  const restaurantShell = document.getElementById('restaurant-editor-shell');
+  restaurantShell?.addEventListener('input', (e) => {
+    if (e.target.matches('input, textarea')) {
+      updateRestaurantEditorPreview();
+      markRestaurantInfoDirty();
+    }
+  });
+  restaurantShell?.addEventListener('change', (e) => {
+    if (e.target.matches('input, textarea')) {
+      updateRestaurantEditorPreview();
+      markRestaurantInfoDirty();
+    }
+  });
+  document.querySelectorAll('.restaurant-section-nav a').forEach(link => {
+    link.addEventListener('click', () => {
+      document.querySelectorAll('.restaurant-section-nav a').forEach(item => item.classList.remove('active'));
+      link.classList.add('active');
+    });
+  });
+
+  // Gallery
+  document.getElementById('gallery-upload-input')
+    ?.addEventListener('change', uploadGalleryImages);
+  document.getElementById('gallery-grid')
+    ?.addEventListener('click', handleGalleryAction);
+
+  // Suggestions filter
+  document.getElementById('suggestions-filter')
+    ?.addEventListener('click', (e) => {
+      const chip = e.target.closest('.filter-chip');
+      if (!chip) return;
+      document.querySelectorAll('#suggestions-filter .filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      loadSuggestions(chip.dataset.filter);
+    });
+  document.getElementById('suggestions-grid')
+    ?.addEventListener('click', handleSuggestionAction);
+
+  // Reviews filter
+  document.getElementById('reviews-rating-filter')
+    ?.addEventListener('change', loadReviews);
+
+  // Suggestion modal
+  document.getElementById('close-suggestion-modal')
+    ?.addEventListener('click', () => closeModal('modal-suggestion'));
+  document.getElementById('cancel-suggestion-btn')
+    ?.addEventListener('click', () => closeModal('modal-suggestion'));
+
+  // Notifications
+  document.getElementById('mark-all-read-btn')
+    ?.addEventListener('click', markAllRead);
+  document.getElementById('panel-mark-all')
+    ?.addEventListener('click', markAllRead);
+
+  // Profile
+  document.getElementById('save-profile-btn')
+    ?.addEventListener('click', saveProfile);
+  document.getElementById('avatar-input')
+    ?.addEventListener('change', uploadAvatar);
+
+  // Close modals
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('modal-overlay') && e.target.classList.contains('show')) {
+      e.target.classList.remove('show'); document.body.style.overflow = '';
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+      document.body.style.overflow = '';
+    }
+  });
+}
+
+// ═══════════════════════════════════════════
+// [1] Overview
+// ═══════════════════════════════════════════
+async function loadOverview() {
+  try {
+    const [infoRes, suggRes, reviewRes, imagesRes] = await Promise.allSettled([
+      TAZA.Http.get(TAZA.API.COMM.RESTAURANT_SHOW),
+      TAZA.Http.get(TAZA.API.COMM.SUGGESTIONS),
+      TAZA.Http.get(TAZA.API.REVIEWS.CUSTOMERS),
+      TAZA.Http.get(TAZA.API.COMM.IMAGES_LIST),
+    ]);
+
+    _restaurantInfo = infoRes.status === 'fulfilled' ? (infoRes.value?.data?.restaurant ?? {}) : {};
+    _suggestions    = suggRes.status === 'fulfilled' ? (suggRes.value?.data?.suggestions ?? []) : [];
+    _reviews        = reviewRes.status === 'fulfilled' ? (reviewRes.value?.data?.reviews ?? []) : [];
+    _galleryImages  = imagesRes.status === 'fulfilled' ? (imagesRes.value?.data?.all_images ?? imagesRes.value?.data?.images ?? []) : [];
+
+    renderOverviewStats();
+    renderRestaurantPreview();
+    renderOverviewSuggestions(_suggestions.slice(0, 5));
+    renderRatingsChart(_reviews);
+
+    // Pending badge
+    const pending = _suggestions.filter(s => s.status === 'pending').length;
+    ['suggestions-badge','sb-suggestions'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.textContent = pending; el.style.display = pending > 0 ? 'inline-block' : 'none'; }
+    });
+
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+function renderOverviewStats() {
+  const isAr  = TAZA.Lang.current === 'ar';
+  const grid  = document.getElementById('overview-stats');
+  const pending     = _suggestions.filter(s => s.status === 'pending').length;
+  const implemented = _suggestions.filter(s => s.status === 'implemented').length;
+  const avgRating   = _reviews.length
+    ? (_reviews.reduce((s, r) => s + (r.overall_rating ?? r.rating ?? 0), 0) / _reviews.length).toFixed(1)
+    : 0;
+
+  grid.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-icon amber"><i class="fa-solid fa-lightbulb"></i></div>
+      <div class="stat-content">
+        <div class="stat-label">${isAr?'اقتراحات جديدة':'New Suggestions'}</div>
+        <div class="stat-value" style="color:${pending>0?'var(--warning)':'var(--success)'}">${pending}</div>
+        <div class="stat-change ${pending>0?'down':'up'}">
+          <i class="fa-solid fa-circle-dot"></i>
+          ${pending>0 ? (isAr?'تحتاج مراجعة':'Needs review') : (isAr?'تمت مراجعة الكل':'All reviewed')}
+        </div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+      <div class="stat-content">
+        <div class="stat-label">${isAr?'اقتراحات مطبَّقة':'Implemented'}</div>
+        <div class="stat-value">${implemented}</div>
+        <div class="stat-change up"><i class="fa-solid fa-check"></i> ${isAr?'تم التطبيق':'Applied'}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon amber"><i class="fa-solid fa-star"></i></div>
+      <div class="stat-content">
+        <div class="stat-label">${isAr?'متوسط التقييم':'Average Rating'}</div>
+        <div class="stat-value">${avgRating} ⭐</div>
+        <div class="stat-change neutral"><i class="fa-solid fa-users"></i>
+          ${_reviews.length} ${isAr?'تقييم':'reviews'}
+        </div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="fa-solid fa-images"></i></div>
+      <div class="stat-content">
+        <div class="stat-label">${isAr?'صور المعرض':'Gallery Images'}</div>
+        <div class="stat-value" id="gallery-count-stat">—</div>
+        <div class="stat-change neutral"><i class="fa-solid fa-photo-film"></i> ${isAr?'صورة منشورة':'published'}</div>
+      </div>
+    </div>
+  `;
+
+  // Gallery count async
+  if (_galleryImages.length) {
+    const el = document.getElementById('gallery-count-stat');
+    if (el) el.textContent = _galleryImages.length;
+  } else {
+    TAZA.Http.get(TAZA.API.COMM.IMAGES_LIST).then(r => {
+      const imgs = r?.data?.all_images ?? r?.data?.images ?? [];
+      _galleryImages = imgs;
+      const el = document.getElementById('gallery-count-stat');
+      if (el) el.textContent = imgs.length;
+    }).catch(() => {});
+  }
+
+  renderCommunicationStatus(pending);
+}
+
+function renderCommunicationStatus(pending = 0) {
+  const panel = document.getElementById('communication-status');
+  if (!panel) return;
+  const isAr = TAZA.Lang.current === 'ar';
+  const noImages = _galleryImages.length === 0;
+  const hasMissingInfo = !_restaurantInfo.description || !_restaurantInfo.phone;
+  const needsWork = pending > 0 || noImages || hasMissingInfo;
+  const title = pending > 0
+    ? (isAr ? `${pending} ${pending === 1 ? 'اقتراح ينتظر المراجعة' : 'اقتراحات تنتظر المراجعة'}` : `${pending} suggestion${pending === 1 ? '' : 's'} awaiting review`)
+    : hasMissingInfo ? (isAr ? 'بيانات المطعم تحتاج إكمالًا' : 'Restaurant information needs completion')
+    : noImages ? (isAr ? 'معرض الصور ما زال فارغًا' : 'The gallery is still empty')
+    : (isAr ? 'المحتوى العام محدث وتحت السيطرة' : 'Public content is up to date');
+  const description = pending > 0
+    ? (isAr ? 'ابدأ بالأقدم حتى لا تتراكم اقتراحات الزبائن.' : 'Start with the oldest to avoid a suggestion backlog.')
+    : (isAr ? 'راجع المعلومات والصور دوريًا للحفاظ على تجربة متناسقة.' : 'Review information and images regularly for a consistent experience.');
+  panel.className = `communication-status ${needsWork ? 'has-alerts' : 'is-clear'}`;
+  panel.innerHTML = `<div class="communication-status-icon"><i class="fa-solid ${pending > 0 ? 'fa-lightbulb' : hasMissingInfo ? 'fa-circle-info' : noImages ? 'fa-images' : 'fa-circle-check'}"></i></div><div class="communication-status-copy"><strong>${title}</strong><span>${description}</span></div><button class="btn btn-outline btn-sm" onclick="switchTab('${pending > 0 ? 'suggestions' : hasMissingInfo ? 'restaurant-info' : 'gallery'}')"><i class="fa-solid fa-arrow-left-long"></i>${isAr?'فتح المهمة':'Open task'}</button>`;
+}
+
+function renderRestaurantPreview() {
+  const ri = _restaurantInfo;
+  const isAr = TAZA.Lang.current === 'ar';
+
+  const nameEl   = document.getElementById('restaurant-name-preview');
+  const descEl   = document.getElementById('restaurant-desc-preview');
+  const phoneEl  = document.getElementById('restaurant-phone-preview');
+  const statusEl = document.getElementById('restaurant-status-preview');
+  const logoEl   = document.getElementById('restaurant-logo-preview');
+
+  if (nameEl)   nameEl.textContent  = ri.name        ?? 'TAZA 041';
+  if (descEl)   descEl.textContent  = (ri.description || ri.about_text) ?? (isAr?'لا يوجد وصف بعد':'No description yet');
+  if (phoneEl)  phoneEl.innerHTML   = `<i class="fa-solid fa-phone"></i> ${ri.phone ?? '—'}`;
+  if (statusEl) statusEl.innerHTML  = ri.is_open
+    ? `<span style="color:var(--success);font-weight:600"><i class="fa-solid fa-circle-check"></i> ${isAr?'مفتوح الآن':'Open Now'}</span>`
+    : `<span style="color:var(--danger);font-weight:600"><i class="fa-solid fa-circle-xmark"></i> ${isAr?'مغلق الآن':'Closed Now'}</span>`;
+
+  if (logoEl && ri.logo_url) {
+    logoEl.innerHTML = `<img src="${TAZA.Media.url(ri.logo_url)}" alt="Logo" style="width:100%;height:100%;object-fit:contain;border-radius:12px">`;
+  }
+}
+
+function renderOverviewSuggestions(suggestions) {
+  const container = document.getElementById('overview-suggestions');
+  const isAr      = TAZA.Lang.current === 'ar';
+  if (!container) return;
+
+  if (!suggestions.length) {
+    container.innerHTML = `<div class="empty-state" style="padding:20px">
+      <div class="empty-icon">💡</div>
+      <div class="empty-title">${isAr?'لا توجد اقتراحات':'No suggestions'}</div>
+    </div>`;
+    return;
+  }
+
+  const statusColors = { pending:'var(--warning)', reviewed:'var(--info)', implemented:'var(--success)', rejected:'var(--danger)' };
+  const statusLabels = {
+    pending:    isAr?'قيد المراجعة':'Pending',
+    reviewed:   isAr?'تمت المراجعة':'Reviewed',
+    implemented:isAr?'مطبَّق':'Implemented',
+    rejected:   isAr?'مرفوض':'Rejected',
+  };
+
+  container.innerHTML = suggestions.map(s => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light)">
+      <div style="width:8px;height:8px;border-radius:50%;background:${statusColors[s.status]??'var(--text-muted)'};flex-shrink:0"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:.825rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeDashboardValue(s.meal_name || s.suggestion_text || (isAr?'اقتراح وجبة':'Meal suggestion'))}</div>
+        <div style="font-size:.7rem;color:var(--text-muted)">${escapeDashboardValue(s.customer_name || s.customer?.name || (isAr?'زبون':'Customer'))} · ${TAZA.Utils.timeAgo(s.created_at)}</div>
+      </div>
+      <span style="font-size:.65rem;font-weight:600;padding:2px 8px;border-radius:var(--border-radius-full);background:${statusColors[s.status]}22;color:${statusColors[s.status]}">
+        ${statusLabels[s.status] ?? s.status}
+      </span>
+    </div>
+  `).join('');
+}
+
+function renderRatingsChart(reviews) {
+  const dist = [5,4,3,2,1].map(n => reviews.filter(r => Math.round(r.overall_rating??r.rating??0) === n).length);
+  TAZA.Charts.createDonut('chart-ratings', {
+    labels: ['5 ⭐','4 ⭐','3 ⭐','2 ⭐','1 ⭐'],
+    data:   dist,
+  });
+}
+
+// ═══════════════════════════════════════════
+// [2] Restaurant Info
+// ═══════════════════════════════════════════
+async function loadRestaurantInfo() {
+  try {
+    if (!Object.keys(_restaurantInfo).length) {
+      const res   = await TAZA.Http.get(TAZA.API.COMM.RESTAURANT_SHOW);
+      _restaurantInfo = res?.data?.restaurant ?? {};
+    }
+    populateInfoForm(_restaurantInfo);
+    buildHoursGrid(_restaurantInfo.working_hours ?? {});
+    initRestaurantLocationMap(_restaurantInfo);
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+function populateInfoForm(ri) {
+  _restaurantFormReady = false;
+  const setVal = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.value = val ?? '';
+  };
+  setVal('info-name',        ri.name);
+  setVal('info-phone',       ri.phone);
+  setVal('info-whatsapp',    ri.whatsapp);
+  setVal('info-description', ri.description || ri.about_text);
+  setVal('info-address',     ri.address);
+  setVal('info-email',       ri.email);
+  setVal('info-instagram',   ri.instagram);
+  setVal('info-facebook',    ri.facebook || ri.facebook_url || ri.social_links?.facebook);
+  setVal('info-instagram',   ri.instagram || ri.instagram_url || ri.social_links?.instagram);
+  setVal('info-telegram',    ri.telegram_url || ri.social_links?.telegram);
+  setVal('info-latitude',    ri.latitude);
+  setVal('info-longitude',   ri.longitude);
+  const editableWebsiteContent = { ...(ri.website_content ?? {}) };
+  if (!editableWebsiteContent.hero_description_ar && ri.about_text) {
+    editableWebsiteContent.hero_description_ar = ri.about_text;
+  }
+  renderWebsiteContentEditors(editableWebsiteContent);
+
+  if (ri.logo_url) {
+    const img = document.getElementById('logo-preview-img');
+    if (img) { img.src = ri.logo_url; img.style.display = 'block'; }
+    const ph  = document.getElementById('logo-placeholder');
+    if (ph)  ph.style.display = 'none';
+  }
+  updateRestaurantEditorPreview();
+  setRestaurantSaveState('saved');
+  _restaurantFormReady = true;
+}
+
+function setRestaurantSaveState(state = 'saved') {
+  const el = document.getElementById('restaurant-save-state');
+  if (!el) return;
+  const isAr = TAZA.Lang.current === 'ar';
+  const copy = {
+    saved:  { icon:'fa-circle-check', ar:'كل التغييرات محفوظة', en:'All changes saved' },
+    dirty:  { icon:'fa-circle-exclamation', ar:'توجد تغييرات غير محفوظة', en:'Unsaved changes' },
+    saving: { icon:'fa-spinner fa-spin', ar:'جارٍ الحفظ...', en:'Saving...' },
+  }[state];
+  el.className = `restaurant-save-state is-${state}`;
+  const icon = el.querySelector('i');
+  const text = el.querySelector('span');
+  if (icon) icon.className = `fa-solid ${copy.icon}`;
+  if (text) {
+    text.textContent = isAr ? copy.ar : copy.en;
+    text.dataset.langAr = copy.ar;
+    text.dataset.langEn = copy.en;
+  }
+}
+
+function markRestaurantInfoDirty() {
+  if (!_restaurantFormReady) return;
+  setRestaurantSaveState('dirty');
+}
+
+function updateRestaurantEditorPreview() {
+  const value = id => document.getElementById(id)?.value.trim() || '';
+  const isAr = TAZA.Lang.current === 'ar';
+  const name = value('info-name') || 'TAZA 041';
+  const description = value('info-description');
+  const phone = value('info-phone');
+  const address = value('info-address');
+  const setText = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  };
+  setText('restaurant-editor-preview-name', name);
+  setText('restaurant-editor-preview-description', description || (isAr ? 'أضف وصفاً موجزاً وواضحاً للمطعم' : 'Add a clear, concise restaurant description'));
+  setText('restaurant-editor-preview-phone', phone || '—');
+  setText('restaurant-editor-preview-address', address || '—');
+
+  const descriptionCounter = document.getElementById('restaurant-description-count');
+  if (descriptionCounter) descriptionCounter.textContent = `${description.length} / 2000`;
+
+  const completenessChecks = [
+    name,
+    phone,
+    description,
+    address,
+    value('info-email'),
+    value('info-whatsapp'),
+    value('info-instagram') || value('info-facebook') || value('info-telegram'),
+    value('info-latitude') && value('info-longitude'),
+  ];
+  const completed = completenessChecks.filter(Boolean).length;
+  const percentage = Math.round((completed / completenessChecks.length) * 100);
+  setText('restaurant-completeness-value', `${percentage}%`);
+  const bar = document.getElementById('restaurant-completeness-bar');
+  if (bar) bar.style.width = `${percentage}%`;
+  const note = document.getElementById('restaurant-completeness-note');
+  if (note) {
+    const complete = percentage === 100;
+    note.textContent = complete
+      ? (isAr ? 'ممتاز، جميع المعلومات الأساسية مكتملة.' : 'Excellent, all essential information is complete.')
+      : (isAr ? `تبقّى ${completenessChecks.length - completed} من عناصر المعلومات الأساسية.` : `${completenessChecks.length - completed} essential items remaining.`);
+  }
+}
+
+function escapeDashboardValue(value = '') {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('"', '&quot;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
+}
+
+function websiteEditorFieldHtml(field, content) {
+  const [key, labelAr, labelEn, type] = field;
+  const value = content[key] ?? WEBSITE_CONTENT_DEFAULTS[key] ?? '';
+  const isWide = type === 'textarea' ? ' wide' : '';
+  const control = type === 'textarea'
+    ? `<textarea class="form-control" rows="3" data-website-content-key="${key}">${escapeDashboardValue(value)}</textarea>`
+    : `<input class="form-control" type="text" value="${escapeDashboardValue(value)}" data-website-content-key="${key}">`;
+  return `<div class="form-group${isWide}"><label class="form-label" data-lang-ar="${escapeDashboardValue(labelAr)}" data-lang-en="${escapeDashboardValue(labelEn)}">${TAZA.Lang.current === 'ar' ? labelAr : labelEn}</label>${control}</div>`;
+}
+
+function renderWebsiteContentEditors(content = {}) {
+  const aboutEditor = document.getElementById('about-content-editor');
+  const footerEditor = document.getElementById('footer-content-editor');
+  if (aboutEditor) {
+    aboutEditor.innerHTML = WEBSITE_CONTENT_GROUPS.map(group => `
+      <div class="content-editor-group">
+        <div class="content-editor-group-title"><i class="fa-solid ${group.icon}"></i><span data-lang-ar="${group.ar}" data-lang-en="${group.en}">${TAZA.Lang.current === 'ar' ? group.ar : group.en}</span></div>
+        <div class="content-editor-grid">${group.fields.map(field => websiteEditorFieldHtml(field, content)).join('')}</div>
+      </div>`).join('');
+  }
+  if (footerEditor) {
+    footerEditor.innerHTML = `<div class="content-editor-group"><div class="content-editor-grid">${FOOTER_CONTENT_FIELDS.map(field => websiteEditorFieldHtml(field, content)).join('')}</div></div>`;
+  }
+  renderFooterLinks(content.footer_links?.length ? content.footer_links : DEFAULT_FOOTER_LINKS);
+}
+
+function footerLinkRowHtml(link = {}) {
+  return `<div class="footer-link-row">
+    <div class="form-group"><label class="form-label" data-lang-ar="العنوان بالعربية" data-lang-en="Arabic label">${TAZA.Lang.current === 'ar' ? 'العنوان بالعربية' : 'Arabic label'}</label><input class="form-control" data-footer-label-ar value="${escapeDashboardValue(link.label_ar || '')}"></div>
+    <div class="form-group"><label class="form-label" data-lang-ar="العنوان بالإنجليزية" data-lang-en="English label">${TAZA.Lang.current === 'ar' ? 'العنوان بالإنجليزية' : 'English label'}</label><input class="form-control" data-footer-label-en value="${escapeDashboardValue(link.label_en || '')}"></div>
+    <div class="form-group"><label class="form-label" data-lang-ar="الرابط" data-lang-en="URL">${TAZA.Lang.current === 'ar' ? 'الرابط' : 'URL'}</label><input class="form-control" dir="ltr" data-footer-url value="${escapeDashboardValue(link.url || '')}" placeholder="menu.html"></div>
+    <button class="footer-link-remove" type="button" data-remove-footer-link title="${TAZA.Lang.current === 'ar' ? 'حذف الرابط' : 'Remove link'}"><i class="fa-solid fa-trash"></i></button>
+  </div>`;
+}
+
+function renderFooterLinks(links = []) {
+  const editor = document.getElementById('footer-links-editor');
+  if (editor) editor.innerHTML = links.slice(0, 8).map(footerLinkRowHtml).join('');
+}
+
+function appendFooterLinkRow(link) {
+  const editor = document.getElementById('footer-links-editor');
+  if (editor) editor.insertAdjacentHTML('beforeend', footerLinkRowHtml(link));
+}
+
+function collectWebsiteContent() {
+  const content = {};
+  document.querySelectorAll('[data-website-content-key]').forEach(input => {
+    content[input.dataset.websiteContentKey] = input.value.trim();
+  });
+  content.footer_links = [...document.querySelectorAll('#footer-links-editor .footer-link-row')].map(row => ({
+    label_ar: row.querySelector('[data-footer-label-ar]')?.value.trim() || '',
+    label_en: row.querySelector('[data-footer-label-en]')?.value.trim() || '',
+    url: row.querySelector('[data-footer-url]')?.value.trim() || '',
+  }));
+  return content;
+}
+
+function buildHoursGrid(hours) {
+  const grid = document.getElementById('hours-grid');
+  const isAr = TAZA.Lang.current === 'ar';
+  if (!grid) return;
+
+  _workingHours = { ...hours };
+
+  grid.innerHTML = DAYS.map(day => {
+    const h      = hours[day.key] ?? { open: true, from: '09:00', to: '22:00' };
+    const isOpen = h.open ?? true;
+    return `
+      <div class="hours-row" data-day="${day.key}">
+        <div class="hours-day">${isAr ? day.ar : day.en}</div>
+        <input type="time" class="form-control"
+               value="${h.from ?? '09:00'}" id="hours-from-${day.key}"
+               ${!isOpen ? 'disabled' : ''}>
+        <input type="time" class="form-control"
+               value="${h.to ?? '22:00'}" id="hours-to-${day.key}"
+               ${!isOpen ? 'disabled' : ''}>
+        <div class="hours-state-wrap">
+          <span class="hours-state-label ${isOpen ? 'is-open' : ''}">${isOpen ? (isAr?'مفتوح':'Open') : (isAr?'مغلق':'Closed')}</span>
+          <button type="button" class="hours-toggle ${isOpen ? 'on' : ''}" data-day="${day.key}" id="hours-toggle-${day.key}" role="switch" aria-checked="${isOpen}" title="${isOpen ? (isAr?'مفتوح':'Open') : (isAr?'مغلق':'Closed')}"></button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Toggle listeners
+  grid.querySelectorAll('.hours-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const day  = btn.dataset.day;
+      const isOn = btn.classList.toggle('on');
+      _workingHours[day] = { ..._workingHours[day], open: isOn };
+      const fromEl = document.getElementById(`hours-from-${day}`);
+      const toEl   = document.getElementById(`hours-to-${day}`);
+      if (fromEl) fromEl.disabled = !isOn;
+      if (toEl)   toEl.disabled   = !isOn;
+      btn.setAttribute('aria-checked', String(isOn));
+      btn.title = isOn ? (isAr ? 'مفتوح' : 'Open') : (isAr ? 'مغلق' : 'Closed');
+      const stateLabel = btn.closest('.hours-state-wrap')?.querySelector('.hours-state-label');
+      if (stateLabel) {
+        stateLabel.textContent = isOn ? (isAr ? 'مفتوح' : 'Open') : (isAr ? 'مغلق' : 'Closed');
+        stateLabel.classList.toggle('is-open', isOn);
+      }
+      markRestaurantInfoDirty();
+    });
+  });
+}
+
+let _restaurantMap = null;
+let _restaurantMarker = null;
+
+function initRestaurantLocationMap(ri = {}) {
+  const el = document.getElementById('restaurant-location-map');
+  if (!el || !window.L) return;
+  const latInput = document.getElementById('info-latitude');
+  const lngInput = document.getElementById('info-longitude');
+  const lat = parseFloat(ri.latitude ?? latInput?.value ?? 35.5317);
+  const lng = parseFloat(ri.longitude ?? lngInput?.value ?? 35.7901);
+  const center = [Number.isFinite(lat) ? lat : 35.5317, Number.isFinite(lng) ? lng : 35.7901];
+
+  if (!_restaurantMap) {
+    _restaurantMap = L.map(el, { scrollWheelZoom: false }).setView(center, 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(_restaurantMap);
+
+    const blueIcon = L.divIcon({
+      className: 'taza-dashboard-map-marker restaurant-blue-marker',
+      html: '<span style="display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#2563eb;color:white;border:3px solid white;box-shadow:0 8px 18px rgba(37,99,235,.35)">🏪</span>',
+      iconSize: [30, 30],
+      iconAnchor: [15, 30]
+    });
+    _restaurantMarker = L.marker(center, { icon: blueIcon, draggable: true }).addTo(_restaurantMap);
+    const syncInputs = (latlng) => {
+      if (latInput) latInput.value = Number(latlng.lat).toFixed(7);
+      if (lngInput) lngInput.value = Number(latlng.lng).toFixed(7);
+      updateRestaurantEditorPreview();
+      markRestaurantInfoDirty();
+    };
+    _restaurantMarker.on('dragend', () => syncInputs(_restaurantMarker.getLatLng()));
+    _restaurantMap.on('click', (e) => {
+      _restaurantMarker.setLatLng(e.latlng);
+      syncInputs(e.latlng);
+    });
+  } else {
+    _restaurantMap.setView(center, 15);
+    _restaurantMarker?.setLatLng(center);
+  }
+  setTimeout(() => _restaurantMap?.invalidateSize(), 200);
+}
+
+async function saveRestaurantInfo() {
+  const isAr  = TAZA.Lang.current === 'ar';
+  const btn   = document.getElementById('save-info-btn');
+  const invalidControl = document.querySelector('#restaurant-editor-shell input:invalid, #restaurant-editor-shell textarea:invalid');
+  if (invalidControl) {
+    invalidControl.reportValidity();
+    invalidControl.focus();
+    TAZA.Toast.warning(isAr ? 'راجع الحقل المحدد قبل الحفظ' : 'Review the highlighted field before saving');
+    return;
+  }
+
+  // Collect working hours
+  const wh = {};
+  DAYS.forEach(day => {
+    const toggle  = document.getElementById(`hours-toggle-${day.key}`);
+    const fromEl  = document.getElementById(`hours-from-${day.key}`);
+    const toEl    = document.getElementById(`hours-to-${day.key}`);
+    wh[day.key]   = {
+      open: toggle?.classList.contains('on') ?? true,
+      from: fromEl?.value ?? '09:00',
+      to:   toEl?.value   ?? '22:00',
+    };
+  });
+
+  const payload = {
+    name:          document.getElementById('info-name')?.value.trim()        ?? '',
+    phone:         document.getElementById('info-phone')?.value.trim()       || null,
+    whatsapp:      document.getElementById('info-whatsapp')?.value.trim()    || null,
+    about_text:    document.getElementById('info-description')?.value.trim() || null,
+    address:       document.getElementById('info-address')?.value.trim()     || null,
+    email:         document.getElementById('info-email')?.value.trim()       || null,
+    instagram_url: document.getElementById('info-instagram')?.value.trim()   || null,
+    facebook_url:  document.getElementById('info-facebook')?.value.trim()    || null,
+    telegram_url:  document.getElementById('info-telegram')?.value.trim()    || null,
+    latitude:      document.getElementById('info-latitude')?.value ? parseFloat(document.getElementById('info-latitude').value) : null,
+    longitude:     document.getElementById('info-longitude')?.value ? parseFloat(document.getElementById('info-longitude').value) : null,
+    working_hours: wh,
+    website_content: collectWebsiteContent(),
+  };
+
+  if (!payload.name) {
+    TAZA.Toast.warning(isAr ? 'اسم المطعم مطلوب' : 'Restaurant name required');
+    return;
+  }
+
+  const invalidFooterLink = payload.website_content.footer_links.find(link =>
+    !link.label_ar || !link.label_en || !link.url || /^\s*(javascript|data):/i.test(link.url)
+  );
+  if (invalidFooterLink) {
+    TAZA.Toast.warning(isAr ? 'أكمل عناوين وروابط الفوتر وتأكد من صحة الرابط' : 'Complete all footer link labels and use a safe URL');
+    return;
+  }
+
+  setRestaurantSaveState('saving');
+  TAZA.Utils.disableBtn(btn);
+  try {
+    await TAZA.Http.put(TAZA.API.COMM.RESTAURANT_UPDATE, payload);
+    TAZA.Toast.success(isAr ? 'تم حفظ المعلومات بنجاح' : 'Information saved successfully');
+    _restaurantInfo = { ..._restaurantInfo, ...payload, social_links: {
+      facebook: payload.facebook_url,
+      instagram: payload.instagram_url,
+      telegram: payload.telegram_url,
+    }};
+    setRestaurantSaveState('saved');
+    renderRestaurantPreview();
+  } catch(e) {
+    setRestaurantSaveState('dirty');
+    TAZA.Toast.apiError(e);
+  }
+  finally    { TAZA.Utils.enableBtn(btn); }
+}
+
+async function uploadLogo(e) {
+  const file = e.target.files?.[0];
+  if (!file || !TAZA.Utils.isImageFile(file)) {
+    TAZA.Toast.warning(TAZA.Lang.current === 'ar' ? 'صيغة غير مقبولة' : 'Invalid format');
+    return;
+  }
+  const fd = new FormData(); fd.append('image', file);
+  try {
+    const res = await TAZA.Http.upload(TAZA.API.ADMIN_RESTAURANT.UPLOAD_LOGO, fd);
+    const url = res?.data?.logo_url ?? res?.data?.url ?? URL.createObjectURL(file);
+    const img = document.getElementById('logo-preview-img');
+    if (img) { img.src = url; img.style.display = 'block'; }
+    const ph  = document.getElementById('logo-placeholder');
+    if (ph)   ph.style.display = 'none';
+    TAZA.Toast.success(TAZA.Lang.current === 'ar' ? 'تم تحديث الشعار' : 'Logo updated');
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+// ═══════════════════════════════════════════
+// [3] Gallery
+// ═══════════════════════════════════════════
+async function loadGallery() {
+  try {
+    const res      = await TAZA.Http.get(TAZA.API.COMM.IMAGES_LIST);
+    _galleryImages = res?.data?.all_images ?? res?.data?.images ?? [];
+    renderGallery(_galleryImages);
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+function renderGallery(images) {
+  const grid = document.getElementById('gallery-grid');
+  const isAr = TAZA.Lang.current === 'ar';
+  if (!grid) return;
+
+  grid.innerHTML = `
+    <label class="gallery-add" style="cursor:pointer">
+      <input type="file" accept="image/*" multiple style="display:none"
+             onchange="handleGalleryFileInput(event)">
+      <div class="gallery-add-icon">📷</div>
+      <div class="gallery-add-text">${isAr ? 'إضافة صورة' : 'Add Photo'}</div>
+    </label>
+    ${images.map(img => `
+      <div class="gallery-item" data-id="${img.id}">
+        <img src="${TAZA.Media.url(img.image_url || img.url)}" alt="Gallery" loading="lazy">
+        <div class="gallery-item-overlay">
+          <button class="btn btn-danger btn-sm" data-action="delete-image" data-id="${img.id}">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    `).join('')}
+  `;
+
+  // Update count in overview
+  const countEl = document.getElementById('gallery-count-stat');
+  if (countEl) countEl.textContent = images.length;
+}
+
+function handleGalleryFileInput(e) {
+  const files = Array.from(e.target.files ?? []);
+  if (files.length) uploadGalleryBatch(files);
+}
+
+async function uploadGalleryImages(e) {
+  const files = Array.from(e.target.files ?? []);
+  if (!files.length) return;
+  uploadGalleryBatch(files);
+  e.target.value = '';
+}
+
+async function uploadGalleryBatch(files) {
+  const progressWrap = document.getElementById('upload-progress-wrap');
+  const progressBar  = document.getElementById('upload-progress-bar');
+  const progressText = document.getElementById('upload-progress-text');
+  const isAr         = TAZA.Lang.current === 'ar';
+  const validFiles   = files.filter(f => TAZA.Utils.isImageFile(f));
+
+  if (!validFiles.length) {
+    TAZA.Toast.warning(isAr ? 'لم يتم اختيار صور صحيحة' : 'No valid images selected');
+    return;
+  }
+
+  if (progressWrap) progressWrap.style.display = 'block';
+  let uploaded = 0;
+
+  for (const file of validFiles) {
+    const fd = new FormData();
+    fd.append('image', file);
+    fd.append('type', 'food');
+    fd.append('caption', file.name.replace(/\.[^.]+$/, ''));
+    try {
+      await TAZA.Http.upload(TAZA.API.COMM.IMAGE_UPLOAD, fd);
+      uploaded++;
+      const pct = Math.round((uploaded / validFiles.length) * 100);
+      if (progressBar) progressBar.style.width = pct + '%';
+      if (progressText) progressText.textContent = `${isAr?'جارٍ رفع':'Uploading'} ${uploaded}/${validFiles.length}...`;
+    } catch(err) {
+      TAZA.Toast.error(`${isAr?'فشل رفع':'Failed to upload'} ${file.name}`);
+    }
+  }
+
+  if (progressWrap) setTimeout(() => { progressWrap.style.display = 'none'; progressBar.style.width = '0%'; }, 1000);
+  TAZA.Toast.success(`${isAr?'تم رفع':'Uploaded'} ${uploaded} ${isAr?'صورة':'image(s)'}`);
+  _galleryImages = [];
+  loadGallery();
+}
+
+async function handleGalleryAction(e) {
+  const btn = e.target.closest('[data-action="delete-image"]');
+  if (!btn) return;
+  const id   = parseInt(btn.dataset.id);
+  const isAr = TAZA.Lang.current === 'ar';
+
+  TAZA.Confirm.show(
+    isAr ? 'حذف هذه الصورة نهائياً؟' : 'Delete this image permanently?',
+    async () => {
+      try {
+        await TAZA.Http.delete(TAZA.API.COMM.IMAGE_DELETE(id));
+        TAZA.Toast.success(isAr ? 'تم حذف الصورة' : 'Image deleted');
+        _galleryImages = [];
+        loadGallery();
+      } catch(err) { TAZA.Toast.apiError(err); }
+    },
+    { danger: true }
+  );
+}
+
+// ═══════════════════════════════════════════
+// [4] Meal Suggestions
+// ═══════════════════════════════════════════
+async function loadSuggestions(filterStatus = '') {
+  const isAr = TAZA.Lang.current === 'ar';
+  try {
+    const params = {};
+    if (filterStatus) params.status = filterStatus;
+    const res   = await TAZA.Http.get(TAZA.API.COMM.SUGGESTIONS, params);
+    _suggestions = res?.data?.suggestions ?? [];
+    renderSuggestionsGrid(_suggestions);
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+function renderSuggestionsGrid(suggestions) {
+  const grid = document.getElementById('suggestions-grid');
+  const isAr = TAZA.Lang.current === 'ar';
+
+  if (!suggestions.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-icon">💡</div>
+      <div class="empty-title">${isAr?'لا توجد اقتراحات':'No suggestions found'}</div>
+    </div>`;
+    return;
+  }
+
+  const statusInfo = {
+    pending:    { cls:'pending',     color:'var(--warning)', label:isAr?'قيد المراجعة':'Pending'      },
+    reviewed:   { cls:'',           color:'var(--info)',    label:isAr?'تمت المراجعة':'Reviewed'     },
+    implemented:{ cls:'implemented', color:'var(--success)', label:isAr?'تم التطبيق':'Implemented'   },
+    rejected:   { cls:'rejected',   color:'var(--danger)',  label:isAr?'مرفوض':'Rejected'            },
+  };
+
+  grid.innerHTML = suggestions.map(s => {
+    const si   = statusInfo[s.status] ?? { cls:'', color:'var(--text-muted)', label:s.status };
+    const catIcons = { sweet:'🍰', spicy:'🌶️', vegetarian:'🥗', grilled:'🔥', seafood:'🦞', other:'🍽️' };
+
+    return `
+      <div class="suggestion-card ${si.cls}">
+        <div class="suggestion-header">
+          <div>
+            <div style="font-size:.68rem;font-weight:600;color:${si.color};margin-bottom:4px">${si.label}</div>
+            <div class="suggestion-meal-name">${escapeDashboardValue(s.meal_name || s.suggestion_text || (isAr?'اقتراح وجبة':'Meal suggestion'))}</div>
+          </div>
+          <span style="font-size:1.4rem">${catIcons[s.category] ?? '🍽️'}</span>
+        </div>
+
+        <div class="customer-info-chip" style="margin-bottom:8px">
+          <div class="avatar avatar-sm" style="font-size:.6rem;background:var(--primary-soft);color:var(--primary)">
+            ${TAZA.Utils.initials(s.customer_name || s.customer?.name || 'Z')}
+          </div>
+          <span>${escapeDashboardValue(s.customer_name || s.customer?.name || (isAr?'زبون':'Customer'))}</span>
+          <span style="color:var(--border)">·</span>
+          <span>${TAZA.Utils.timeAgo(s.created_at)}</span>
+        </div>
+
+        ${(s.description || s.suggestion_text) ? `
+          <div style="font-size:.78rem;color:var(--text-secondary);margin-bottom:10px;
+               display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">
+            ${escapeDashboardValue(s.description || s.suggestion_text)}
+          </div>` : ''}
+
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" style="flex:1"
+                  data-action="view-suggestion" data-id="${s.id}">
+            <i class="fa-solid fa-eye"></i>
+            ${isAr?'التفاصيل':'Details'}
+          </button>
+          ${s.status === 'pending' ? `
+            <button class="btn btn-ghost btn-sm"
+                    data-action="review-suggestion" data-id="${s.id}"
+                    title="${isAr?'تعيين كمراجَعة':'Mark Reviewed'}">
+              <i class="fa-solid fa-check"></i>
+            </button>` : ''}
+          ${['pending','reviewed'].includes(s.status) ? `
+            <button class="btn btn-success btn-sm"
+                    data-action="implement-suggestion" data-id="${s.id}">
+              <i class="fa-solid fa-circle-check"></i>
+              ${isAr?'تطبيق':'Apply'}
+            </button>
+            <button class="btn btn-danger btn-sm"
+                    data-action="reject-suggestion" data-id="${s.id}">
+              <i class="fa-solid fa-xmark"></i>
+            </button>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function handleSuggestionAction(e) {
+  const btn    = e.target.closest('[data-action]');
+  if (!btn) return;
+  const action = btn.dataset.action;
+  const id     = parseInt(btn.dataset.id);
+  const isAr   = TAZA.Lang.current === 'ar';
+
+  if (action === 'view-suggestion') {
+    openSuggestionModal(id);
+    return;
+  }
+
+  const endpoints = {
+    'review-suggestion':    TAZA.API.COMM.SUGGESTION_REVIEW(id),
+    'implement-suggestion': TAZA.API.COMM.SUGGESTION_IMPL(id),
+    'reject-suggestion':    TAZA.API.COMM.SUGGESTION_REJECT(id),
+  };
+
+  const messages = {
+    'review-suggestion':    isAr?'تم تعيين الاقتراح كمراجَع':'Marked as reviewed',
+    'implement-suggestion': isAr?'تم تطبيق الاقتراح 🎉':'Suggestion implemented 🎉',
+    'reject-suggestion':    isAr?'تم رفض الاقتراح':'Suggestion rejected',
+  };
+
+  const ep = endpoints[action];
+  if (!ep) return;
+
+  if (action === 'reject-suggestion') {
+    TAZA.Confirm.show(
+      isAr ? 'رفض هذا الاقتراح؟' : 'Reject this suggestion?',
+      async () => {
+        try {
+          await TAZA.Http.put(ep);
+          TAZA.Toast.success(messages[action]);
+          _suggestions = [];
+          loadSuggestions();
+        } catch(err) { TAZA.Toast.apiError(err); }
+      },
+      { danger: true }
+    );
+    return;
+  }
+
+  try {
+    await TAZA.Http.put(ep);
+    TAZA.Toast.success(messages[action]);
+    _suggestions = [];
+    loadSuggestions();
+  } catch(err) { TAZA.Toast.apiError(err); }
+}
+
+async function openSuggestionModal(id) {
+  openModal('modal-suggestion');
+  const content = document.getElementById('suggestion-modal-content');
+  const footer  = document.getElementById('suggestion-modal-footer');
+  const isAr    = TAZA.Lang.current === 'ar';
+
+  content.innerHTML = '<div class="loader-ring" style="margin:0 auto"></div>';
+
+  try {
+    const res  = await TAZA.Http.get(TAZA.API.COMM.SUGGESTION_SHOW(id));
+    const s    = res?.data?.suggestion ?? {};
+    const catIcons = { sweet:'🍰', spicy:'🌶️', vegetarian:'🥗', grilled:'🔥', seafood:'🦞', other:'🍽️' };
+
+    content.innerHTML = `
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:2.5rem">${catIcons[s.category] ?? '🍽️'}</div>
+        <div style="font-size:1.2rem;font-weight:700;margin-top:6px">${escapeDashboardValue(s.meal_name || s.suggestion_text || (isAr?'اقتراح وجبة':'Meal suggestion'))}</div>
+        ${TAZA.Utils.statusBadge(s.status)}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div style="background:var(--bg-main);border-radius:8px;padding:10px">
+          <div style="font-size:.7rem;color:var(--text-muted)">${isAr?'مقترح من':'Suggested by'}</div>
+          <div style="font-weight:600;font-size:.85rem">${escapeDashboardValue(s.customer_name || s.customer?.name || '—')}</div>
+        </div>
+        <div style="background:var(--bg-main);border-radius:8px;padding:10px">
+          <div style="font-size:.7rem;color:var(--text-muted)">${isAr?'الفئة':'Category'}</div>
+          <div style="font-weight:600;font-size:.85rem">${escapeDashboardValue(s.category_label ?? s.category)}</div>
+        </div>
+      </div>
+      ${(s.description || s.suggestion_text) ? `
+        <div style="margin-bottom:12px">
+          <div style="font-size:.75rem;font-weight:600;color:var(--text-muted);margin-bottom:4px">
+            ${isAr?'الوصف:':'Description:'}
+          </div>
+          <div style="font-size:.85rem;color:var(--text-secondary);background:var(--bg-main);
+                      border-radius:8px;padding:10px;line-height:1.6">${escapeDashboardValue(s.description || s.suggestion_text)}</div>
+        </div>` : ''}
+      ${s.ingredients ? `
+        <div style="margin-bottom:12px">
+          <div style="font-size:.75rem;font-weight:600;color:var(--text-muted);margin-bottom:4px">
+            ${isAr?'المكونات المقترحة:':'Suggested Ingredients:'}
+          </div>
+          <div style="font-size:.85rem;color:var(--text-secondary);background:var(--bg-main);
+                      border-radius:8px;padding:10px">${escapeDashboardValue(s.ingredients)}</div>
+        </div>` : ''}
+      ${s.employee_notes ? `
+        <div>
+          <div style="font-size:.75rem;font-weight:600;color:var(--text-muted);margin-bottom:4px">
+            ${isAr?'ملاحظات المراجع:':'Reviewer Notes:'}
+          </div>
+          <div style="font-size:.85rem;color:var(--text-secondary);background:var(--success-light);
+                      border-radius:8px;padding:10px">${escapeDashboardValue(s.employee_notes)}</div>
+        </div>` : ''}
+    `;
+
+    // Update footer buttons based on status
+    if (['pending','reviewed'].includes(s.status)) {
+      footer.innerHTML = `
+        <button class="btn btn-outline btn-sm" id="close-suggestion-btn-dynamic"
+                data-lang-ar="إغلاق" data-lang-en="Close">
+          ${isAr?'إغلاق':'Close'}
+        </button>
+        <button class="btn btn-success btn-sm" onclick="quickAction(${id},'implement')">
+          <i class="fa-solid fa-circle-check"></i> ${isAr?'تطبيق':'Implement'}
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="quickAction(${id},'reject')">
+          <i class="fa-solid fa-xmark"></i> ${isAr?'رفض':'Reject'}
+        </button>
+      `;
+    document.getElementById('close-suggestion-btn-dynamic')
+        ?.addEventListener('click', () => closeModal('modal-suggestion'));
+    }
+
+  } catch(err) {
+    content.innerHTML = `<div class="empty-state"><div class="empty-icon">❌</div></div>`;
+  }
+}
+
+async function quickAction(id, action) {
+  const isAr    = TAZA.Lang.current === 'ar';
+  const endpoints = {
+    implement: TAZA.API.COMM.SUGGESTION_IMPL(id),
+    reject:    TAZA.API.COMM.SUGGESTION_REJECT(id),
+  };
+  try {
+    await TAZA.Http.put(endpoints[action]);
+    TAZA.Toast.success(action === 'implement'
+      ? (isAr?'تم التطبيق 🎉':'Implemented 🎉')
+      : (isAr?'تم الرفض':'Rejected'));
+    closeModal('modal-suggestion');
+    _suggestions = [];
+    loadSuggestions();
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+// ═══════════════════════════════════════════
+// [5] Reviews
+// ═══════════════════════════════════════════
+async function loadReviews() {
+  const rating   = document.getElementById('reviews-rating-filter')?.value ?? '';
+  const isAr     = TAZA.Lang.current === 'ar';
+  try {
+    const params = {};
+    if (rating) params.rating = rating;
+    const res  = await TAZA.Http.get(TAZA.API.REVIEWS.CUSTOMERS, params);
+    _reviews   = res?.data?.reviews ?? [];
+    renderReviewsSummary(_reviews);
+    renderReviewsList(_reviews);
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+function renderReviewsSummary(reviews) {
+  const summaryEl = document.getElementById('reviews-summary');
+  if (!summaryEl) return;
+  if (!reviews.length) { summaryEl.style.display = 'none'; return; }
+  summaryEl.style.display = 'block';
+  const isAr  = TAZA.Lang.current === 'ar';
+  const avg   = reviews.reduce((s, r) => s + (r.overall_rating ?? r.rating ?? 0), 0) / reviews.length;
+  const total = reviews.length;
+
+  const bigEl = document.getElementById('avg-rating-big');
+  if (bigEl) bigEl.textContent = avg.toFixed(1);
+  const starsEl = document.getElementById('avg-stars-display');
+  if (starsEl) {
+    const filled = Math.round(avg);
+    starsEl.textContent = '★'.repeat(filled) + '☆'.repeat(5 - filled);
+  }
+  const totalEl = document.getElementById('total-reviews-count');
+  if (totalEl) totalEl.textContent = `${total} ${isAr?'تقييم':'reviews'}`;
+
+  const barsEl = document.getElementById('rating-bars');
+  if (barsEl) {
+    barsEl.innerHTML = [5,4,3,2,1].map(n => {
+      const count = reviews.filter(r => Math.round(r.overall_rating ?? r.rating ?? 0) === n).length;
+      const pct   = total > 0 ? Math.round((count / total) * 100) : 0;
+      return `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span style="font-size:.75rem;color:var(--accent);width:20px">${n}★</span>
+          <div class="progress" style="flex:1;height:8px">
+            <div class="progress-bar" style="width:${pct}%;background:var(--accent)"></div>
+          </div>
+          <span style="font-size:.72rem;color:var(--text-muted);width:28px">${count}</span>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+function renderReviewsList(reviews) {
+  const list = document.getElementById('reviews-list');
+  const isAr = TAZA.Lang.current === 'ar';
+
+  if (!reviews.length) {
+    list.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">⭐</div>
+      <div class="empty-title">${isAr?'لا توجد تقييمات منتجات حالياً — جاهز للتطوير لاحقاً':'No product reviews yet — ready for later development'}</div>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = reviews.map(r => {
+    const rating   = r.overall_rating ?? r.rating ?? 0;
+    const filled   = Math.round(rating);
+    const ratingColor = filled >= 4 ? 'var(--success)' : filled >= 3 ? 'var(--warning)' : 'var(--danger)';
+
+    return `
+      <div class="review-card">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="avatar avatar-sm" style="background:var(--primary-soft);color:var(--primary)">
+              ${TAZA.Utils.initials(r.customer_name ?? 'Z')}
+            </div>
+            <div>
+              <div style="font-weight:700;font-size:.85rem">${escapeDashboardValue(r.customer_name ?? (isAr?'زبون':'Customer'))}</div>
+              <div style="font-size:.7rem;color:var(--text-muted)">${TAZA.Utils.timeAgo(r.created_at)}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="star-display" style="color:${ratingColor}">
+              ${'★'.repeat(filled)}${'☆'.repeat(5-filled)}
+            </span>
+            <span style="font-weight:700;font-size:.85rem;color:${ratingColor}">${rating.toFixed(1)}</span>
+          </div>
+        </div>
+        ${r.comment ? `
+          <div style="font-size:.825rem;color:var(--text-secondary);line-height:1.6;
+                      background:var(--bg-main);border-radius:8px;padding:10px;margin-bottom:8px">
+            "${escapeDashboardValue(r.comment)}"
+          </div>` : ''}
+        ${r.employee_reply ? `
+          <div style="background:var(--primary-soft);border-right:3px solid var(--primary);
+                      padding:8px 12px;border-radius:0 8px 8px 0;font-size:.78rem;color:var(--text-secondary)">
+            <span style="font-weight:700;color:var(--primary)">
+              ${isAr?'رد المطعم:':'Restaurant Reply:'}&nbsp;
+            </span>
+            ${escapeDashboardValue(r.employee_reply)}
+          </div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════
+// [6] Notifications
+// ═══════════════════════════════════════════
+async function loadNotificationsPage() {
+  const container = document.getElementById('notifs-full-list');
+  const isAr      = TAZA.Lang.current === 'ar';
+  try {
+    const res    = await TAZA.Http.get(TAZA.API.NOTIFICATIONS.LIST);
+    const notifs = res?.data?.notifications ?? [];
+    const unread = res?.data?.unread_count  ?? 0;
+    const dot    = document.querySelector('.badge-dot');
+    if (dot) dot.style.display = unread > 0 ? 'block' : 'none';
+    loadNotifPanel(notifs.slice(0, 8));
+
+    if (!notifs.length) {
+      container.innerHTML = `<div class="empty-state">
+        <div class="empty-icon"><i class="fa-regular fa-bell"></i></div>
+        <div class="empty-title">${isAr?'لا توجد إشعارات':'No notifications'}</div>
+        <div class="empty-desc">${isAr?'ستظهر هنا تحديثات المحتوى والاقتراحات المهمة.':'Important content and suggestion updates will appear here.'}</div>
+      </div>`;
+      return;
+    }
+    container.innerHTML = notifs.map(n => buildCommunicationNotification(n)).join('');
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+function getCommunicationNotificationVisual(n = {}) {
+  const source = `${n.type ?? ''} ${n.title ?? ''} ${n.message ?? ''}`.toLowerCase();
+  if (/رفض|reject|error|فشل|حذف/.test(source)) return {tone:'danger',icon:'fa-circle-xmark'};
+  if (/اقتراح|suggest/.test(source)) return {tone:'suggestion',icon:'fa-lightbulb'};
+  if (/تطبيق|نجاح|تم |success/.test(source)) return {tone:'success',icon:'fa-circle-check'};
+  return {tone:'content',icon:'fa-pen-to-square'};
+}
+
+function buildCommunicationNotification(n, compact = false) {
+  const isAr = TAZA.Lang.current === 'ar';
+  const v = getCommunicationNotificationVisual(n);
+  const unread = n.is_read ? '' : 'unread';
+  const title = escapeDashboardValue(n.title || (isAr ? 'إشعار جديد' : 'New notification'));
+  const message = escapeDashboardValue(n.message || '');
+  const time = TAZA.Utils.timeAgo(n.created_at);
+  if (compact) return `<div class="notification-item notification-tone-${v.tone} ${unread}" data-id="${n.id}"><div class="notification-icon"><i class="fa-solid ${v.icon}"></i></div><div><div class="notification-item-title">${title}</div><div class="notification-item-time">${time}</div></div></div>`;
+  return `<article class="notif-item-full notification-tone-${v.tone} ${unread}" data-id="${n.id}"><div class="notif-icon-wrap"><i class="fa-solid ${v.icon}"></i></div><div class="notif-copy"><div class="notif-title">${title}</div>${message ? `<div class="notif-message">${message}</div>` : ''}<div class="notif-time"><i class="fa-regular fa-clock"></i> ${time}</div></div><span></span></article>`;
+}
+
+function loadNotifPanel(notifs) {
+  const panel = document.getElementById('notif-list-panel');
+  if (!panel) return;
+  const isAr = TAZA.Lang.current === 'ar';
+  panel.innerHTML = notifs.length ? notifs.map(n => buildCommunicationNotification(n, true)).join('') : `<div class="empty-state" style="padding:34px 20px"><div class="empty-icon"><i class="fa-regular fa-bell"></i></div><div class="empty-title">${isAr?'لا توجد إشعارات جديدة':'No new notifications'}</div></div>`;
+  const dot = document.querySelector('.badge-dot');
+  const unread = notifs.filter(n=>!n.is_read).length;
+  if (dot) dot.style.display = unread > 0 ? 'block' : 'none';
+  const summary = document.getElementById('notif-panel-summary');
+  if (summary) summary.textContent = unread ? (isAr ? `${unread} إشعارات غير مقروءة` : `${unread} unread notifications`) : (isAr ? 'أنت مطّلع على كل التحديثات' : 'You are up to date');
+}
+
+async function markAllRead() {
+  try {
+    await TAZA.Http.put(TAZA.API.NOTIFICATIONS.MARK_ALL_READ);
+    document.querySelectorAll('.notif-item-full.unread,.notification-item.unread')
+      .forEach(el => el.classList.remove('unread'));
+    const dot = document.querySelector('.badge-dot');
+    if (dot) dot.style.display = 'none';
+    const summary = document.getElementById('notif-panel-summary');
+    if (summary) summary.textContent = TAZA.Lang.current === 'ar' ? 'أنت مطّلع على كل التحديثات' : 'You are up to date';
+    const panelButton = document.getElementById('panel-mark-all');
+    if (panelButton) panelButton.style.visibility = 'hidden';
+    TAZA.Toast.success(TAZA.Lang.current === 'ar' ? 'تمت القراءة' : 'All read');
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+// ═══════════════════════════════════════════
+// [7] Profile
+// ═══════════════════════════════════════════
+async function loadProfile() {
+  const user = TAZA.Auth.getUser();
+  if (!user) return;
+  ['profile-name-display','sidebar-user-name'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.textContent = user.name ?? '—';
+  });
+  const roleEl = document.getElementById('profile-role-display');
+  if (roleEl) roleEl.textContent = TAZA.Utils.statusLabel(user.role) || 'Communication Manager';
+  ['profile-avatar','sidebar-user-avatar'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    el.textContent = TAZA.Utils.initials(user.name);
+    if (user.avatar) el.innerHTML = `<img src="${TAZA.Media.url(user.avatar)}" alt="${escapeDashboardValue(user.name)}"
+        onerror="this.style.display='none';this.parentElement.textContent='${TAZA.Utils.initials(user.name)}'">`;
+  });
+  const emailEl = document.getElementById('profile-email');
+  const phoneEl = document.getElementById('profile-phone');
+  if (emailEl) emailEl.value = user.email ?? '';
+  if (phoneEl) phoneEl.value = user.phone ?? '';
+}
+
+async function saveProfile() {
+  const email    = document.getElementById('profile-email')?.value.trim()        ?? '';
+  const phone    = document.getElementById('profile-phone')?.value.trim()        ?? '';
+  const currPass = document.getElementById('profile-current-pass')?.value.trim() ?? '';
+  const newPass  = document.getElementById('profile-new-pass')?.value.trim()     ?? '';
+  const isAr     = TAZA.Lang.current === 'ar';
+  const btn      = document.getElementById('save-profile-btn');
+  const payload  = {};
+  if (email) payload.email = email;
+  if (phone) payload.phone = phone;
+  if (newPass) {
+    if (!currPass) { TAZA.Toast.warning(isAr?'أدخل كلمة المرور الحالية':'Enter current password'); return; }
+    payload.current_password = currPass;
+    payload.new_password     = newPass;
+    payload.new_password_confirmation = newPass;
+  }
+  if (!Object.keys(payload).length) { TAZA.Toast.info(isAr?'لم يتغير شيء':'Nothing changed'); return; }
+  TAZA.Utils.disableBtn(btn);
+  try {
+    const res = await TAZA.Http.put(TAZA.API.AUTH.UPDATE_PROFILE, payload);
+    TAZA.Toast.success(isAr?'تم التحديث':'Updated');
+    if (res?.data?.employee) TAZA.Auth.save(TAZA.Auth.getToken(), res.data.employee);
+    document.getElementById('profile-current-pass').value = '';
+    document.getElementById('profile-new-pass').value     = '';
+  } catch(e) { TAZA.Toast.apiError(e); }
+  finally    { TAZA.Utils.enableBtn(btn); }
+}
+
+async function uploadAvatar(e) {
+  const file = e.target.files?.[0];
+  if (!file || !TAZA.Utils.isImageFile(file)) return;
+  const fd = new FormData(); fd.append('image', file);
+  try {
+    await TAZA.Http.upload(TAZA.API.AUTH.UPLOAD_AVATAR, fd);
+    TAZA.Toast.success(TAZA.Lang.current === 'ar' ? 'تم تحديث صورتك' : 'Avatar updated');
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+// ── Modal Helpers ──────────────────────────────
+function openModal(id) {
+  const m = document.getElementById(id);
+  if (!m) return;
+  m.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+  const m = document.getElementById(id);
+  if (m) m.classList.remove('show');
+  document.body.style.overflow = '';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TAZA 041 | Meal Guide</title>
+  <link rel="icon" href="assets/images/taza041-logo.jpg?v=20260801" type="image/jpeg" data-restaurant-favicon>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.bundle.css?v=20260714-privacy-trigger">
+</head>
+<body data-page="ai">
+
+<header class="site-header">
+  <div class="container nav-row logged-nav-row">
+    <div class="header-account">
+      <a class="logo" href="home-user.html">
+        <div class="logo-image logo-loaded"><img loading="eager" decoding="async" src="assets/images/taza041-logo.jpg" alt="TAZA 041"></div>
+        <div class="logo-text"><strong>TAZA 041</strong><span data-ar="تجربة العميل" data-en="Customer Experience">تجربة العميل</span></div>
+      </a>
+      <div class="header-user">
+        <div>
+          <strong data-user-name data-ar="جاري التحميل" data-en="Loading">جاري التحميل</strong>
+          <small><span data-ar="نقاط الولاء:" data-en="Loyalty points:">نقاط الولاء:</span> <span data-user-loyalty>—</span></small>
+        </div>
+      </div>
+    </div>
+    <div class="header-status-slot" data-header-status></div>
+    <div class="header-actions">
+      <div class="header-page-context">
+        <span class="header-page-marker" aria-hidden="true"></span>
+        <span><small data-ar="الصفحة الحالية" data-en="Current page">الصفحة الحالية</small><strong data-ar="مرشد الوجبة" data-en="Meal guide">مرشد الوجبة</strong></span>
+      </div>
+      <button class="menu-toggle" data-open-sidebar>☰</button>
+      <div class="header-preferences" aria-label="Preferences">
+        <button class="tool-btn" data-theme-toggle data-theme-label>☾</button>
+        <button class="tool-btn" data-lang-toggle data-ar="AR" data-en="EN">AR</button>
+      </div>
+      <button class="icon-circle" data-open-cart>🛒 <span data-cart-count>0</span></button>
+    </div>
+  </div>
+</header>
+<div class="sidebar" data-sidebar>
+  <div class="row-between"><strong data-ar="القائمة الجانبية" data-en="Side menu">القائمة الجانبية</strong><button class="close-btn" data-close-sidebar>×</button></div>
+  <div class="sidebar-links">
+    <a class="sidebar-link" href="notifications.html"><span>🔔</span><span data-ar="الإشعارات" data-en="Notifications">الإشعارات</span></a>
+    <a class="sidebar-link" href="profile.html"><span>👤</span><span data-ar="إعداد الحساب الشخصي" data-en="Profile settings">إعداد الحساب الشخصي</span></a>
+    <a class="sidebar-link" href="orders.html"><span>🧾</span><span data-ar="الطلبات السابقة" data-en="Previous orders">الطلبات السابقة</span></a>
+    <a class="sidebar-link" href="ai-suggestion.html"><span>🍽</span><span data-ar="مرشد اختيار الوجبة" data-en="Meal selection guide">مرشد اختيار الوجبة</span></a>
+    <a class="sidebar-link" href="index.html" onclick="localStorage.setItem('taza_logged_in','false')"><span>🚪</span><span data-ar="تسجيل الخروج" data-en="Logout">تسجيل الخروج</span></a>
+  </div>
+</div>
+<div class="cart-drawer" data-cart-drawer>
+  <div class="row-between"><strong data-ar="السلة" data-en="Cart">السلة</strong><button class="close-btn" data-close-cart>×</button></div>
+  <div class="cart-list" data-cart-list></div>
+  <div class="summary-item" style="margin-top:12px;"><div class="row-between"><strong data-ar="الإجمالي" data-en="Total">الإجمالي</strong><span data-cart-total>0 SYP</span></div></div>
+  <div class="hero-actions" style="margin-top:12px;"><a class="btn btn-primary" href="menu.html" data-ar="اذهب إلى المنيو" data-en="Go to menu">اذهب إلى المنيو</a></div>
+</div>
+
+<div class="page-shell">
+  <nav class="page-back-nav" data-page-back-nav>
+    <div class="container"><a class="page-back-link" data-page-back href="home-user.html" data-ar="رجوع" data-en="Back">رجوع</a></div>
+  </nav>
+  <main class="section ai-page"><div class="container ai-layout">
+  <section class="hero-panel ai-intro meal-guide-intro">
+    <span class="section-tag" data-ar="مرشد اختيار الوجبة" data-en="Meal selection guide">مرشد اختيار الوجبة</span>
+    <h1 data-ar="اختيار ألذ، أسرع، وأنسب لذوقك" data-en="A better meal choice, faster">اختيار ألذ، أسرع، وأنسب لذوقك</h1>
+    <p class="muted" data-ar="اكتب مزاجك، عدد الأشخاص، أو الميزانية. سنرتب لك اقتراحاً واضحاً مع سبب الاختيار وخطوة مباشرة للمنيو." data-en="Share your mood, party size, or budget. We will shape a clear suggestion with the reason behind it and a direct step to the menu.">اكتب مزاجك، عدد الأشخاص، أو الميزانية. سنرتب لك اقتراحاً واضحاً مع سبب الاختيار وخطوة مباشرة للمنيو.</p>
+    <div class="guide-highlights" aria-label="Meal guide benefits">
+      <div>
+        <span>01</span>
+        <strong data-ar="حسب المزاج" data-en="By mood">حسب المزاج</strong>
+        <small data-ar="خفيف، مشبع، أو مشاركة" data-en="Light, filling, or sharing">خفيف، مشبع، أو مشاركة</small>
+      </div>
+      <div>
+        <span>02</span>
+        <strong data-ar="حسب الميزانية" data-en="By budget">حسب الميزانية</strong>
+        <small data-ar="اقتراح يناسب المبلغ" data-en="Matched to your spend">اقتراح يناسب المبلغ</small>
+      </div>
+      <div>
+        <span>03</span>
+        <strong data-ar="جاهز للطلب" data-en="Ready to order">جاهز للطلب</strong>
+        <small data-ar="انتقال سريع للمنيو" data-en="Quick menu handoff">انتقال سريع للمنيو</small>
+      </div>
+    </div>
+    <div class="ai-suggestion-chips">
+      <button type="button" data-ai-prompt-ar="أريد وجبة فاخرة لشخصين" data-ai-prompt-en="I want a premium meal for two" data-ar="مشاركة فاخرة لشخصين" data-en="Premium sharing for two">مشاركة فاخرة لشخصين</button>
+      <button type="button" data-ai-prompt-ar="اقترح وجبة خفيفة وسريعة" data-ai-prompt-en="Suggest a light and quick meal" data-ar="خفيفة وسريعة" data-en="Light and quick">خفيفة وسريعة</button>
+      <button type="button" data-ai-prompt-ar="أريد وجبة مشبعة بميزانية محددة" data-ai-prompt-en="I want a filling meal on a specific budget" data-ar="مشبعة بميزانية محددة" data-en="Filling on a budget">مشبعة بميزانية محددة</button>
+      <button type="button" data-ai-prompt-ar="ما أفضل عرض اليوم؟" data-ai-prompt-en="What is today's best value offer?" data-ar="عرض مناسب اليوم" data-en="Today's best value">عرض مناسب اليوم</button>
+    </div>
+  </section>
+  <section class="card ai-chat-card">
+    <div class="chat-header">
+      <div>
+        <span class="section-tag" data-ar="اقتراح مخصص" data-en="Personalized suggestion">اقتراح مخصص</span>
+        <h2 data-ar="ماذا تحب أن تأكل اليوم؟" data-en="What would you like today?">ماذا تحب أن تأكل اليوم؟</h2>
+      </div>
+      <span class="ai-status" data-ar="جاهز للمساعدة" data-en="Ready to help">جاهز للمساعدة</span>
+    </div>
+    <div class="chat-shell">
+      <div class="chat-messages" data-chat-messages></div>
+      <form class="chat-input-row" data-chat-form>
+        <input class="input" data-chat-input data-placeholder-ar="مثال: وجبة دافئة لشخصين بحدود 100 ألف..." data-placeholder-en="Example: a warm meal for two around 100k..." placeholder="مثال: وجبة دافئة لشخصين بحدود 100 ألف...">
+        <button class="btn btn-primary" type="submit" data-ar="اقترح" data-en="Suggest">اقترح</button>
+      </form>
+    </div>
+  </section>
+</div></main></div>
+
+
+<div class="overlay" data-overlay></div>
+<div class="toast" data-toast></div>
+
+<script src="assets/js/core/state.js?v=20260801-api-origin"></script>
+<script src="assets/js/core/cookies.js?v=20260714-privacy-trigger"></script>
+<script src="assets/js/core/ui.js?v=20260801-authenticated-notifications"></script>
+<script src="assets/js/core/catalog.js?v=20260801-restaurant-favicon"></script>
+<script src="assets/js/core/customer-cart.js"></script>
+<script src="assets/js/pages/router-auth.js?v=20260801-auth-direct-submit"></script>
+<script src="assets/js/app.js?v=20260707-ready"></script>
+</body></html>

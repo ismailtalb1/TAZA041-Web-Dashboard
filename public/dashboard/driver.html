@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TAZA 041 — السائق</title>
+  <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="assets/css/dashboard.css">
+
+  <style>
+    .section-content{display:none}
+    .section-content.active{display:block;animation:fadeIn .25s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    .nav-tabs-custom{display:flex;gap:4px;flex-wrap:wrap;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--border-radius);padding:6px;margin-bottom:24px}
+    .nav-tab{padding:8px 18px;border-radius:var(--border-radius-sm);font-size:.825rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text-muted);transition:var(--transition-fast);font-family:inherit;display:flex;align-items:center;gap:7px}
+    .nav-tab:hover{background:var(--primary-soft);color:var(--primary)}
+    .nav-tab.active{background:var(--primary);color:white}
+
+    /* ── Delivery Card (Mobile-first large buttons) ── */
+    .delivery-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--border-radius);overflow:hidden;transition:var(--transition);position:relative}
+    .delivery-card:hover{box-shadow:var(--shadow-md)}
+
+    .delivery-status-bar{height:4px;width:100%}
+    .delivery-status-bar.pending    {background:var(--warning)}
+    .delivery-status-bar.assigned   {background:var(--info)}
+    .delivery-status-bar.picked_up  {background:var(--primary)}
+    .delivery-status-bar.in_delivery{background:var(--accent);animation:pulse-bar .8s infinite}
+    .delivery-status-bar.delivered  {background:var(--success)}
+    .delivery-status-bar.cancelled  {background:var(--danger)}
+    @keyframes pulse-bar{0%,100%{opacity:1}50%{opacity:.5}}
+
+    .delivery-card-body{padding:18px 20px}
+    .delivery-card-id{font-family:var(--font-latin);font-size:1.2rem;font-weight:800;color:var(--primary)}
+    .delivery-card-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+
+    /* Customer Section */
+    .customer-section{background:var(--bg-main);border-radius:var(--border-radius-sm);padding:12px 14px;margin-bottom:12px}
+    .customer-section-label{font-size:.68rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+    .customer-name-big{font-size:1rem;font-weight:700;color:var(--text-primary);margin-bottom:4px}
+    .customer-phone-big{font-size:.9rem;color:var(--primary);font-weight:600;display:flex;align-items:center;gap:6px}
+
+    /* Address Section */
+    .address-section{background:linear-gradient(135deg,var(--primary-soft),rgba(37,99,235,.03));border:1px solid var(--border);border-radius:var(--border-radius-sm);padding:12px 14px;margin-bottom:12px}
+    .address-text{font-size:.875rem;color:var(--text-primary);font-weight:600;line-height:1.5;margin-bottom:8px}
+    .distance-info{display:flex;align-items:center;gap:12px;font-size:.78rem;flex-wrap:wrap}
+    .distance-pill{display:inline-flex;align-items:center;gap:5px;background:var(--primary);color:white;padding:4px 12px;border-radius:var(--border-radius-full);font-weight:600;font-size:.78rem}
+    .time-pill{display:inline-flex;align-items:center;gap:5px;background:var(--accent-light);color:var(--accent);padding:4px 12px;border-radius:var(--border-radius-full);font-weight:600;font-size:.78rem}
+    .cost-pill{display:inline-flex;align-items:center;gap:5px;background:var(--success-light);color:var(--success);padding:4px 12px;border-radius:var(--border-radius-full);font-weight:600;font-size:.78rem}
+
+    /* Status Action Buttons — Large & Touch-Friendly */
+    .status-flow{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+    .status-btn{width:100%;height:52px;border-radius:var(--border-radius-sm);border:none;font-size:.95rem;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:var(--transition-fast)}
+    .status-btn-pickup   {background:var(--primary);color:white;box-shadow:var(--shadow-primary)}
+    .status-btn-pickup:hover   {background:var(--primary-hover);transform:translateY(-1px)}
+    .status-btn-enroute  {background:var(--accent);color:white;box-shadow:0 4px 14px rgba(245,158,11,.3)}
+    .status-btn-enroute:hover  {background:#D97706;transform:translateY(-1px)}
+    .status-btn-delivered{background:var(--success);color:white;box-shadow:0 4px 14px rgba(16,185,129,.3)}
+    .status-btn-delivered:hover{background:#059669;transform:translateY(-1px)}
+    .btn-maps{background:var(--bg-main);border:1px solid var(--border);color:var(--text-primary);height:44px;font-size:.85rem}
+    .btn-maps:hover{background:var(--primary-soft);border-color:var(--primary);color:var(--primary)}
+    .customer-location-chip{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:7px 10px;border-radius:999px;background:rgba(91,168,255,.12);border:1px solid rgba(91,168,255,.35);color:var(--info);font-size:.75rem;font-weight:800}
+    .customer-location-chip.missing{background:rgba(255,93,115,.10);border-color:rgba(255,93,115,.30);color:var(--danger)}
+    .coords-line{direction:ltr;text-align:left;font-family:var(--font-latin);font-size:.76rem;color:var(--text-muted);margin-top:8px}
+    .driver-route-map{height:420px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--bg-main)}
+    .driver-route-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+    .driver-route-metric{background:var(--bg-main);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center}
+    .driver-route-metric span{display:block;font-size:.68rem;color:var(--text-muted)}
+    .driver-route-metric strong{display:block;margin-top:3px;font-size:.88rem;color:var(--text-primary)}
+    .route-quality-label{font-size:.68rem;font-weight:800;padding:3px 8px;border-radius:999px;background:var(--success-light);color:var(--success)}
+    .route-quality-label.fallback{background:var(--warning-light);color:var(--warning)}
+
+    /* Rating Stars Display */
+    .star-display{color:var(--accent);font-size:1.1rem}
+    .rating-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+    .rating-bar-label{font-size:.78rem;color:var(--accent);width:20px;font-weight:700}
+    .rating-bar-count {font-size:.72rem;color:var(--text-muted);width:24px;text-align:center}
+
+    /* History item */
+    .history-item{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--border-radius-sm);padding:14px 18px;transition:var(--transition-fast);display:flex;gap:14px;align-items:center}
+    .history-item:hover{background:var(--bg-main)}
+    .history-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+
+    /* Profile Card Compact */
+    .driver-profile-hero{background:linear-gradient(135deg,var(--primary),#1D4ED8);color:white;border-radius:var(--border-radius);padding:28px;text-align:center;margin-bottom:16px;position:relative;overflow:hidden}
+    .driver-profile-hero::before{content:'';position:absolute;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.06);top:-60px;right:-60px}
+    .driver-profile-hero::after {content:'';position:absolute;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.04);bottom:-40px;left:-40px}
+    .theme-night .driver-profile-hero{background:linear-gradient(135deg,#1E3A5F,#1A2850)}
+
+    /* Notification */
+    .notif-item-full{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--border-radius-sm);padding:14px 16px;display:flex;gap:12px;align-items:flex-start;transition:var(--transition-fast)}
+    .notif-item-full.unread{border-color:var(--primary);background:var(--primary-soft)}
+    .notif-icon-wrap{width:40px;height:40px;border-radius:10px;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+
+    .stats-row-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+    @media(max-width:600px){.stats-row-3{grid-template-columns:1fr 1fr}.driver-route-map{height:340px}.driver-route-summary{grid-template-columns:1fr}}
+
+    #notif-panel{left:80px}
+    body.lang-en #notif-panel{left:auto;right:80px}
+  </style>
+  <link rel="stylesheet" href="assets/css/driver.css">
+</head>
+<body class="driver-workspace">
+<div id="toast-container" class="toast-container"></div>
+<div class="dashboard-wrapper">
+
+<!-- ══ Sidebar ════════════════════════════════ -->
+<aside class="sidebar" id="sidebar">
+  <a href="#" class="sidebar-logo">
+    <div class="sidebar-logo-icon">
+      <img src="assets/images/logo.jpg" alt="TAZA"
+           onerror="this.parentElement.innerHTML='<span style=\'font-weight:900;color:var(--primary);font-family:var(--font-latin)\'>T</span>'">
+    </div>
+    <div class="sidebar-logo-text">
+      <div class="sidebar-logo-title">TAZA 041</div>
+      <div class="sidebar-logo-sub" data-lang-ar="السائق" data-lang-en="Driver">السائق</div>
+    </div>
+  </a>
+  <nav class="sidebar-nav">
+    <div class="sidebar-section-title" data-lang-ar="القائمة" data-lang-en="MENU">القائمة</div>
+    <a class="sidebar-item active" data-tab="overview" data-tooltip="لوحة التحكم" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-gauge-high"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="لوحة التحكم"    data-lang-en="Dashboard">لوحة التحكم</span>
+    </a>
+    <a class="sidebar-item" data-tab="active" data-tooltip="طلباتي النشطة" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-motorcycle"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="طلباتي النشطة" data-lang-en="Active Orders">طلباتي النشطة</span>
+      <span class="sidebar-badge" id="sb-active-count" style="display:none">0</span>
+    </a>
+    <a class="sidebar-item" data-tab="history" data-tooltip="سجل التوصيلات" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="سجل التوصيلات" data-lang-en="Delivery History">سجل التوصيلات</span>
+    </a>
+    <a class="sidebar-item" data-tab="ratings" data-tooltip="تقييماتي" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-star"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="تقييماتي"       data-lang-en="My Ratings">تقييماتي</span>
+    </a>
+    <a class="sidebar-item" data-tab="notifications" data-tooltip="الإشعارات" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-bell"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="الإشعارات"      data-lang-en="Notifications">الإشعارات</span>
+      <span class="sidebar-badge" id="sb-notif-count" style="display:none">0</span>
+    </a>
+    <div class="sidebar-section-title" data-lang-ar="حسابي" data-lang-en="ACCOUNT">حسابي</div>
+    <a class="sidebar-item" data-tab="profile" data-tooltip="ملفي" href="#">
+      <span class="sidebar-item-icon"><i class="fa-solid fa-user-pen"></i></span>
+      <span class="sidebar-item-text" data-lang-ar="ملفي الشخصي"  data-lang-en="My Profile">ملفي الشخصي</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-user-avatar" id="sidebar-user-avatar"></div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sidebar-user-name">—</div>
+        <div class="sidebar-user-role" data-lang-ar="سائق التوصيل" data-lang-en="Delivery Driver">سائق التوصيل</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ══ Main ════════════════════════════════════ -->
+<div class="main-content" id="main-content">
+  <header class="topbar">
+    <div class="topbar-title">
+      <button class="topbar-btn" id="sidebar-toggle"><i class="fa-solid fa-bars"></i></button>
+      <div>
+        <div class="topbar-page-title" id="page-title"
+             data-lang-ar="لوحة التحكم" data-lang-en="Dashboard">لوحة التحكم</div>
+        <div class="topbar-breadcrumb">
+          <span>TAZA 041</span><span>›</span>
+          <span class="current" data-lang-ar="السائق" data-lang-en="Driver">السائق</span>
+        </div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <div class="topbar-clock">
+        <div class="topbar-time" id="topbar-time">--:--</div>
+        <div class="topbar-date"  id="topbar-date"></div>
+      </div>
+      <button class="theme-indicator" id="theme-toggle" type="button" aria-label="تبديل المظهر">
+        <span class="theme-dot" id="theme-dot"></span>
+        <span id="theme-indicator-text"></span>
+      </button>
+      <div class="lang-toggle">
+        <button class="lang-btn active" data-lang="ar">ع</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+      </div>
+      <button class="topbar-btn" id="notif-btn">
+        <i class="fa-solid fa-bell"></i>
+        <span class="badge-dot notif-count-dot" style="display:none"></span>
+      </button>
+      <button class="topbar-btn" id="logout-btn"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+  </header>
+
+  <!-- Notif Panel -->
+  <div class="notification-panel" id="notif-panel">
+    <div class="notification-panel-header">
+      <div class="notification-panel-heading">
+        <span class="notification-panel-title" data-lang-ar="الإشعارات" data-lang-en="Notifications">الإشعارات</span>
+        <span class="notification-panel-summary" id="notif-panel-summary">تحديثات رحلاتك</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="panel-mark-all"
+              data-lang-ar="تعيين الكل مقروء" data-lang-en="Mark all read">تعيين الكل مقروء</button>
+    </div>
+    <div class="notification-list" id="notif-list-panel">
+      <div class="empty-state" style="padding:24px"><div class="empty-icon">🔔</div></div>
+    </div>
+  </div>
+
+  <!-- ════════════ Content ════════════════ -->
+  <div class="page-container">
+
+    <div class="nav-tabs-custom">
+      <button class="nav-tab active" data-tab="overview">
+        <i class="fa-solid fa-gauge-high"></i>
+        <span data-lang-ar="لوحة التحكم"    data-lang-en="Dashboard">لوحة التحكم</span>
+      </button>
+      <button class="nav-tab" data-tab="active">
+        <i class="fa-solid fa-motorcycle"></i>
+        <span data-lang-ar="النشطة"          data-lang-en="Active">النشطة</span>
+        <span id="active-badge" class="badge badge-danger" style="display:none;font-size:.65rem">0</span>
+      </button>
+      <button class="nav-tab" data-tab="history">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+        <span data-lang-ar="السجل"           data-lang-en="History">السجل</span>
+      </button>
+      <button class="nav-tab" data-tab="ratings">
+        <i class="fa-solid fa-star"></i>
+        <span data-lang-ar="تقييماتي"        data-lang-en="My Ratings">تقييماتي</span>
+      </button>
+      <button class="nav-tab" data-tab="notifications">
+        <i class="fa-solid fa-bell"></i>
+        <span data-lang-ar="الإشعارات"       data-lang-en="Notifications">الإشعارات</span>
+      </button>
+      <button class="nav-tab" data-tab="profile">
+        <i class="fa-solid fa-user-pen"></i>
+        <span data-lang-ar="ملفي"            data-lang-en="Profile">ملفي</span>
+      </button>
+    </div>
+
+    <!-- ═══════════════════
+         [1] Dashboard / Overview
+         ═══════════════════ -->
+    <div id="tab-overview" class="section-content active">
+
+      <div class="workspace-heading">
+        <div>
+          <span class="section-kicker" data-lang-ar="مساحة العمل اليومية" data-lang-en="DAILY WORKSPACE">مساحة العمل اليومية</span>
+          <h1 data-lang-ar="رحلاتك بوضوح، خطوة بخطوة" data-lang-en="Your deliveries, step by step">رحلاتك بوضوح، خطوة بخطوة</h1>
+          <p data-lang-ar="ابدأ بالمهمة الحالية، افتح موقع الزبون، ثم حدّث الحالة فور إنجاز كل خطوة."
+             data-lang-en="Start with the current job, open the customer location, then update its status after every step.">ابدأ بالمهمة الحالية، افتح موقع الزبون، ثم حدّث الحالة فور إنجاز كل خطوة.</p>
+        </div>
+        <div class="workspace-shortcuts">
+          <button class="btn btn-outline" onclick="switchTab('history')"><i class="fa-solid fa-clock-rotate-left"></i><span data-lang-ar="السجل" data-lang-en="History">السجل</span></button>
+          <button class="btn btn-primary" onclick="switchTab('active')"><i class="fa-solid fa-route"></i><span data-lang-ar="فتح مهامي" data-lang-en="Open Tasks">فتح مهامي</span></button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row-3" id="overview-stats">
+        <div class="stat-card skeleton" style="height:110px"></div>
+        <div class="stat-card skeleton" style="height:110px"></div>
+        <div class="stat-card skeleton" style="height:110px"></div>
+      </div>
+
+      <div class="driver-priority" id="driver-priority" aria-live="polite">
+        <div class="driver-priority-icon"><i class="fa-solid fa-spinner fa-spin"></i></div>
+        <div class="driver-priority-copy"><strong>جاري تحديد أولوية الرحلة</strong><span>سيظهر هنا الإجراء التالي المطلوب منك.</span></div>
+      </div>
+
+      <!-- Active deliveries quick view -->
+      <div class="card current-jobs-card">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fa-solid fa-motorcycle" style="color:var(--primary)"></i>
+            <span data-lang-ar="طلباتي النشطة الآن" data-lang-en="My Active Orders Now">طلباتي النشطة الآن</span>
+            <span id="active-count-badge" class="badge badge-warning" style="display:none">0</span>
+          </div>
+          <button class="btn btn-outline btn-sm" id="refresh-overview-btn">
+            <i class="fa-solid fa-rotate-right"></i>
+            <span data-lang-ar="تحديث" data-lang-en="Refresh">تحديث</span>
+          </button>
+        </div>
+        <div class="card-body" id="overview-active-list">
+          <div class="loader-ring" style="margin:0 auto"></div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="driver-insights-grid">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-heading">
+              <div class="chart-card-title"><i class="fa-solid fa-chart-line"></i><span data-lang-ar="توصيلاتي هذا الأسبوع" data-lang-en="My Deliveries This Week">توصيلاتي هذا الأسبوع</span></div>
+              <span class="chart-card-subtitle" data-lang-ar="قراءة سريعة لنشاط آخر سبعة أيام" data-lang-en="A quick view of the last seven days">قراءة سريعة لنشاط آخر سبعة أيام</span>
+            </div>
+          </div>
+          <div class="chart-card-body"><div class="chart-container"><canvas id="chart-my-weekly"></canvas></div></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-heading">
+              <div class="chart-card-title"><i class="fa-solid fa-star"></i><span data-lang-ar="توزيع تقييماتي" data-lang-en="My Rating Distribution">توزيع تقييماتي</span></div>
+              <span class="chart-card-subtitle" data-lang-ar="ملخص جودة الخدمة من تقييمات الزبائن" data-lang-en="Service quality from customer ratings">ملخص جودة الخدمة من تقييمات الزبائن</span>
+            </div>
+          </div>
+          <div class="chart-card-body"><div class="chart-container-donut"><canvas id="chart-my-ratings"></canvas></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════
+         [2] Active Orders
+         ═══════════════════ -->
+    <div id="tab-active" class="section-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 data-lang-ar="طلباتي النشطة" data-lang-en="My Active Orders">طلباتي النشطة</h1>
+          <p data-lang-ar="الطلبات الموكلة إليك — حدّث الحالة عند كل خطوة"
+             data-lang-en="Orders assigned to you — update status at each step">
+            الطلبات الموكلة إليك — حدّث الحالة عند كل خطوة
+          </p>
+        </div>
+        <button class="btn btn-outline" id="refresh-active-btn">
+          <i class="fa-solid fa-rotate-right"></i>
+          <span data-lang-ar="تحديث" data-lang-en="Refresh">تحديث</span>
+        </button>
+      </div>
+
+      <div id="active-orders-grid" class="active-orders-grid">
+        <div class="stat-card skeleton" style="height:300px"></div>
+        <div class="stat-card skeleton" style="height:300px"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════
+         [3] History
+         ═══════════════════ -->
+    <div id="tab-history" class="section-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 data-lang-ar="سجل التوصيلات" data-lang-en="Delivery History">سجل التوصيلات</h1>
+        </div>
+        <div class="section-actions history-filters">
+          <select class="form-control" id="history-status-filter">
+            <option value="" data-lang-ar="كل الحالات" data-lang-en="All">كل الحالات</option>
+            <option value="delivered"  data-lang-ar="مكتملة"   data-lang-en="Delivered">مكتملة</option>
+            <option value="cancelled"  data-lang-ar="ملغاة"    data-lang-en="Cancelled">ملغاة</option>
+          </select>
+          <select class="form-control" id="history-route-filter">
+            <option value="" data-lang-ar="كل المسارات" data-lang-en="All routes">كل المسارات</option>
+            <option value="road" data-lang-ar="مسار طرق فعلي" data-lang-en="Road route">مسار طرق فعلي</option>
+            <option value="fallback" data-lang-ar="تقدير احتياطي" data-lang-en="Fallback estimate">تقدير احتياطي</option>
+          </select>
+          <input type="date" class="form-control" id="history-date-filter">
+        </div>
+      </div>
+
+      <!-- Quick Stats Row -->
+      <div class="history-stats-grid" id="history-stats">
+        <div class="stat-card skeleton" style="height:80px"></div>
+        <div class="stat-card skeleton" style="height:80px"></div>
+        <div class="stat-card skeleton" style="height:80px"></div>
+        <div class="stat-card skeleton" style="height:80px"></div>
+      </div>
+
+      <div id="history-list" class="history-list">
+        <div class="stat-card skeleton" style="height:80px"></div>
+        <div class="stat-card skeleton" style="height:80px"></div>
+        <div class="stat-card skeleton" style="height:80px"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════
+         [4] Ratings
+         ═══════════════════ -->
+    <div id="tab-ratings" class="section-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 data-lang-ar="تقييماتي من الزبائن" data-lang-en="My Customer Ratings">تقييماتي من الزبائن</h1>
+        </div>
+      </div>
+
+      <div class="ratings-grid">
+        <!-- Rating Summary Card -->
+        <div class="card rating-summary-card">
+          <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:8px"
+               data-lang-ar="متوسط تقييمك" data-lang-en="Your Average Rating">متوسط تقييمك</div>
+          <div style="font-size:3.5rem;font-weight:900;color:var(--accent);line-height:1" id="my-avg-rating">—</div>
+          <div class="star-display" id="my-stars-display" style="margin:8px 0;font-size:1.3rem"></div>
+          <div style="font-size:.8rem;color:var(--text-muted)" id="my-total-ratings">0 تقييم</div>
+          <div style="margin-top:16px">
+            <div id="rating-tier-badge"></div>
+          </div>
+        </div>
+
+        <!-- Rating Bars -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fa-solid fa-chart-bar" style="color:var(--accent)"></i>
+              <span data-lang-ar="توزيع التقييمات" data-lang-en="Rating Distribution">توزيع التقييمات</span>
+            </div>
+          </div>
+          <div class="card-body" id="rating-distribution">
+            <div class="loader-ring" style="margin:0 auto"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Reviews -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fa-solid fa-comment-dots" style="color:var(--primary)"></i>
+            <span data-lang-ar="آراء الزبائن" data-lang-en="Customer Feedback">آراء الزبائن</span>
+          </div>
+        </div>
+        <div class="card-body" id="my-reviews-list">
+          <div class="loader-ring" style="margin:0 auto"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════
+         [5] Notifications
+         ═══════════════════ -->
+    <div id="tab-notifications" class="section-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 data-lang-ar="الإشعارات" data-lang-en="Notifications">الإشعارات</h1>
+          <p data-lang-ar="تحديثات المهام والحالات التي تحتاج انتباهك." data-lang-en="Task updates and statuses that need your attention.">تحديثات المهام والحالات التي تحتاج انتباهك.</p>
+        </div>
+        <button class="btn btn-outline" id="mark-all-read-btn">
+          <i class="fa-solid fa-check-double"></i>
+          <span data-lang-ar="تعيين الكل مقروء" data-lang-en="Mark All Read">تعيين الكل مقروء</span>
+        </button>
+      </div>
+      <div id="notifs-full-list" class="notifications-page-list">
+        <div class="stat-card skeleton" style="height:72px"></div>
+        <div class="stat-card skeleton" style="height:72px"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════
+         [6] Profile
+         ═══════════════════ -->
+    <div id="tab-profile" class="section-content">
+
+      <!-- Driver Hero Card -->
+      <div class="profile-layout">
+      <div class="driver-profile-hero profile-identity-card">
+        <div style="position:relative;z-index:1">
+          <div class="avatar avatar-xl"
+               id="profile-hero-avatar"
+               style="margin:0 auto 14px;font-size:1.8rem;background:rgba(255,255,255,.15);border:3px solid rgba(255,255,255,.3)">
+          </div>
+          <div style="font-size:1.3rem;font-weight:800;margin-bottom:2px" id="profile-hero-name">—</div>
+          <div style="font-size:.82rem;color:rgba(255,255,255,.7)" data-lang-ar="سائق التوصيل" data-lang-en="Delivery Driver">سائق التوصيل</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:12px">
+            <span style="font-size:1.4rem;color:rgba(255,255,255,.9)" id="profile-hero-stars">⭐⭐⭐⭐⭐</span>
+            <span style="font-size:1.1rem;font-weight:700" id="profile-hero-rating">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-form-column">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fa-solid fa-pen-to-square" style="color:var(--primary)"></i>
+              <span data-lang-ar="تعديل بياناتي" data-lang-en="Edit My Info">تعديل بياناتي</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label" data-lang-ar="البريد الإلكتروني" data-lang-en="Email">البريد الإلكتروني</label>
+              <input type="email" class="form-control" id="profile-email">
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-lang-ar="رقم الهاتف" data-lang-en="Phone">رقم الهاتف</label>
+              <input type="text" class="form-control" id="profile-phone">
+            </div>
+            <div class="divider"></div>
+            <div class="form-group">
+              <label class="form-label" data-lang-ar="كلمة المرور الحالية" data-lang-en="Current Password">كلمة المرور الحالية</label>
+              <input type="password" class="form-control" id="profile-current-pass">
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-lang-ar="كلمة المرور الجديدة" data-lang-en="New Password">كلمة المرور الجديدة</label>
+              <input type="password" class="form-control" id="profile-new-pass">
+            </div>
+            <div style="display:flex;gap:10px">
+              <button class="btn btn-primary" style="flex:1" id="save-profile-btn">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span data-lang-ar="حفظ" data-lang-en="Save">حفظ</span>
+              </button>
+              <label class="btn btn-outline" style="cursor:pointer">
+                <i class="fa-solid fa-camera"></i>
+                <span data-lang-ar="صورتي" data-lang-en="Photo">صورتي</span>
+                <input type="file" id="avatar-input" accept="image/*" style="display:none">
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+
+</div>
+</div>
+</div>
+
+<div class="modal-overlay" id="modal-driver-route">
+  <div class="modal-box" style="max-width:900px">
+    <div class="modal-header">
+      <span class="modal-title"><i class="fa-solid fa-route" style="color:var(--primary)"></i> <span id="driver-route-title">مسار التوصيل</span></span>
+      <button class="modal-close" id="close-driver-route">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="driver-route-summary" id="driver-route-summary"></div>
+      <div id="driver-route-map" class="driver-route-map" aria-label="خريطة مسار التوصيل"></div>
+      <div style="display:flex;justify-content:flex-end;margin-top:12px">
+        <a id="driver-route-external" class="btn btn-outline" target="_blank" rel="noopener">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          <span data-lang-ar="فتح التوجيه الخارجي" data-lang-en="Open external navigation">فتح التوجيه الخارجي</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="assets/js/config.js?v=20260810-live-sync"></script>
+<script src="assets/js/employee-profile.js"></script>
+<script src="assets/js/charts.js"></script>
+<script>
+'use strict';
+
+let _activeDeliveries = [];
+let _historyDeliveries= [];
+let _myRatings        = {};
+let _myStats          = {};
+let _activeTab        = 'overview';
+let _driverId         = null;
+let _autoRefresh      = null;
+let _driverRouteMap   = null;
+let _driverRouteLayer = null;
+
+function escapeHtml(value='') {
+  return String(value).replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  TAZA.initDashboardPage(['driver', 'delivery_manager', 'general_manager']);
+  initTabs();
+  initEventListeners();
+  loadInitialData();
+  loadNotificationsPage();
+  startAutoRefresh();
+  document.querySelectorAll('.lang-btn').forEach(btn => btn.addEventListener('click', refreshActiveTabLanguage));
+});
+
+function refreshActiveTabLanguage() {
+  const refreshers = { overview:loadInitialData, active:loadActiveDeliveries, history:loadHistory, ratings:loadRatings, notifications:loadNotificationsPage, profile:loadProfile };
+  refreshers[_activeTab]?.();
+}
+
+function startAutoRefresh() {
+  if (_autoRefresh) return;
+  _autoRefresh = TAZA.LiveSync.subscribe(async () => {
+    if (_activeTab === 'overview') return loadInitialData();
+    if (_activeTab === 'active') return loadActiveDeliveries();
+    if (_activeTab === 'history') return loadHistory();
+    if (_activeTab === 'ratings') return loadRatings();
+    if (_activeTab === 'notifications') return loadNotificationsPage();
+  });
+}
+
+// ── Tabs ──────────────────────────────────────
+function initTabs() {
+  document.querySelectorAll('.nav-tab[data-tab]').forEach(btn =>
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+  document.querySelectorAll('.sidebar-item[data-tab]').forEach(el =>
+    el.addEventListener('click', (e) => { e.preventDefault(); switchTab(el.dataset.tab); }));
+}
+
+function switchTab(tab) {
+  _activeTab = tab;
+  document.querySelectorAll('.nav-tab[data-tab]').forEach(t =>
+    t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.sidebar-item[data-tab]').forEach(t =>
+    t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.section-content').forEach(s =>
+    s.classList.toggle('active', s.id === `tab-${tab}`));
+
+  const titles = {
+    overview:     {ar:'لوحة التحكم',      en:'Dashboard'},
+    active:       {ar:'الطلبات النشطة',   en:'Active Orders'},
+    history:      {ar:'سجل التوصيلات',    en:'Delivery History'},
+    ratings:      {ar:'تقييماتي',          en:'My Ratings'},
+    notifications:{ar:'الإشعارات',        en:'Notifications'},
+    profile:      {ar:'ملفي الشخصي',      en:'My Profile'},
+  };
+  const lang = TAZA.Lang.current;
+  const pt   = document.getElementById('page-title');
+  if (pt && titles[tab]) pt.textContent = titles[tab][lang];
+
+  const loaders = {
+    active:        loadActiveDeliveries,
+    history:       () => { _historyDeliveries.length || loadHistory(); },
+    ratings:       loadRatings,
+    notifications: loadNotificationsPage,
+    profile:       loadProfile,
+  };
+  loaders[tab]?.();
+}
+
+// ── Events ────────────────────────────────────
+function initEventListeners() {
+  document.getElementById('refresh-overview-btn')
+    ?.addEventListener('click', () => { loadActiveDeliveries(); });
+  document.getElementById('refresh-active-btn')
+    ?.addEventListener('click', loadActiveDeliveries);
+
+  document.getElementById('history-status-filter')
+    ?.addEventListener('change', loadHistory);
+  document.getElementById('history-date-filter')
+    ?.addEventListener('change', loadHistory);
+  document.getElementById('history-route-filter')
+    ?.addEventListener('change', loadHistory);
+  document.getElementById('close-driver-route')
+    ?.addEventListener('click', closeDriverRoute);
+
+  // Event delegation
+  document.getElementById('active-orders-grid')
+    ?.addEventListener('click', handleDeliveryAction);
+  document.getElementById('overview-active-list')
+    ?.addEventListener('click', handleDeliveryAction);
+
+  document.getElementById('mark-all-read-btn')
+    ?.addEventListener('click', markAllRead);
+  document.getElementById('panel-mark-all')
+    ?.addEventListener('click', markAllRead);
+
+  document.getElementById('save-profile-btn')
+    ?.addEventListener('click', saveProfile);
+  document.getElementById('avatar-input')
+    ?.addEventListener('change', uploadAvatar);
+
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('modal-overlay') && e.target.classList.contains('show')) {
+      e.target.classList.remove('show'); document.body.style.overflow = '';
+    }
+  });
+}
+
+// ═══════════════════════════════════════════
+// Initial Load
+// ═══════════════════════════════════════════
+async function loadInitialData() {
+  try {
+    const meRes = await TAZA.Http.get(TAZA.API.AUTH.ME);
+    const user  = meRes?.data?.employee ?? {};
+    _driverId   = user.id;
+
+    updateSidebarUser(user);
+
+    const [activeRes, statsRes] = await Promise.all([
+      TAZA.Http.get(TAZA.API.DELIVERY.ACTIVE),
+      TAZA.Http.get(TAZA.API.DELIVERY.DRIVER_STATS(_driverId)),
+    ]);
+
+    _activeDeliveries = activeRes?.data?.deliveries ?? [];
+    _myStats          = statsRes?.data ?? {};
+
+    renderOverviewStats();
+    renderOverviewActiveList(_activeDeliveries);
+    renderWeeklyChart();
+    loadRatingsChart();
+
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+function updateSidebarUser(user) {
+  const nameEl   = document.getElementById('sidebar-user-name');
+  const avatarEl = document.getElementById('sidebar-user-avatar');
+  if (nameEl)   nameEl.textContent = user.name ?? '—';
+  if (avatarEl) {
+    if (user.avatar) {
+      avatarEl.innerHTML = `<img src="${escapeHtml(TAZA.Media.url(user.avatar))}" alt="${escapeHtml(user.name ?? '')}"
+        onerror="this.style.display='none';this.parentElement.textContent='${TAZA.Utils.initials(user.name)}'">`;
+    } else {
+      avatarEl.textContent = TAZA.Utils.initials(user.name);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════
+// [1] Overview
+// ═══════════════════════════════════════════
+function renderOverviewStats() {
+  const isAr   = TAZA.Lang.current === 'ar';
+  const stats  = _myStats;
+  const grid   = document.getElementById('overview-stats');
+  const active = _activeDeliveries.length;
+
+  grid.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-icon ${active > 0 ? 'amber' : 'green'}">
+        <i class="fa-solid fa-motorcycle"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">${isAr?'طلبات نشطة':'Active Orders'}</div>
+        <div class="stat-value" style="color:${active>0?'var(--warning)':'var(--success)'}">${active}</div>
+        <div class="stat-change ${active>0?'down':'up'}">
+          <i class="fa-solid fa-circle-dot"></i>
+          ${active>0 ? (isAr?'في الطريق':'On the way') : (isAr?'لا يوجد الآن':'None now')}
+        </div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+      <div class="stat-content">
+        <div class="stat-label">${isAr?'مكتملة اليوم':'Completed Today'}</div>
+        <div class="stat-value">${stats.today?.delivered ?? 0}</div>
+        <div class="stat-change up"><i class="fa-solid fa-arrow-up"></i> ${isAr?'اليوم':'Today'}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon amber"><i class="fa-solid fa-star"></i></div>
+      <div class="stat-content">
+        <div class="stat-label">${isAr?'متوسط تقييمي':'My Rating'}</div>
+        <div class="stat-value" style="color:var(--accent)">
+          ${(stats.average_rating ?? 0).toFixed(1)} ⭐
+        </div>
+        <div class="stat-change neutral">
+          <i class="fa-solid fa-users"></i>
+          ${stats.total_ratings ?? 0} ${isAr?'تقييم':'reviews'}
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Update badges
+  ['active-badge','sb-active-count','active-count-badge'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = active; el.style.display = active > 0 ? 'inline-block' : 'none'; }
+  });
+  renderDriverPriority();
+}
+
+function renderDriverPriority() {
+  const panel = document.getElementById('driver-priority');
+  if (!panel) return;
+  const isAr = TAZA.Lang.current === 'ar';
+  const current = _activeDeliveries[0];
+  if (!current) {
+    panel.className = 'driver-priority is-clear';
+    panel.innerHTML = `<div class="driver-priority-icon"><i class="fa-solid fa-circle-check"></i></div><div class="driver-priority-copy"><strong>${isAr?'لا توجد مهمة معلّقة الآن':'No pending job right now'}</strong><span>${isAr?'أنت مطّلع على جميع الرحلات المسندة إليك.':'You are up to date with all assigned deliveries.'}</span></div><button class="btn btn-outline btn-sm" onclick="switchTab('history')"><i class="fa-solid fa-clock-rotate-left"></i>${isAr?'عرض السجل':'View history'}</button>`;
+    return;
+  }
+  const status = current.status ?? 'assigned';
+  const enroute = ['picked_up','in_delivery'].includes(status);
+  const label = status === 'assigned'
+    ? (isAr?'ابدأ باستلام الطلب الحالي':'Pick up the current order')
+    : status === 'picked_up'
+      ? (isAr?'حدّث الحالة قبل الانطلاق':'Update status before leaving')
+      : (isAr?'الطلب في الطريق إلى الزبون':'Order is on the way to the customer');
+  panel.className = `driver-priority ${enroute?'is-enroute':'has-job'}`;
+  panel.innerHTML = `<div class="driver-priority-icon"><i class="fa-solid ${enroute?'fa-route':'fa-box'}"></i></div><div class="driver-priority-copy"><strong>${label}</strong><span>${isAr?`المهمة #${current.id} هي أولويتك الحالية.`:`Job #${current.id} is your current priority.`}</span></div><button class="btn btn-primary btn-sm" onclick="switchTab('active')"><i class="fa-solid fa-arrow-left-long"></i>${isAr?'فتح المهمة':'Open job'}</button>`;
+}
+
+function renderOverviewActiveList(deliveries) {
+  const container = document.getElementById('overview-active-list');
+  const isAr      = TAZA.Lang.current === 'ar';
+  if (!container) return;
+
+  if (!deliveries.length) {
+    container.innerHTML = `<div class="empty-state" style="padding:24px">
+      <div class="empty-icon">🛵</div>
+      <div class="empty-title">${isAr?'لا توجد طلبات نشطة الآن':'No active orders now'}</div>
+      <div class="empty-desc">${isAr?'ستظهر الطلبات هنا عند تعيينها لك':'Orders will appear here when assigned to you'}</div>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = deliveries.map(d => buildMiniDeliveryCard(d)).join('');
+}
+
+function getDeliveryCoords(d) {
+  const raw = d?.delivery_coordinates ?? d?.coordinates ?? d?.location ?? null;
+  const lat = Number(raw?.latitude ?? raw?.lat ?? d?.latitude ?? d?.delivery_latitude ?? d?.customer_latitude);
+  const lng = Number(raw?.longitude ?? raw?.lng ?? d?.longitude ?? d?.delivery_longitude ?? d?.customer_longitude);
+  return Number.isFinite(lat) && Number.isFinite(lng) ? { latitude: lat, longitude: lng } : null;
+}
+
+function buildMapsUrl(d) {
+  const coords = getDeliveryCoords(d);
+  const origin = d?.route?.origin;
+  return coords && origin?.latitude != null && origin?.longitude != null
+    ? `https://www.google.com/maps/dir/?api=1&origin=${origin.latitude},${origin.longitude}&destination=${coords.latitude},${coords.longitude}&travelmode=driving`
+    : coords
+      ? `https://www.google.com/maps?q=${coords.latitude},${coords.longitude}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.delivery_address ?? '')}`;
+}
+
+function deliveryRouteLatLngs(delivery) {
+  const geometry = delivery?.route?.geometry;
+  if (Array.isArray(geometry) && geometry.length > 1) {
+    return geometry
+      .filter(point => Array.isArray(point) && Number.isFinite(Number(point[0])) && Number.isFinite(Number(point[1])))
+      .map(([lng, lat]) => [Number(lat), Number(lng)]);
+  }
+  const origin = delivery?.route?.origin;
+  const destination = getDeliveryCoords(delivery);
+  if (origin?.latitude != null && origin?.longitude != null && destination) {
+    return [[Number(origin.latitude), Number(origin.longitude)], [destination.latitude, destination.longitude]];
+  }
+  return [];
+}
+
+function openDriverRoute(delivery) {
+  const modal = document.getElementById('modal-driver-route');
+  const container = document.getElementById('driver-route-map');
+  if (!modal || !container || typeof L === 'undefined') return;
+  const isAr = TAZA.Lang.current === 'ar';
+  const duration = Number(delivery.route?.duration_minutes ?? 0);
+  const isFallback = Boolean(delivery.route?.is_fallback);
+  document.getElementById('driver-route-title').textContent = `${isAr?'مسار الطلب':'Order route'} #${delivery.id}`;
+  document.getElementById('driver-route-summary').innerHTML = `
+    <div class="driver-route-metric"><span>${isAr?'المسافة':'Distance'}</span><strong>${(Number(delivery.distance_meters ?? 0)/1000).toFixed(1)} ${isAr?'كم':'km'}</strong></div>
+    <div class="driver-route-metric"><span>${isAr?'الوقت المتوقع':'Estimated time'}</span><strong>${duration || '—'} ${duration ? (isAr?'دقيقة':'min') : ''}</strong></div>
+    <div class="driver-route-metric"><span>${isAr?'نوع المسار':'Route quality'}</span><strong><span class="route-quality-label ${isFallback?'fallback':''}">${isFallback?(isAr?'تقدير احتياطي':'Fallback estimate'):(isAr?'مسار طرق فعلي':'Road route')}</span></strong></div>`;
+  document.getElementById('driver-route-external').href = buildMapsUrl(delivery);
+
+  modal.classList.add('show');
+  document.body.style.overflow = 'hidden';
+  if (!_driverRouteMap) {
+    _driverRouteMap = L.map(container).setView([35.5317, 35.7901], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom:19,
+      attribution:'&copy; OpenStreetMap contributors',
+    }).addTo(_driverRouteMap);
+    _driverRouteLayer = L.layerGroup().addTo(_driverRouteMap);
+  }
+  _driverRouteLayer.clearLayers();
+  const points = deliveryRouteLatLngs(delivery);
+  if (points.length > 1) {
+    L.circleMarker(points[0], {radius:9,color:'#7f1d1d',weight:3,fillColor:'#ef4444',fillOpacity:1})
+      .bindPopup(isAr?'المطعم':'Restaurant').addTo(_driverRouteLayer);
+    L.polyline(points, {color:isFallback?'#f59e0b':'#2563eb',weight:6,opacity:.95,dashArray:isFallback?'8 8':null})
+      .addTo(_driverRouteLayer);
+    L.circleMarker(points[points.length-1], {radius:8,color:'#1e3a8a',weight:3,fillColor:'#2563eb',fillOpacity:1})
+      .bindPopup(escapeHtml(delivery.delivery_address ?? (isAr?'موقع الزبون':'Customer location'))).addTo(_driverRouteLayer);
+    _driverRouteMap.fitBounds(points, {padding:[28,28],maxZoom:16});
+  }
+  setTimeout(() => _driverRouteMap?.invalidateSize(), 0);
+}
+
+function closeDriverRoute() {
+  document.getElementById('modal-driver-route')?.classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+function customerLocationChip(d) {
+  const isAr = TAZA.Lang.current === 'ar';
+  const coords = getDeliveryCoords(d);
+  if (!coords) {
+    return `<span class="customer-location-chip missing"><i class="fa-solid fa-triangle-exclamation"></i>${isAr?'لم يصل موقع الخريطة':'No map location'}</span>`;
+  }
+  return `<span class="customer-location-chip"><i class="fa-solid fa-location-dot"></i>${isAr?'موقع الزبون متاح للسائق':'Customer location available'}</span>
+          <div class="coords-line">${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)}</div>`;
+}
+
+function buildMiniDeliveryCard(d) {
+  const isAr   = TAZA.Lang.current === 'ar';
+  const status = d.status ?? 'assigned';
+  const customerName = escapeHtml(d.order?.customer?.name ?? (isAr?'زبون':'Customer'));
+  const address = escapeHtml(d.delivery_address ?? '—');
+  const statusEmoji = {
+    assigned:'🔵', picked_up:'🟡', in_delivery:'🟣', delivered:'🟢'
+  }[status] ?? '⚪';
+
+  return `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px;
+                background:var(--bg-main);border-radius:8px;margin-bottom:8px">
+      <span style="font-size:1.3rem">${statusEmoji}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:.85rem">
+          #${d.id} — ${customerName}
+        </div>
+        <div style="font-size:.75rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+          <i class="fa-solid fa-location-dot"></i> ${address}
+        </div>
+        ${customerLocationChip(d)}
+      </div>
+      <div style="text-align:center;flex-shrink:0">
+        <div style="font-weight:700;color:var(--primary);font-size:.85rem">${TAZA.Utils.formatMoney(d.delivery_cost)}</div>
+        ${TAZA.Utils.statusBadge(status)}
+      </div>
+    </div>
+  `;
+}
+
+function renderWeeklyChart() {
+  const isAr   = TAZA.Lang.current === 'ar';
+  const weekly = _myStats.weekly_trend ?? [];
+  TAZA.Charts.createLine('chart-my-weekly', {
+    labels: weekly.map(point => TAZA.Charts.dateLabel(point.date, { weekday: 'short', day: 'numeric' })),
+    datasets: [
+      { label: isAr ? 'المسندة' : 'Assigned', data: weekly.map(point => Number(point.total ?? 0)) },
+      { label: isAr ? 'المسلّمة' : 'Delivered', data: weekly.map(point => Number(point.delivered ?? 0)), color: TAZA.Charts.Colors.success },
+    ],
+  });
+}
+
+async function loadRatingsChart() {
+  try {
+    if (!_driverId) return;
+    const res  = await TAZA.Http.get(TAZA.API.DELIVERY.DRIVER_RATINGS(_driverId));
+    const dist = res?.data?.summary?.distribution ?? {};
+    TAZA.Charts.createDonut('chart-my-ratings', {
+      labels: ['5 ⭐','4 ⭐','3 ⭐','2 ⭐','1 ⭐'],
+      data: [
+        ratingBucketCount(dist, 5), ratingBucketCount(dist, 4), ratingBucketCount(dist, 3),
+        ratingBucketCount(dist, 2), ratingBucketCount(dist, 1),
+      ],
+    });
+  } catch {
+    TAZA.Charts.createDonut('chart-my-ratings', {
+      labels: ['5 ⭐','4 ⭐','3 ⭐','2 ⭐','1 ⭐'], data: [0, 0, 0, 0, 0],
+    });
+  }
+}
+
+function ratingBucketCount(distribution, rating) {
+  const bucket = distribution?.[rating];
+  return Number(typeof bucket === 'object' ? bucket?.count : bucket) || 0;
+}
+
+// ═══════════════════════════════════════════
+// [2] Active Orders
+// ═══════════════════════════════════════════
+async function loadActiveDeliveries() {
+  const grid = document.getElementById('active-orders-grid');
+  const isAr = TAZA.Lang.current === 'ar';
+
+  try {
+    const res         = await TAZA.Http.get(TAZA.API.DELIVERY.ACTIVE);
+    _activeDeliveries = res?.data?.deliveries ?? [];
+
+    renderOverviewStats();
+    renderOverviewActiveList(_activeDeliveries);
+
+    if (!grid) return;
+
+    if (!_activeDeliveries.length) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;padding:40px">
+        <div class="empty-icon">🛵</div>
+        <div class="empty-title">${isAr?'لا توجد طلبات نشطة':'No active orders'}</div>
+        <div class="empty-desc">${isAr?'ستُعيَّن لك الطلبات من قِبل مدير التوصيل':'Orders will be assigned by delivery manager'}</div>
+      </div>`;
+      return;
+    }
+
+    grid.innerHTML = _activeDeliveries.map(d => buildFullDeliveryCard(d)).join('');
+
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+function buildFullDeliveryCard(d) {
+  const isAr    = TAZA.Lang.current === 'ar';
+  const status  = d.status ?? 'assigned';
+  const customerName = escapeHtml(d.order?.customer?.name ?? (isAr?'زبون':'Customer'));
+  const customerPhone = escapeHtml(d.order?.customer?.phone ?? '');
+  const deliveryAddress = escapeHtml(d.delivery_address ?? (isAr?'لا يوجد عنوان':'No address'));
+
+  const nextStatus = { assigned:'picked_up', picked_up:'in_delivery', in_delivery:'delivered' }[status];
+  const nextBtnMap = {
+    picked_up:  { label: isAr?'🛵 استلمت الطلب':'🛵 Picked Up',         cls:'status-btn-pickup'    },
+    in_delivery:{ label: isAr?'🛣️ في طريقي للزبون':'🛣️ On My Way',       cls:'status-btn-enroute'   },
+    delivered:  { label: isAr?'✅ تم التسليم للزبون':'✅ Delivered to Customer', cls:'status-btn-delivered' },
+  };
+  const nextBtn = nextBtnMap[nextStatus];
+
+  // Build Google Maps link from coordinates stored when the customer selects a location.
+  const coords = getDeliveryCoords(d);
+  const mapsUrl = buildMapsUrl(d);
+
+  return `
+    <div class="delivery-card">
+      <div class="delivery-status-bar ${status}"></div>
+      <div class="delivery-card-body">
+
+        <!-- Header -->
+        <div class="delivery-card-meta">
+          <div>
+            <span class="delivery-card-id">#${d.id}</span>
+            <div style="font-size:.72rem;color:var(--text-muted);margin-top:1px">
+              <i class="fa-regular fa-clock"></i> ${TAZA.Utils.timeAgo(d.created_at)}
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            ${TAZA.Utils.statusBadge(status)}
+            <span style="font-size:1rem;font-weight:800;color:var(--success)">
+              ${TAZA.Utils.formatMoney(d.delivery_cost)}
+            </span>
+          </div>
+        </div>
+
+        <!-- Customer Section -->
+        <div class="customer-section">
+          <div class="customer-section-label"
+               data-lang-ar="بيانات الزبون" data-lang-en="Customer Info">
+            ${isAr?'بيانات الزبون':'Customer Info'}
+          </div>
+          <div class="customer-name-big">${customerName}</div>
+          ${d.order?.customer?.phone ? `
+            <a href="tel:${customerPhone}" class="customer-phone-big"
+               style="text-decoration:none">
+              <i class="fa-solid fa-phone-flip"></i>
+              ${customerPhone}
+            </a>` : ''}
+        </div>
+
+        <!-- Address Section -->
+        <div class="address-section">
+          <div class="customer-section-label"
+               data-lang-ar="العنوان" data-lang-en="Delivery Address">
+            ${isAr?'العنوان':'Delivery Address'}
+          </div>
+          <div class="address-text"><i class="fa-solid fa-location-dot"></i> ${deliveryAddress}</div>
+          ${customerLocationChip(d)}
+          <div class="distance-info">
+            ${d.distance_meters ? `
+              <span class="distance-pill">
+                <i class="fa-solid fa-route"></i>
+                ${(d.distance_meters/1000).toFixed(1)} ${isAr?'كم':'km'}
+              </span>
+              <span class="time-pill">
+                <i class="fa-regular fa-clock"></i>
+                ~${Number(d.route?.duration_minutes ?? Math.round(d.distance_meters/500))} ${isAr?'دقيقة':'min'}
+              </span>` : ''}
+            <span class="cost-pill">
+              <i class="fa-solid fa-money-bill"></i>
+              ${TAZA.Utils.formatMoney(d.delivery_cost)}
+            </span>
+          </div>
+        </div>
+
+        <!-- Order Items Summary -->
+        ${(d.order?.items ?? []).length > 0 ? `
+          <div style="margin-bottom:12px">
+            <div class="customer-section-label">${isAr?'محتوى الطلب':'Order Contents'}</div>
+            <div style="font-size:.8rem;color:var(--text-secondary)">
+              ${(d.order.items ?? []).slice(0, 3).map(i => `${escapeHtml(i.name ?? '')} ×${Number(i.quantity ?? 0)}`).join(' · ')}
+              ${(d.order.items ?? []).length > 3 ? ` + ${(d.order.items).length - 3} ${isAr?'أخرى':'more'}` : ''}
+            </div>
+          </div>` : ''}
+
+        <!-- Action Buttons -->
+        <div class="status-flow">
+          <button type="button" class="status-btn btn-maps" data-action="view-route" data-id="${d.id}">
+            <i class="fa-solid fa-route" style="color:var(--primary)"></i>
+            ${isAr?'عرض المسار المعتمد':'View assigned route'}
+          </button>
+          <!-- Maps Button -->
+          <a href="${mapsUrl}" target="_blank" class="status-btn btn-maps" style="text-decoration:none">
+            <i class="fa-solid fa-map-location-dot"></i>
+            ${isAr?'فتح الخريطة':'Open in Maps'}
+          </a>
+
+          <!-- Call Button -->
+          ${d.order?.customer?.phone ? `
+            <a href="tel:${customerPhone}" class="status-btn btn-maps" style="text-decoration:none">
+              <i class="fa-solid fa-phone-flip" style="color:var(--success)"></i>
+              ${isAr?'اتصل بالزبون':'Call Customer'}
+            </a>` : ''}
+
+          <!-- Next Status Button -->
+          ${nextBtn ? `
+            <button class="status-btn ${nextBtn.cls}"
+                    data-action="change-status"
+                    data-id="${d.id}"
+                    data-status="${nextStatus}">
+              ${nextBtn.label}
+            </button>` : `
+            <div style="text-align:center;padding:10px;font-size:.85rem;color:var(--success);font-weight:700">
+              <i class="fa-solid fa-circle-check"></i>
+              ${isAr?'تم تسليم هذا الطلب':'This order was delivered'}
+            </div>`
+          }
+        </div>
+
+      </div>
+    </div>
+  `;
+}
+
+// ── Handle Delivery Actions ────────────────────
+async function handleDeliveryAction(e) {
+  const actionBtn = e.target.closest('[data-action]');
+  if (actionBtn?.dataset.action === 'view-route') {
+    const delivery = _activeDeliveries.find(item => Number(item.id) === Number(actionBtn.dataset.id));
+    if (delivery) openDriverRoute(delivery);
+    return;
+  }
+  const btn    = e.target.closest('[data-action="change-status"]');
+  if (!btn) return;
+  const id     = parseInt(btn.dataset.id);
+  const status = btn.dataset.status;
+  const isAr   = TAZA.Lang.current === 'ar';
+
+  const statusLabels = {
+    picked_up:  isAr?'استلمت الطلب':'Picked Up',
+    in_delivery:isAr?'في الطريق مع السائق':'On My Way',
+    delivered:  isAr?'تم التسليم':'Delivered',
+  };
+
+  const isDelivered = status === 'delivered';
+
+  TAZA.Confirm.show(
+    isDelivered
+      ? (isAr?'تأكيد: تم تسليم الطلب للزبون؟':'Confirm: Order delivered to customer?')
+      : `${isAr?'تحديث الحالة إلى:':'Update status to:'} "${statusLabels[status]}"?`,
+    async () => {
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML      = '<div class="loader-ring" style="width:20px;height:20px;border-width:2px"></div>';
+      btn.disabled       = true;
+
+      try {
+        await TAZA.Http.put(TAZA.API.DELIVERY.CHANGE_STATUS(id), { status });
+
+        if (isDelivered) {
+          TAZA.Toast.success(isAr ? 'رائع! تم التسليم بنجاح 🎉' : 'Great! Delivered successfully 🎉');
+        } else {
+          TAZA.Toast.success(`${statusLabels[status]} ✓`);
+        }
+
+        _activeDeliveries = [];
+        loadActiveDeliveries();
+
+      } catch(err) {
+        TAZA.Toast.apiError(err);
+        btn.innerHTML = originalHtml;
+        btn.disabled  = false;
+      }
+    },
+    {
+      btnText: isDelivered ? (isAr?'نعم، تم التسليم':'Yes, Delivered') : (isAr?'تأكيد':'Confirm'),
+      danger:  false,
+    }
+  );
+}
+
+// ═══════════════════════════════════════════
+// [3] History
+// ═══════════════════════════════════════════
+async function loadHistory() {
+  const status = document.getElementById('history-status-filter')?.value ?? '';
+  const date   = document.getElementById('history-date-filter')?.value   ?? '';
+  const routeQuality = document.getElementById('history-route-filter')?.value ?? '';
+  const isAr   = TAZA.Lang.current === 'ar';
+
+  try {
+    const params = {};
+    if (status) params.status = status;
+    if (date)   params.date   = date;
+    if (routeQuality) params.route_quality = routeQuality;
+
+    const res         = await TAZA.Http.get(TAZA.API.DELIVERY.LIST, params);
+    _historyDeliveries = res?.data?.deliveries ?? [];
+
+    renderHistoryStats(_historyDeliveries);
+    renderHistoryList(_historyDeliveries);
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+function renderHistoryStats(deliveries) {
+  const isAr     = TAZA.Lang.current === 'ar';
+  const row      = document.getElementById('history-stats');
+  const delivered= deliveries.filter(d => d.status === 'delivered').length;
+  const totalCost= deliveries.reduce((s,d) => s + (d.delivery_cost ?? 0), 0);
+  const avgRating= deliveries.filter(d => d.driver_rating).length > 0
+    ? (deliveries.reduce((s,d) => s + (d.driver_rating ?? 0), 0) / deliveries.filter(d => d.driver_rating).length).toFixed(1)
+    : '—';
+  const totalKm  = deliveries.reduce((s,d) => s + (d.distance_meters ?? 0), 0);
+
+  row.innerHTML = `
+    <div class="stat-card" style="padding:14px">
+      <div style="font-size:.72rem;color:var(--text-muted)">${isAr?'إجمالي التوصيلات':'Total'}</div>
+      <div style="font-size:1.4rem;font-weight:700">${deliveries.length}</div>
+    </div>
+    <div class="stat-card" style="padding:14px">
+      <div style="font-size:.72rem;color:var(--text-muted)">${isAr?'مكتملة':'Completed'}</div>
+      <div style="font-size:1.4rem;font-weight:700;color:var(--success)">${delivered}</div>
+    </div>
+    <div class="stat-card" style="padding:14px">
+      <div style="font-size:.72rem;color:var(--text-muted)">${isAr?'إجمالي المسافة':'Total Distance'}</div>
+      <div style="font-size:1.1rem;font-weight:700">${(totalKm/1000).toFixed(1)} ${isAr?'كم':'km'}</div>
+    </div>
+    <div class="stat-card" style="padding:14px">
+      <div style="font-size:.72rem;color:var(--text-muted)">${isAr?'متوسط التقييم':'Avg Rating'}</div>
+      <div style="font-size:1.2rem;font-weight:700;color:var(--accent)">${avgRating}</div>
+    </div>
+  `;
+}
+
+function renderHistoryList(deliveries) {
+  const list = document.getElementById('history-list');
+  const isAr = TAZA.Lang.current === 'ar';
+
+  if (!deliveries.length) {
+    list.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <div class="empty-title">${isAr?'لا توجد توصيلات':'No deliveries found'}</div>
+    </div>`;
+    return;
+  }
+
+  const statusColors = { delivered:'var(--success)', cancelled:'var(--danger)' };
+
+  list.innerHTML = deliveries.map(d => {
+    const rating    = d.driver_rating;
+    const statusColor = statusColors[d.status] ?? 'var(--text-muted)';
+
+    return `
+      <div class="history-item">
+        <div class="history-icon"
+             style="background:${d.status==='delivered'?'var(--success-light)':'var(--danger-light)'}">
+          ${d.status === 'delivered' ? '✅' : '❌'}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:.875rem">
+            ${isAr?'طلب رقم':'Order'} #${d.id}
+            <span style="font-size:.7rem;color:${statusColor};font-weight:600;margin-right:8px">
+              ${d.status === 'delivered' ? (isAr?'تم التسليم':'Delivered') : (isAr?'ملغى':'Cancelled')}
+            </span>
+          </div>
+          <div style="font-size:.75rem;color:var(--text-muted)">
+            ${escapeHtml(d.order?.customer?.name ?? (isAr?'زبون':'Customer'))}
+            &nbsp;·&nbsp;
+            ${d.distance_meters ? (d.distance_meters/1000).toFixed(1)+' كم' : '—'}
+            &nbsp;·&nbsp;
+            ${TAZA.Utils.timeAgo(d.created_at)}
+          </div>
+        </div>
+        <div style="text-align:left;flex-shrink:0">
+          <div style="font-weight:700;color:var(--primary);font-size:.9rem">${TAZA.Utils.formatMoney(d.delivery_cost)}</div>
+          ${rating ? `<div style="color:var(--accent);font-size:.78rem">⭐ ${rating.toFixed(1)}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════
+// [4] Ratings
+// ═══════════════════════════════════════════
+async function loadRatings() {
+  const isAr = TAZA.Lang.current === 'ar';
+  if (!_driverId) return;
+
+  try {
+    const res  = await TAZA.Http.get(TAZA.API.DELIVERY.DRIVER_RATINGS(_driverId));
+    _myRatings = res?.data ?? {};
+
+    const summary = _myRatings.summary ?? {};
+    const dist    = summary.distribution ?? {};
+    const avg     = summary.average_rating ?? 0;
+    const total   = summary.total_ratings  ?? 0;
+
+    // Summary Card
+    const avgEl   = document.getElementById('my-avg-rating');
+    const starsEl = document.getElementById('my-stars-display');
+    const totalEl = document.getElementById('my-total-ratings');
+    const tierEl  = document.getElementById('rating-tier-badge');
+
+    if (avgEl)   avgEl.textContent   = avg.toFixed(1);
+    if (starsEl) starsEl.textContent = '★'.repeat(Math.round(avg)) + '☆'.repeat(5-Math.round(avg));
+    if (totalEl) totalEl.textContent = `${total} ${isAr?'تقييم':'reviews'}`;
+
+    // Profile hero sync
+    const heroStarsEl  = document.getElementById('profile-hero-stars');
+    const heroRatingEl = document.getElementById('profile-hero-rating');
+    if (heroStarsEl)  heroStarsEl.textContent = '★'.repeat(Math.round(avg)) + '☆'.repeat(5-Math.round(avg));
+    if (heroRatingEl) heroRatingEl.textContent = avg.toFixed(1) + ' / 5';
+
+    // Tier badge
+    if (tierEl) {
+      const tierConfig = avg >= 4.8 ? { label: isAr?'ممتاز':'Excellent', color:'var(--success)' }
+                       : avg >= 4.0 ? { label: isAr?'جيد جداً':'Very Good', color:'var(--primary)' }
+                       : avg >= 3.0 ? { label: isAr?'جيد':'Good',         color:'var(--warning)' }
+                       :              { label: isAr?'يحتاج تحسين':'Needs Improvement', color:'var(--danger)' };
+      tierEl.innerHTML = `<span style="background:${tierConfig.color}22;color:${tierConfig.color};
+        padding:5px 16px;border-radius:var(--border-radius-full);font-size:.8rem;font-weight:700">
+        ${tierConfig.label}
+      </span>`;
+    }
+
+    // Distribution Bars
+    const distEl = document.getElementById('rating-distribution');
+    if (distEl) {
+      distEl.innerHTML = [5,4,3,2,1].map(n => {
+        const count = ratingBucketCount(dist, n);
+        const rawBucket = dist[n];
+        const percent = typeof rawBucket === 'object' && Number.isFinite(Number(rawBucket?.percent))
+          ? Number(rawBucket.percent)
+          : (total > 0 ? (count / total) * 100 : 0);
+        const barColor = n >= 4 ? 'var(--success)' : n === 3 ? 'var(--warning)' : 'var(--danger)';
+        return `
+          <div class="rating-bar-row">
+            <span class="rating-bar-label" style="color:${barColor}">${n}★</span>
+            <div class="progress" style="flex:1;height:10px">
+              <div class="progress-bar" style="width:${Math.min(100, Math.max(0, percent))}%;background:${barColor};border-radius:5px"></div>
+            </div>
+            <span class="rating-bar-count">${count}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Reviews List
+    const reviews   = _myRatings.reviews ?? [];
+    const reviewsEl = document.getElementById('my-reviews-list');
+    if (reviewsEl) {
+      if (!reviews.length) {
+        reviewsEl.innerHTML = `<div class="empty-state" style="padding:20px">
+          <div class="empty-icon">💬</div>
+          <div class="empty-title">${isAr?'لا توجد تعليقات بعد':'No comments yet'}</div>
+        </div>`;
+      } else {
+        reviewsEl.innerHTML = reviews.map(r => {
+          const stars = Math.round(r.rating ?? 0);
+          const color = stars >= 4 ? 'var(--success)' : stars >= 3 ? 'var(--warning)' : 'var(--danger)';
+          return `
+            <div style="padding:12px 0;border-bottom:1px solid var(--border-light)">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="avatar avatar-sm" style="background:var(--primary-soft);color:var(--primary)">
+                    ${TAZA.Utils.initials(r.customer_name ?? 'Z')}
+                  </div>
+                  <span style="font-weight:600;font-size:.85rem">${escapeHtml(r.customer_name ?? (isAr?'زبون':'Customer'))}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:5px">
+                  <span style="color:${color};font-size:.9rem">${'★'.repeat(stars)}${'☆'.repeat(5-stars)}</span>
+                  <span style="font-weight:700;font-size:.82rem;color:${color}">${r.rating?.toFixed(1)}</span>
+                </div>
+              </div>
+              ${r.comment ? `<div style="font-size:.8rem;color:var(--text-secondary);font-style:italic">
+                "${escapeHtml(r.comment)}"
+              </div>` : ''}
+              <div style="font-size:.7rem;color:var(--text-muted);margin-top:4px">
+                <i class="fa-regular fa-clock"></i> ${TAZA.Utils.timeAgo(r.created_at)}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+// ═══════════════════════════════════════════
+// [5] Notifications
+// ═══════════════════════════════════════════
+async function loadNotificationsPage() {
+  const container = document.getElementById('notifs-full-list');
+  const isAr      = TAZA.Lang.current === 'ar';
+  try {
+    const res    = await TAZA.Http.get(TAZA.API.NOTIFICATIONS.LIST);
+    const notifs = res?.data?.notifications ?? [];
+    const unread = res?.data?.unread_count  ?? 0;
+    const dot    = document.querySelector('.notif-count-dot');
+    if (dot) dot.style.display = unread > 0 ? 'block' : 'none';
+    ['sb-notif-count'].forEach(id=>{const el=document.getElementById(id);if(el){el.textContent=unread;el.style.display=unread?'inline-flex':'none';}});
+    loadNotifPanel(notifs.slice(0, 8));
+
+    if (!notifs.length) {
+      container.innerHTML = `<div class="empty-state">
+        <div class="empty-icon"><i class="fa-regular fa-bell"></i></div>
+        <div class="empty-title">${isAr?'لا توجد إشعارات':'No notifications'}</div>
+        <div class="empty-desc">${isAr?'ستظهر هنا تحديثات الرحلات الجديدة.':'New delivery updates will appear here.'}</div>
+      </div>`;
+      return;
+    }
+    container.innerHTML = notifs.map(n => buildDriverNotification(n)).join('');
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+function driverNotificationVisual(n={}) {
+  const value = `${n.type??''} ${n.title??''} ${n.message??''}`.toLowerCase();
+  if (/إلغاء|cancel|فشل|failed/.test(value)) return {tone:'danger',icon:'fa-circle-xmark'};
+  if (/تسليم|delivered|مكتمل|completed/.test(value)) return {tone:'success',icon:'fa-circle-check'};
+  if (/عنوان|موقع|location|address|انتبه|warning/.test(value)) return {tone:'warning',icon:'fa-location-dot'};
+  if (/تعيين|assigned|طلب|delivery|رحلة/.test(value)) return {tone:'delivery',icon:'fa-motorcycle'};
+  return {tone:'info',icon:'fa-bell'};
+}
+
+function buildDriverNotification(n, compact=false) {
+  const isAr = TAZA.Lang.current === 'ar';
+  const visual = driverNotificationVisual(n);
+  const unread = n.is_read ? '' : 'unread';
+  const title = escapeHtml(n.title || (isAr?'تحديث رحلة':'Delivery update'));
+  const message = escapeHtml(n.message || '');
+  const time = TAZA.Utils.timeAgo(n.created_at);
+  if (compact) return `<div class="notification-item notification-tone-${visual.tone} ${unread}"><div class="notification-icon"><i class="fa-solid ${visual.icon}"></i></div><div class="notification-item-copy"><div class="notification-item-title">${title}</div><div class="notification-item-time">${time}</div></div><span class="notification-unread-dot"></span></div>`;
+  return `<article class="notif-item-full notification-tone-${visual.tone} ${unread}"><div class="notif-icon-wrap"><i class="fa-solid ${visual.icon}"></i></div><div class="notif-copy"><div class="notif-title">${title}</div>${message?`<div class="notif-message">${message}</div>`:''}<div class="notif-time"><i class="fa-regular fa-clock"></i> ${time}</div></div><span class="notification-unread-dot"></span></article>`;
+}
+
+function loadNotifPanel(notifs) {
+  const panel = document.getElementById('notif-list-panel');
+  if (!panel) return;
+  const isAr = TAZA.Lang.current === 'ar';
+  panel.innerHTML = notifs.length ? notifs.map(n => buildDriverNotification(n,true)).join('') : `<div class="empty-state" style="padding:32px 18px"><div class="empty-icon"><i class="fa-regular fa-bell"></i></div><div class="empty-title">${isAr?'لا توجد إشعارات جديدة':'No new notifications'}</div></div>`;
+  const unread = notifs.filter(n=>!n.is_read).length;
+  const dot    = document.querySelector('.notif-count-dot');
+  if (dot) dot.style.display = unread > 0 ? 'block' : 'none';
+  const markAll = document.getElementById('panel-mark-all');
+  if (markAll) markAll.style.display = unread > 0 ? '' : 'none';
+  const summary = document.getElementById('notif-panel-summary');
+  if (summary) summary.textContent = unread ? (isAr?`${unread} إشعارات غير مقروءة`:`${unread} unread notifications`) : (isAr?'أنت مطّلع على كل التحديثات':'You are up to date');
+}
+
+async function markAllRead() {
+  try {
+    await TAZA.Http.put(TAZA.API.NOTIFICATIONS.MARK_ALL_READ);
+    document.querySelectorAll('.notif-item-full.unread,.notification-item.unread')
+      .forEach(el => el.classList.remove('unread'));
+    const dot = document.querySelector('.notif-count-dot');
+    if (dot) dot.style.display = 'none';
+    const markAll = document.getElementById('panel-mark-all');
+    if (markAll) markAll.style.display = 'none';
+    const summary = document.getElementById('notif-panel-summary');
+    if (summary) summary.textContent = TAZA.Lang.current === 'ar' ? 'أنت مطّلع على كل التحديثات' : 'You are up to date';
+    const sidebarCount = document.getElementById('sb-notif-count');
+    if (sidebarCount) sidebarCount.style.display = 'none';
+    TAZA.Toast.success(TAZA.Lang.current === 'ar' ? 'تمت القراءة' : 'All read');
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+// ═══════════════════════════════════════════
+// [6] Profile
+// ═══════════════════════════════════════════
+async function loadProfile() {
+  const user = TAZA.Auth.getUser();
+  if (!user) return;
+
+  const avg = (_myStats.average_rating ?? 0).toFixed(1);
+
+  // Hero
+  const heroAvatarEl = document.getElementById('profile-hero-avatar');
+  const heroNameEl   = document.getElementById('profile-hero-name');
+  if (heroNameEl)   heroNameEl.textContent   = user.name ?? '—';
+  if (heroAvatarEl) {
+    if (user.avatar) {
+      heroAvatarEl.innerHTML = `<img src="${escapeHtml(TAZA.Media.url(user.avatar))}" alt="${escapeHtml(user.name ?? '')}"
+          onerror="this.style.display='none';this.parentElement.textContent='${TAZA.Utils.initials(user.name)}'">`;
+    } else {
+      heroAvatarEl.textContent = TAZA.Utils.initials(user.name);
+    }
+  }
+  const heroRatingEl = document.getElementById('profile-hero-rating');
+  const heroStarsEl = document.getElementById('profile-hero-stars');
+  if (heroRatingEl) heroRatingEl.textContent = `${avg} / 5`;
+  if (heroStarsEl) heroStarsEl.textContent = '★'.repeat(Math.round(Number(avg))) + '☆'.repeat(5-Math.round(Number(avg)));
+
+  // Form
+  const emailEl = document.getElementById('profile-email');
+  const phoneEl = document.getElementById('profile-phone');
+  if (emailEl) emailEl.value = user.email ?? '';
+  if (phoneEl) phoneEl.value = user.phone ?? '';
+
+  updateSidebarUser(user);
+}
+
+async function saveProfile() {
+  const email    = document.getElementById('profile-email')?.value.trim()        ?? '';
+  const phone    = document.getElementById('profile-phone')?.value.trim()        ?? '';
+  const currPass = document.getElementById('profile-current-pass')?.value.trim() ?? '';
+  const newPass  = document.getElementById('profile-new-pass')?.value.trim()     ?? '';
+  const isAr     = TAZA.Lang.current === 'ar';
+  const btn      = document.getElementById('save-profile-btn');
+  const payload  = {};
+
+  if (email) payload.email = email;
+  if (phone) payload.phone = phone;
+  if (newPass) {
+    if (!currPass) {
+      TAZA.Toast.warning(isAr ? 'أدخل كلمة المرور الحالية' : 'Enter current password');
+      return;
+    }
+    payload.current_password = currPass;
+    payload.new_password     = newPass;
+    payload.new_password_confirmation = newPass;
+  }
+  if (!Object.keys(payload).length) {
+    TAZA.Toast.info(isAr ? 'لم يتغير شيء' : 'Nothing changed');
+    return;
+  }
+
+  TAZA.Utils.disableBtn(btn);
+  try {
+    const res = await TAZA.Http.put(TAZA.API.AUTH.UPDATE_PROFILE, payload);
+    TAZA.Toast.success(isAr ? 'تم تحديث بياناتك' : 'Profile updated');
+    if (res?.data?.employee) {
+      TAZA.Auth.save(TAZA.Auth.getToken(), res.data.employee);
+      updateSidebarUser(res.data.employee);
+    }
+    document.getElementById('profile-current-pass').value = '';
+    document.getElementById('profile-new-pass').value     = '';
+  } catch(e) {
+    TAZA.Toast.apiError(e);
+  } finally {
+    TAZA.Utils.enableBtn(btn);
+  }
+}
+
+async function uploadAvatar(e) {
+  const file = e.target.files?.[0];
+  if (!file || !TAZA.Utils.isImageFile(file)) {
+    TAZA.Toast.warning(TAZA.Lang.current === 'ar' ? 'صيغة غير مقبولة' : 'Invalid format');
+    return;
+  }
+  const fd = new FormData(); fd.append('image', file);
+  try {
+    const res = await TAZA.Http.upload(TAZA.API.AUTH.UPLOAD_AVATAR, fd);
+    TAZA.Toast.success(TAZA.Lang.current === 'ar' ? 'تم تحديث صورتك' : 'Photo updated');
+    const url  = res?.data?.url ?? URL.createObjectURL(file);
+    const user = { ...TAZA.Auth.getUser(), avatar: url };
+    TAZA.Auth.save(TAZA.Auth.getToken(), user);
+    updateSidebarUser(user);
+    loadProfile();
+  } catch(e) { TAZA.Toast.apiError(e); }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TAZA 041 | Menu</title>
+  <link rel="icon" href="assets/images/taza041-logo.jpg?v=20260801" type="image/jpeg" data-restaurant-favicon>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.bundle.css?v=20260714-privacy-trigger">
+</head>
+<body data-page="menu">
+
+<header class="site-header">
+  <div class="container nav-row logged-nav-row">
+    <div class="header-account">
+      <a class="logo" href="home-user.html">
+        <div class="logo-image logo-loaded"><img loading="eager" decoding="async" src="assets/images/taza041-logo.jpg" alt="TAZA 041"></div>
+        <div class="logo-text"><strong>TAZA 041</strong><span data-ar="تجربة العميل" data-en="Customer Experience">تجربة العميل</span></div>
+      </a>
+      <div class="header-user">
+        <div>
+          <strong data-user-name data-ar="جاري التحميل" data-en="Loading">جاري التحميل</strong>
+          <small><span data-ar="نقاط الولاء:" data-en="Loyalty points:">نقاط الولاء:</span> <span data-user-loyalty>—</span></small>
+        </div>
+      </div>
+    </div>
+    <div class="header-status-slot" data-header-status></div>
+    <div class="header-actions">
+      <div class="header-page-context">
+        <span class="header-page-marker" aria-hidden="true"></span>
+        <span><small data-ar="الصفحة الحالية" data-en="Current page">الصفحة الحالية</small><strong data-ar="المنيو" data-en="Menu">المنيو</strong></span>
+      </div>
+      <button class="menu-toggle" data-open-sidebar>☰</button>
+      <div class="header-preferences" aria-label="Preferences">
+        <button class="tool-btn" data-theme-toggle data-theme-label>☾</button>
+        <button class="tool-btn" data-lang-toggle data-ar="AR" data-en="EN">AR</button>
+      </div>
+      <button class="icon-circle" data-open-cart>🛒 <span data-cart-count>0</span></button>
+    </div>
+  </div>
+</header>
+<div class="sidebar" data-sidebar>
+  <div class="row-between"><strong data-ar="القائمة الجانبية" data-en="Side menu">القائمة الجانبية</strong><button class="close-btn" data-close-sidebar>×</button></div>
+  <div class="sidebar-links">
+    <a class="sidebar-link" href="notifications.html"><span>🔔</span><span data-ar="الإشعارات" data-en="Notifications">الإشعارات</span></a>
+    <a class="sidebar-link" href="profile.html"><span>👤</span><span data-ar="إعداد الحساب الشخصي" data-en="Profile settings">إعداد الحساب الشخصي</span></a>
+    <a class="sidebar-link" href="orders.html"><span>🧾</span><span data-ar="الطلبات السابقة" data-en="Previous orders">الطلبات السابقة</span></a>
+    <a class="sidebar-link" href="ai-suggestion.html"><span>🤖</span><span data-ar="اقتراح وجبة بالذكاء الاصطناعي" data-en="AI meal suggestion">اقتراح وجبة بالذكاء الاصطناعي</span></a>
+    <a class="sidebar-link" href="index.html" onclick="localStorage.setItem('taza_logged_in','false')"><span>🚪</span><span data-ar="تسجيل الخروج" data-en="Logout">تسجيل الخروج</span></a>
+  </div>
+</div>
+<div class="cart-drawer" data-cart-drawer>
+  <div class="row-between"><strong data-ar="السلة" data-en="Cart">السلة</strong><button class="close-btn" data-close-cart>×</button></div>
+  <div class="cart-list" data-cart-list></div>
+  <div class="summary-item" style="margin-top:12px;"><div class="row-between"><strong data-ar="الإجمالي" data-en="Total">الإجمالي</strong><span data-cart-total>0 SYP</span></div></div>
+  <div class="hero-actions" style="margin-top:12px;"><a class="btn btn-primary" href="menu.html" data-ar="اذهب إلى المنيو" data-en="Go to menu">اذهب إلى المنيو</a></div>
+</div>
+
+<div class="page-shell">
+  <nav class="page-back-nav" data-page-back-nav>
+    <div class="container"><a class="page-back-link" data-page-back href="home-user.html" data-ar="رجوع" data-en="Back">رجوع</a></div>
+  </nav>
+  <main class="section menu-page">
+    <div class="container">
+      <div class="page-title menu-page-title">
+        <div>
+          <span class="section-tag" data-ar="المنيو" data-en="Menu">المنيو</span>
+          <h1 data-ar="اكتشف قائمتنا واختر ما يناسبك" data-en="Discover our menu and choose what fits you">اكتشف قائمتنا واختر ما يناسبك</h1>
+        </div>
+        <span class="badge" data-order-badge>طلب عادي</span>
+      </div>
+      <div class="hero-panel card menu-hero-card section-sm">
+        <!-- Menu Hero Image -->
+        <div class="placeholder-media"><span>TAZA 041</span></div>
+        <div class="menu-hero-content">
+          <span class="section-tag" data-ar="مختارات اليوم" data-en="Today picks">مختارات اليوم</span>
+          <h2 data-ar="وجبات وعروض جاهزة للطلب" data-en="Meals and offers ready to order">وجبات وعروض جاهزة للطلب</h2>
+          <div class="menu-hero-badges">
+            <span class="badge" data-ar="طازج" data-en="Fresh">طازج</span>
+            <span class="badge" data-ar="عروض" data-en="Offers">عروض</span>
+            <span class="badge" data-ar="نقاط ولاء" data-en="Loyalty">نقاط ولاء</span>
+          </div>
+        </div>
+      </div>
+      <div class="filter-bar menu-filter-board card">
+        <div class="filter-board-head">
+          <div>
+            <span class="section-tag" data-ar="تصفية ذكية" data-en="Smart filters">تصفية ذكية</span>
+            <h2 data-ar="رتّب المنيو حسب رغبتك" data-en="Shape the menu your way">رتّب المنيو حسب رغبتك</h2>
+          </div>
+        </div>
+        <div class="search-box menu-search-box">
+          <span class="search-mark" aria-hidden="true">⌕</span>
+          <input class="input" data-menu-search data-placeholder-ar="ابحث عن منتج أو عرض" data-placeholder-en="Search for an item or offer" placeholder="ابحث عن منتج أو عرض">
+          <div class="suggestions" data-suggestions></div>
+        </div>
+        <div class="menu-filter-options">
+          <div class="price-filter">
+            <div class="row-between">
+              <label class="label" data-ar="الحد الأعلى للسعر" data-en="Max price">الحد الأعلى للسعر</label>
+              <div class="help" data-price-value>1,000 SYP</div>
+            </div>
+            <input type="range" min="50" max="1000" step="10" value="1000" data-max-price>
+          </div>
+          <div class="filter-grid">
+            <label class="filter-chip"><input type="checkbox" data-filter-flag="featured"> <span data-ar="الأكثر تميزًا" data-en="Featured only">الأكثر تميزًا</span></label>
+            <label class="filter-chip"><input type="checkbox" data-filter-flag="topRated"> <span data-ar="الأعلى تقييمًا" data-en="Top rated">الأعلى تقييمًا</span></label>
+            <label class="filter-chip"><input type="checkbox" data-filter-flag="popular"> <span data-ar="الأكثر شهرة" data-en="Most popular">الأكثر شهرة</span></label>
+            <label class="filter-chip"><input type="checkbox" data-filter-flag="available"> <span data-ar="الأكثر توفرًا" data-en="Most available">الأكثر توفرًا</span></label>
+            <label class="filter-chip"><input type="checkbox" data-filter-flag="offersOnly"> <span data-ar="العروض فقط" data-en="Offers only">العروض فقط</span></label>
+          </div>
+        </div>
+      </div>
+      <div class="hero-actions menu-category-tabs">
+        <button class="btn btn-primary active" data-category="all" data-ar="الكل" data-en="All">الكل</button>
+        <button class="btn btn-secondary" data-category="offers" data-ar="العروض الخاصة" data-en="Special offers">العروض الخاصة</button>
+        <button class="btn btn-secondary" data-category="sandwiches" data-ar="الساندويش" data-en="Sandwiches">الساندويش</button>
+        <button class="btn btn-secondary" data-category="meals" data-ar="الوجبات" data-en="Meals">الوجبات</button>
+        <button class="btn btn-secondary" data-category="drinks" data-ar="المشروبات" data-en="Drinks">المشروبات</button>
+      </div>
+      <div class="product-layout">
+        <section class="card products-panel"><div class="product-grid" data-products-grid></div></section>
+        <aside class="summary-card cart-summary-panel">
+          <div class="row-between"><strong data-ar="السلة الحالية" data-en="Current cart">السلة الحالية</strong><span class="badge"><span data-cart-count>0</span></span></div>
+          <div class="cart-list" data-cart-list></div>
+          <div class="summary-item"><div class="row-between"><strong data-ar="الإجمالي" data-en="Total">الإجمالي</strong><span data-cart-total>0 SYP</span></div></div>
+          <div class="hero-actions"><button class="btn btn-primary" data-continue-order data-ar="متابعة الطلب" data-en="Continue order">متابعة الطلب</button></div>
+        </aside>
+      </div>
+    </div>
+  </main>
+</div>
+
+
+<div class="overlay" data-overlay></div>
+<div class="toast" data-toast></div>
+
+<script src="assets/js/core/state.js?v=20260801-api-origin"></script>
+<script src="assets/js/core/cookies.js?v=20260714-privacy-trigger"></script>
+<script src="assets/js/core/ui.js?v=20260801-authenticated-notifications"></script>
+<script src="assets/js/core/catalog.js?v=20260801-restaurant-favicon"></script>
+<script src="assets/js/core/customer-cart.js"></script>
+<script src="assets/js/pages/router-auth.js?v=20260801-auth-direct-submit"></script>
+<script src="assets/js/app.js?v=20260707-ready"></script>
+</body></html>

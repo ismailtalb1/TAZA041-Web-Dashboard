@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TAZA 041 | Reservation</title>
+  <link rel="icon" href="assets/images/taza041-logo.jpg?v=20260801" type="image/jpeg" data-restaurant-favicon>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.bundle.css?v=20260714-privacy-trigger">
+</head>
+<body data-page="reservation">
+
+<header class="site-header">
+  <div class="container nav-row logged-nav-row">
+    <div class="header-account">
+      <a class="logo" href="home-user.html">
+        <div class="logo-image logo-loaded"><img loading="eager" decoding="async" src="assets/images/taza041-logo.jpg" alt="TAZA 041"></div>
+        <div class="logo-text"><strong>TAZA 041</strong><span data-ar="تجربة العميل" data-en="Customer Experience">تجربة العميل</span></div>
+      </a>
+      <div class="header-user">
+        <div>
+          <strong data-user-name data-ar="جاري التحميل" data-en="Loading">جاري التحميل</strong>
+          <small><span data-ar="نقاط الولاء:" data-en="Loyalty points:">نقاط الولاء:</span> <span data-user-loyalty>—</span></small>
+        </div>
+      </div>
+    </div>
+    <div class="header-status-slot" data-header-status></div>
+    <div class="header-actions">
+      <div class="header-page-context">
+        <span class="header-page-marker" aria-hidden="true"></span>
+        <span><small data-ar="الصفحة الحالية" data-en="Current page">الصفحة الحالية</small><strong data-ar="حجز طاولة" data-en="Reservation">حجز طاولة</strong></span>
+      </div>
+      <button class="menu-toggle" data-open-sidebar>☰</button>
+      <div class="header-preferences" aria-label="Preferences">
+        <button class="tool-btn" data-theme-toggle data-theme-label>☾</button>
+        <button class="tool-btn" data-lang-toggle data-ar="AR" data-en="EN">AR</button>
+      </div>
+      <button class="icon-circle" data-open-cart>🛒 <span data-cart-count>0</span></button>
+    </div>
+  </div>
+</header>
+<div class="sidebar" data-sidebar>
+  <div class="row-between"><strong data-ar="القائمة الجانبية" data-en="Side menu">القائمة الجانبية</strong><button class="close-btn" data-close-sidebar>×</button></div>
+  <div class="sidebar-links">
+    <a class="sidebar-link" href="notifications.html"><span>🔔</span><span data-ar="الإشعارات" data-en="Notifications">الإشعارات</span></a>
+    <a class="sidebar-link" href="profile.html"><span>👤</span><span data-ar="إعداد الحساب الشخصي" data-en="Profile settings">إعداد الحساب الشخصي</span></a>
+    <a class="sidebar-link" href="orders.html"><span>🧾</span><span data-ar="الطلبات السابقة" data-en="Previous orders">الطلبات السابقة</span></a>
+    <a class="sidebar-link" href="ai-suggestion.html"><span>🤖</span><span data-ar="اقتراح وجبة بالذكاء الاصطناعي" data-en="AI meal suggestion">اقتراح وجبة بالذكاء الاصطناعي</span></a>
+    <a class="sidebar-link" href="index.html" onclick="localStorage.setItem('taza_logged_in','false')"><span>🚪</span><span data-ar="تسجيل الخروج" data-en="Logout">تسجيل الخروج</span></a>
+  </div>
+</div>
+<div class="cart-drawer" data-cart-drawer>
+  <div class="row-between"><strong data-ar="السلة" data-en="Cart">السلة</strong><button class="close-btn" data-close-cart>×</button></div>
+  <div class="cart-list" data-cart-list></div>
+  <div class="summary-item" style="margin-top:12px;"><div class="row-between"><strong data-ar="الإجمالي" data-en="Total">الإجمالي</strong><span data-cart-total>0 SYP</span></div></div>
+  <div class="hero-actions" style="margin-top:12px;"><a class="btn btn-primary" href="menu.html" data-ar="اذهب إلى المنيو" data-en="Go to menu">اذهب إلى المنيو</a></div>
+</div>
+
+<div class="page-shell">
+  <nav class="page-back-nav" data-page-back-nav>
+    <div class="container"><a class="page-back-link" data-page-back href="menu.html?type=reservation" data-ar="رجوع" data-en="Back">رجوع</a></div>
+  </nav>
+  <main class="section reservation-page">
+    <div class="container reservation-shell">
+      <section class="reservation-hero">
+        <div class="reservation-hero-copy">
+          <span class="section-tag" data-ar="حجز طاولة" data-en="Table reservation">حجز طاولة</span>
+          <h1 data-ar="اختر طاولتك وجهز جلستك قبل الوصول" data-en="Choose your table before you arrive">اختر طاولتك وجهز جلستك قبل الوصول</h1>
+          <p class="muted" data-ar="حدد الطاولة والوقت وعدد الكراسي، ثم راجع السلة وانتقل للدفع بخطوات واضحة." data-en="Pick a table, time, and seats, then review your cart and continue to payment.">حدد الطاولة والوقت وعدد الكراسي، ثم راجع السلة وانتقل للدفع بخطوات واضحة.</p>
+        </div>
+        <div class="reservation-quick-stats" aria-label="Reservation steps">
+          <div><span>01</span><strong data-ar="الطاولة" data-en="Table">الطاولة</strong></div>
+          <div><span>02</span><strong data-ar="الموعد" data-en="Time">الموعد</strong></div>
+          <div><span>03</span><strong data-ar="الدفع" data-en="Payment">الدفع</strong></div>
+        </div>
+      </section>
+
+      <div class="reservation-grid">
+        <section class="reservation-panel reservation-table-panel">
+          <div class="reservation-section-head">
+            <div>
+              <span class="section-tag" data-ar="اختر الطاولة" data-en="Select table">اختر الطاولة</span>
+              <h2 data-ar="خريطة الطاولات" data-en="Table floor">خريطة الطاولات</h2>
+            </div>
+            <div class="reservation-legend">
+              <span><i class="legend-dot available"></i><span data-ar="متاحة" data-en="Available">متاحة</span></span>
+              <span><i class="legend-dot vip"></i><span>VIP</span></span>
+              <span><i class="legend-dot reserved"></i><span data-ar="محجوزة" data-en="Reserved">محجوزة</span></span>
+            </div>
+          </div>
+          <div class="tables-grid reservation-tables" data-tables></div>
+        </section>
+
+        <section class="reservation-panel reservation-details-panel">
+          <div class="reservation-section-head">
+            <div>
+              <span class="section-tag" data-ar="تفاصيل الحجز" data-en="Reservation details">تفاصيل الحجز</span>
+              <h2 data-ar="الموعد والمقاعد" data-en="Time and seats">الموعد والمقاعد</h2>
+            </div>
+          </div>
+          <div class="reservation-form-grid">
+            <div class="form-group">
+              <label class="label" data-ar="تاريخ الحجز" data-en="Reservation date">تاريخ الحجز</label>
+              <input class="input" type="date" data-reserve-date>
+            </div>
+            <div class="form-group">
+              <label class="label" data-ar="وقت الحجز" data-en="Reservation time">وقت الحجز</label>
+              <input class="input" type="time" data-reserve-time>
+            </div>
+            <div class="form-group reservation-seats-field">
+              <label class="label" data-ar="عدد الكراسي (حتى 10)" data-en="Seats count (up to 10)">عدد الكراسي (حتى 10)</label>
+              <div class="reservation-seat-stepper">
+                <button type="button" class="seat-stepper-btn" data-seat-step="-1" aria-label="Decrease seats">-</button>
+                <input class="input" type="number" min="1" max="10" value="4" inputmode="numeric" data-reserve-seats>
+                <button type="button" class="seat-stepper-btn" data-seat-step="1" aria-label="Increase seats">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="reservation-selection-strip">
+            <div><span data-ar="الطاولة" data-en="Table">الطاولة</span><strong data-selected-table>-</strong></div>
+            <div><span data-ar="النوع" data-en="Type">النوع</span><strong data-selected-type>-</strong></div>
+            <div><span data-ar="المقاعد" data-en="Seats">المقاعد</span><strong data-selected-seats>4</strong></div>
+          </div>
+          <div class="reservation-actions">
+            <button class="btn btn-success" data-confirm-reservation data-ar="تأكيد الحجز" data-en="Confirm reservation">تأكيد الحجز</button>
+            <div class="reservation-fee-bar">
+              <span data-ar="الزيادة المضافة" data-en="Added fee">الزيادة المضافة</span>
+              <strong data-reserve-fee>0 SYP</strong>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="reservation-grid reservation-lower-grid">
+        <section class="reservation-panel reservation-cart-panel">
+          <div class="reservation-section-head">
+            <div>
+              <span class="section-tag" data-ar="السلة بعد الحجز" data-en="Cart after reservation">السلة بعد الحجز</span>
+              <h2 data-ar="ملخص الدفع" data-en="Payment summary">ملخص الدفع</h2>
+            </div>
+          </div>
+          <div class="summary-list" data-reservation-summary></div>
+          <div class="reservation-actions">
+            <button class="btn btn-primary" data-go-payment-reservation data-ar="المتابعة إلى الدفع" data-en="Continue to payment">المتابعة إلى الدفع</button>
+          </div>
+        </section>
+
+        <section class="reservation-panel reservation-ambience-panel">
+          <div class="reservation-room-preview">
+            <div class="room-orbit">
+              <span class="room-table main"></span>
+              <span class="room-chair c1"></span>
+              <span class="room-chair c2"></span>
+              <span class="room-chair c3"></span>
+              <span class="room-chair c4"></span>
+            </div>
+            <div class="reservation-preview-copy">
+              <span data-ar="TAZA 041" data-en="TAZA 041">TAZA 041</span>
+              <strong data-ar="جلسة محجوزة بعناية" data-en="A table set with care">جلسة محجوزة بعناية</strong>
+              <small data-ar="سيتم تثبيت بيانات الحجز مع الطلب عند المتابعة للدفع." data-en="Reservation details will be attached to the order at payment.">سيتم تثبيت بيانات الحجز مع الطلب عند المتابعة للدفع.</small>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+
+<div class="overlay" data-overlay></div>
+<div class="toast" data-toast></div>
+
+<script src="assets/js/core/state.js?v=20260801-api-origin"></script>
+<script src="assets/js/core/cookies.js?v=20260714-privacy-trigger"></script>
+<script src="assets/js/core/ui.js?v=20260801-authenticated-notifications"></script>
+<script src="assets/js/core/catalog.js?v=20260801-restaurant-favicon"></script>
+<script src="assets/js/core/customer-cart.js"></script>
+<script src="assets/js/pages/router-auth.js?v=20260801-auth-direct-submit"></script>
+<script src="assets/js/app.js?v=20260707-ready"></script>
+</body></html>
