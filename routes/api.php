@@ -167,6 +167,10 @@ Route::middleware('auth:sanctum')->prefix('employee')->name('employee.')->group(
         // PUT /api/employee/reports/{id}/archive
         Route::put('{id}/archive', [ReportController::class, 'archive'])
             ->name('archive');
+
+        // PUT /api/employee/reports/{id}/restore
+        Route::put('{id}/restore', [ReportController::class, 'restore'])
+            ->name('restore');
     });
 });
 
@@ -392,6 +396,17 @@ Route::middleware('auth:sanctum')->prefix('orders')->name('orders.')->group(func
     Route::post('{id}/notify-customer', [OrderController::class, 'notifyCustomer'])
         ->whereNumber('id')
         ->name('notify-customer');
+
+    // إدارة السجل — متاحة لمدير الطلبات والمدير العام فقط عبر تحقق المتحكم
+    Route::put('{id}/archive', [OrderController::class, 'archive'])
+        ->whereNumber('id')
+        ->name('archive');
+    Route::put('{id}/restore', [OrderController::class, 'restoreArchive'])
+        ->whereNumber('id')
+        ->name('restore');
+    Route::delete('{id}', [OrderController::class, 'destroy'])
+        ->whereNumber('id')
+        ->name('destroy');
 });
 
 // ─────────────────────────────────────────────────────────────────────

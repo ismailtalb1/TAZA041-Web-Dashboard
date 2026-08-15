@@ -200,6 +200,40 @@ class ReportController extends BaseController
         return $this->success(null, 'تم أرشفة التقرير');
     }
 
+    // ─────────────────────────────────────────────
+    // PUT /api/employee/reports/{id}/restore
+    // ─────────────────────────────────────────────
+    public function restore(Request $request, int $id)
+    {
+        $employee = $this->getEmployee($request);
+        if (! $employee) {
+            return $this->unauthorized();
+        }
+
+        $report = Report::where(function ($query) use ($employee) {
+            $query->where('sender_id', $employee->id)
+                ->orWhere('receiver_id', $employee->id);
+        })->find($id);
+
+        if (! $report) {
+            return $this->notFound('التقرير غير موجود');
+        }
+
+        if ($report->status !== Report::STATUS_ARCHIVED) {
+            return $this->error('التقرير موجود بالفعل ضمن القائمة النشطة');
+        }
+
+        $report->update([
+            'status' => $report->reviewed_at
+                ? Report::STATUS_REVIEWED
+                : Report::STATUS_SENT,
+        ]);
+
+        return $this->success([
+            'report' => $report->fresh()->load(['sender', 'receiver'])->getDetails(),
+        ], 'تمت إعادة التقرير إلى القائمة النشطة');
+    }
+
     // ═══════════════════════════════════════════════
     // مسارات المدير العام
     // ═══════════════════════════════════════════════
@@ -216,6 +250,19 @@ class ReportController extends BaseController
 
         $gm = $this->getEmployee($request);
         $query = Report::forReceiver($gm->id)->with(['sender']);
+
+        $activeCount = Report::forReceiver($gm->id)
+            ->where('status', '!=', Report::STATUS_ARCHIVED)
+            ->count();
+        $archivedCount = Report::forReceiver($gm->id)
+            ->where('status', Report::STATUS_ARCHIVED)
+            ->count();
+
+        match ($request->input('record_state', 'active')) {
+            'archived' => $query->where('status', Report::STATUS_ARCHIVED),
+            'all' => null,
+            default => $query->where('status', '!=', Report::STATUS_ARCHIVED),
+        };
 
         // فلاتر
         if ($request->filled('report_type')) {
@@ -254,6 +301,8 @@ class ReportController extends BaseController
                 'unreviewed' => $reports->where('status', Report::STATUS_SENT)->count(),
                 'reviewed' => $reports->where('status', Report::STATUS_REVIEWED)->count(),
                 'archived' => $reports->where('status', Report::STATUS_ARCHIVED)->count(),
+                'active_total' => $activeCount,
+                'archive_total' => $archivedCount,
             ],
             'by_type' => $byType,
             'reports' => $reports->map->getDetails()->values(),

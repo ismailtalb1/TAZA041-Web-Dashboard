@@ -296,6 +296,13 @@ body.lang-en .sidebar {
   transform: scale(1.48);
 }
 
+.sidebar-logo-fallback {
+  color: var(--primary);
+  font-family: var(--font-latin);
+  font-size: .9rem;
+  font-weight: 900;
+}
+
 .sidebar-logo-text {
   opacity: 1;
   transition: opacity 0.2s ease;

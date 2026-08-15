@@ -1,3 +1,60 @@
+/* Extracted from finance-manager.html */
+.section-content{display:none}
+    .section-content.active{display:block;animation:fadeIn .25s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    .nav-tabs-custom{display:flex;gap:4px;flex-wrap:wrap;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--border-radius);padding:6px;margin-bottom:24px}
+    .nav-tab{padding:8px 18px;border-radius:var(--border-radius-sm);font-size:.825rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text-muted);transition:var(--transition-fast);font-family:inherit;display:flex;align-items:center;gap:7px}
+    .nav-tab:hover{background:var(--primary-soft);color:var(--primary)}
+    .nav-tab.active{background:var(--primary);color:white}
+
+    /* Account Card */
+    .account-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--border-radius);padding:20px;transition:var(--transition);position:relative;overflow:hidden}
+    .account-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+    .account-card.primary-account{border-color:var(--primary)}
+    .account-card.primary-account::before{content:'';position:absolute;top:0;right:0;left:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--accent))}
+    .account-card.near-capacity{border-color:var(--warning)}
+    .account-card.near-capacity::before{content:'';position:absolute;top:0;right:0;left:0;height:3px;background:var(--warning)}
+    .account-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+    .account-type-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+    .account-type-icon.syriatel{background:linear-gradient(135deg,rgba(37,99,235,.15),rgba(37,99,235,.05));color:var(--primary)}
+    .account-type-icon.sham    {background:linear-gradient(135deg,rgba(16,185,129,.15),rgba(16,185,129,.05));color:var(--success)}
+    .account-name{font-size:.9rem;font-weight:700;color:var(--text-primary)}
+    .account-number{font-size:.72rem;color:var(--text-muted);font-family:var(--font-latin)}
+    .account-balance{font-size:1.6rem;font-weight:800;color:var(--text-primary);margin-bottom:4px;font-variant-numeric:tabular-nums}
+    .balance-label{font-size:.72rem;color:var(--text-muted);margin-bottom:10px}
+    .capacity-bar{margin:10px 0}
+    .capacity-pct{display:flex;justify-content:space-between;font-size:.72rem;color:var(--text-muted);margin-bottom:4px}
+
+    /* Transaction Row */
+    .tx-method-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:var(--border-radius-full);font-size:.72rem;font-weight:600}
+    .tx-method-cash    {background:#F0FDF4;color:#15803D}
+    .tx-method-syriatel{background:var(--primary-light);color:var(--primary)}
+    .tx-method-sham    {background:var(--success-light);color:var(--success)}
+    .tx-method-loyalty {background:var(--accent-light);color:var(--accent)}
+
+    /* Revenue Card */
+    .revenue-card{background:linear-gradient(135deg,var(--primary),#1D4ED8);color:white;border-radius:var(--border-radius);padding:24px;position:relative;overflow:hidden}
+    .revenue-card::before{content:'';position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.06);top:-60px;left:-60px}
+    .revenue-card::after {content:'';position:absolute;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.04);bottom:-40px;right:-40px}
+    .theme-night .revenue-card{background:linear-gradient(135deg,#1E3A5F,#1A2850)}
+    .revenue-period-tabs{display:flex;gap:4px;background:rgba(255,255,255,.12);border-radius:8px;padding:3px;width:fit-content}
+    .rev-tab{padding:4px 12px;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.7);transition:var(--transition-fast);font-family:inherit}
+    .rev-tab.active{background:rgba(255,255,255,.2);color:white}
+
+    /* Report card */
+    .report-gen-card{background:linear-gradient(135deg,var(--bg-card),var(--bg-main));border:1px solid var(--border);border-radius:var(--border-radius);padding:28px;text-align:center}
+
+    /* Notif */
+    .notif-item-full{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--border-radius-sm);padding:14px 16px;display:flex;gap:12px;align-items:flex-start;transition:var(--transition-fast)}
+    .notif-item-full:hover{background:var(--primary-soft)}
+    .notif-item-full.unread{border-color:var(--primary);background:var(--primary-soft)}
+    .notif-icon-wrap{width:40px;height:40px;border-radius:10px;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+    @media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+    #notif-panel{left:80px}
+    body.lang-en #notif-panel{left:auto;right:80px}
+
 /* TAZA 041 — Finance Manager. Presentation only. */
 body.finance-workspace{--primary:#d8741f;--primary-hover:#bd5f18;--primary-light:#ffead7;--primary-soft:rgba(216,116,31,.1);--accent:#e6a83c;--accent-light:#fff1cf;--success:#2f7d67;--success-light:#e1f2ec;--warning:#c98920;--warning-light:#fff1d1;--danger:#b54135;--danger-light:#fbe7e4;--info:#4d7f91;--info-light:#e4f0f4;--bg-main:#e9e2d8;--bg-card:#f7f2eb;--bg-card-hover:#f1eae1;--bg-input:#f2ece4;--topbar-bg:rgba(247,242,235,.95);--topbar-border:rgba(93,65,43,.12);--text-primary:#2b2118;--text-secondary:#65574b;--text-muted:#948478;--border:rgba(93,65,43,.14);--border-light:rgba(93,65,43,.08);--sidebar-bg:#17110d;--sidebar-text:#a99788;--sidebar-active:#ffb56f;--sidebar-active-bg:rgba(216,116,31,.14);--sidebar-hover-bg:rgba(255,255,255,.055);--sidebar-border:rgba(255,255,255,.065);--sidebar-logo-bg:rgba(216,116,31,.12);--shadow-xs:0 1px 2px rgba(74,49,31,.04);--shadow-sm:0 5px 18px rgba(74,49,31,.055);--shadow-md:0 12px 32px rgba(74,49,31,.085);--shadow-primary:0 8px 20px rgba(216,116,31,.2);--sidebar-width:248px;--topbar-height:76px;--border-radius:16px;--border-radius-sm:11px;--border-radius-lg:20px;background:radial-gradient(circle at 18% 0%,rgba(216,116,31,.055),transparent 25%),var(--bg-main)}
 .theme-night body.finance-workspace{--primary:#f08a38;--primary-hover:#ff9a4a;--primary-light:rgba(240,138,56,.16);--primary-soft:rgba(240,138,56,.1);--accent:#f2b957;--accent-light:rgba(242,185,87,.14);--success:#53ad91;--success-light:rgba(83,173,145,.14);--warning:#e3ac4c;--warning-light:rgba(227,172,76,.14);--danger:#ef766a;--danger-light:rgba(239,118,106,.13);--info:#74a7b8;--info-light:rgba(116,167,184,.13);--bg-main:#0e0b09;--bg-card:#17120f;--bg-card-hover:#1d1713;--bg-input:#1d1713;--topbar-bg:rgba(23,18,15,.94);--topbar-border:rgba(255,234,214,.09);--text-primary:#fff4e8;--text-secondary:#cbb9a3;--text-muted:#8f7f72;--border:rgba(255,234,214,.11);--border-light:rgba(255,234,214,.065);--sidebar-bg:#120e0b;--sidebar-text:#948274;--sidebar-active:#ffab62;--sidebar-active-bg:rgba(240,138,56,.13);--sidebar-hover-bg:rgba(255,255,255,.045);--sidebar-border:rgba(255,255,255,.055);--shadow-xs:0 1px 2px rgba(0,0,0,.22);--shadow-sm:0 7px 20px rgba(0,0,0,.22);--shadow-md:0 15px 36px rgba(0,0,0,.3);--shadow-primary:0 8px 22px rgba(240,138,56,.18);background:radial-gradient(circle at 18% 0%,rgba(240,138,56,.07),transparent 26%),var(--bg-main)}

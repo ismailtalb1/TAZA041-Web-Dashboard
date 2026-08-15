@@ -1,0 +1,665 @@
+/*
+ * Shared readability layer for dashboard sections that have not received a
+ * feature-specific redesign. Add `readable-section` to opt a section in.
+ * Orders and reports redesigned separately intentionally remain outside it.
+ */
+
+/* Shared manager chrome: clearer navigation without touching feature layouts. */
+body:is(.gm-dashboard, .orders-workspace, .inventory-workspace, .finance-workspace, .delivery-workspace, .communication-workspace) .sidebar-item {
+  min-height: 48px;
+  padding: 11px 13px;
+  font-size: .9rem;
+  line-height: 1.45;
+}
+
+body:is(.gm-dashboard, .orders-workspace, .inventory-workspace, .finance-workspace, .delivery-workspace, .communication-workspace) .sidebar-item-icon {
+  width: 22px;
+  height: 22px;
+  font-size: 1.05rem;
+}
+
+body:is(.gm-dashboard, .orders-workspace, .inventory-workspace, .finance-workspace, .delivery-workspace, .communication-workspace) .sidebar-user {
+  min-height: 58px;
+  padding: 10px;
+}
+
+body:is(.gm-dashboard, .orders-workspace, .inventory-workspace, .finance-workspace, .delivery-workspace, .communication-workspace) .sidebar-user-name { font-size: .88rem; }
+body:is(.gm-dashboard, .orders-workspace, .inventory-workspace, .finance-workspace, .delivery-workspace, .communication-workspace) .sidebar-user-role { font-size: .75rem; }
+body:is(.gm-dashboard, .orders-workspace, .inventory-workspace, .finance-workspace, .delivery-workspace, .communication-workspace) .topbar-page-title { font-size: 1.2rem; }
+body:is(.gm-dashboard, .orders-workspace, .inventory-workspace, .finance-workspace, .delivery-workspace, .communication-workspace) .topbar-breadcrumb { font-size: .82rem; }
+body:is(.gm-dashboard, .orders-workspace, .inventory-workspace, .finance-workspace, .delivery-workspace, .communication-workspace) .notification-panel-title { font-size: 1rem; }
+body:is(.gm-dashboard, .orders-workspace, .inventory-workspace, .finance-workspace, .delivery-workspace, .communication-workspace) .nav-tabs-custom .nav-tab {
+  min-height: 44px;
+  padding: 9px 15px;
+  font-size: .86rem;
+}
+
+.readable-section {
+  --readable-radius: 18px;
+  --readable-radius-sm: 13px;
+  --readable-gap: 20px;
+  color: var(--text-primary);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+/* Page hierarchy */
+.readable-section :is(.workspace-heading, .overview-heading, .page-header) {
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 26px;
+}
+
+.readable-section :is(.workspace-heading, .overview-heading, .page-header) h1,
+.readable-section .page-header-left h1 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: clamp(1.55rem, 2.5vw, 2rem);
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -.02em;
+}
+
+.readable-section :is(.workspace-heading, .overview-heading, .page-header) p,
+.readable-section .page-header-left p {
+  max-width: 760px;
+  margin: 7px 0 0;
+  color: var(--text-secondary);
+  font-size: .96rem;
+  line-height: 1.8;
+}
+
+.readable-section .section-kicker {
+  margin-bottom: 8px;
+  color: var(--primary);
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+}
+
+.readable-section :is(.workspace-shortcuts, .overview-shortcuts, .section-actions) {
+  gap: 10px;
+}
+
+/* Controls */
+.readable-section .btn {
+  min-height: 44px;
+  padding: 9px 16px;
+  border-radius: 12px;
+  font-size: .9rem;
+  font-weight: 700;
+}
+
+.readable-section .btn-sm {
+  min-height: 38px;
+  padding: 7px 12px;
+  font-size: .82rem;
+}
+
+.readable-section :is(.form-control, .search-bar) {
+  min-height: 46px;
+  color: var(--text-primary);
+  background: var(--bg-input);
+  border-color: var(--border);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: .92rem;
+}
+
+.readable-section textarea.form-control {
+  min-height: 120px;
+  padding-block: 12px;
+  line-height: 1.8;
+}
+
+.readable-section .form-group { margin-bottom: 18px; }
+.readable-section .form-label {
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  font-size: .88rem;
+  font-weight: 700;
+}
+
+.readable-section :is(.form-hint, .restaurant-field-help, .content-editor-note) {
+  color: var(--text-muted);
+  font-size: .78rem;
+  line-height: 1.75;
+}
+
+.readable-section :is(.filter-bar, .employee-filter-shell) {
+  gap: 10px;
+  padding: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  box-shadow: var(--shadow-xs);
+}
+
+.readable-section .filter-chip {
+  min-height: 38px;
+  padding: 7px 13px;
+  border-radius: 10px;
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+/* Statistics */
+.readable-section :is(.stats-row, .grid-4, .transaction-stats-grid) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--readable-gap);
+  margin-bottom: 24px;
+}
+
+.readable-section .stat-card {
+  min-height: 138px;
+  padding: 22px;
+  gap: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--readable-radius);
+  box-shadow: var(--shadow-xs);
+}
+
+.readable-section .stat-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
+  box-shadow: var(--shadow-sm);
+}
+
+.readable-section .stat-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
+  font-size: 1.2rem;
+}
+
+.readable-section .stat-label {
+  margin-bottom: 6px;
+  color: var(--text-secondary);
+  font-size: .86rem;
+  font-weight: 600;
+}
+
+.readable-section .stat-value {
+  color: var(--text-primary);
+  font-size: clamp(1.65rem, 3vw, 2.1rem);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.readable-section .stat-change {
+  margin-top: 7px;
+  font-size: .78rem;
+}
+
+/* Cards and panels */
+.readable-section :is(
+  .card,
+  .chart-card,
+  .info-section,
+  .settings-section,
+  .report-gen-card,
+  .account-card,
+  .delivery-card,
+  .driver-card,
+  .product-card,
+  .offer-card,
+  .suggestion-card,
+  .review-card,
+  .reservation-item,
+  .loyalty-settings-panel
+) {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--readable-radius);
+  box-shadow: var(--shadow-xs);
+}
+
+.readable-section :is(
+  .card,
+  .chart-card,
+  .account-card,
+  .delivery-card,
+  .driver-card,
+  .product-card,
+  .offer-card,
+  .suggestion-card,
+  .review-card,
+  .reservation-item
+):hover {
+  border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
+  box-shadow: var(--shadow-sm);
+}
+
+.readable-section .card-header {
+  min-height: 62px;
+  padding: 18px 22px;
+}
+
+.readable-section .card-body { padding: 22px; }
+
+.readable-section :is(.card-title, .chart-card-title) {
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.readable-section .chart-card-header { padding: 20px 22px 0; }
+.readable-section .chart-card-body { padding: 14px 22px 22px; }
+.readable-section .chart-card-subtitle {
+  color: var(--text-muted);
+  font-size: .78rem;
+  line-height: 1.65;
+}
+
+.readable-section :is(.chart-container, .chart-container-lg, .chart-container-donut) {
+  min-height: 290px;
+  height: 290px;
+}
+
+.readable-section :is(
+  .communication-status,
+  .finance-status,
+  .inventory-status,
+  .dispatch-status,
+  .dispatch-alert,
+  .low-stock-alert,
+  .attention-panel
+) {
+  min-height: 82px;
+  gap: 15px;
+  margin-bottom: 22px;
+  padding: 17px 19px;
+  border-radius: 16px;
+}
+
+.readable-section :is(
+  .communication-status-icon,
+  .finance-status-icon,
+  .inventory-status-icon,
+  .dispatch-status-icon,
+  .dispatch-alert-icon,
+  .low-stock-icon,
+  .attention-icon
+) {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  font-size: 1.05rem;
+}
+
+.readable-section :is(
+  .communication-status-copy,
+  .finance-status-copy,
+  .inventory-status-copy,
+  .dispatch-status-copy,
+  .dispatch-alert-copy,
+  .low-stock-copy,
+  .attention-copy
+) strong {
+  color: var(--text-primary);
+  font-size: .94rem;
+}
+
+.readable-section :is(
+  .communication-status-copy,
+  .finance-status-copy,
+  .inventory-status-copy,
+  .dispatch-status-copy,
+  .dispatch-alert-copy,
+  .low-stock-copy,
+  .attention-copy
+) span {
+  color: var(--text-secondary);
+  font-size: .84rem;
+  line-height: 1.7;
+}
+
+/* Reusable grids */
+.readable-section :is(
+  .communication-primary-grid,
+  .finance-insights-grid,
+  .inventory-insights-grid,
+  .delivery-primary-grid,
+  .delivery-insights-grid,
+  .overview-primary-grid,
+  .overview-secondary-grid,
+  .loyalty-content-grid,
+  .reports-grid,
+  .settings-grid
+) {
+  gap: var(--readable-gap);
+}
+
+.readable-section :is(
+  .accounts-grid,
+  .accounts-quick-grid,
+  .products-grid,
+  .offers-grid,
+  .suggestions-grid,
+  .drivers-grid,
+  .active-deliveries-grid,
+  .emp-grid
+) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--readable-gap);
+}
+
+.readable-section .gallery-grid {
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 18px;
+}
+
+/* Tables remain tables on wide screens, but are no longer visually cramped. */
+.readable-section .data-card { overflow: hidden; }
+.readable-section .table-responsive { overflow-x: auto; }
+.readable-section .taza-table {
+  min-width: 760px;
+  font-size: .9rem;
+}
+
+.readable-section .taza-table th {
+  padding: 15px 17px;
+  color: var(--text-secondary);
+  background: var(--bg-input);
+  font-size: .78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.readable-section .taza-table td {
+  padding: 17px;
+  color: var(--text-primary);
+  font-size: .9rem;
+  line-height: 1.65;
+  vertical-align: middle;
+}
+
+.readable-section .taza-table tbody tr:hover td { background: var(--primary-soft); }
+
+/* Operational cards */
+.readable-section :is(.account-card, .driver-card, .product-card, .offer-card, .suggestion-card, .review-card) {
+  min-height: 100%;
+  padding: 22px;
+}
+
+.readable-section :is(.product-card-body, .offer-card-body) { padding: 19px 20px; }
+.readable-section :is(.product-card-footer, .offer-card-footer) {
+  gap: 8px;
+  padding: 14px 18px 18px;
+}
+.readable-section .product-img-wrap { min-height: 190px; }
+.readable-section .offer-img-wrap { min-height: 180px; }
+.readable-section :is(.product-name, .offer-name, .account-name) {
+  color: var(--text-primary);
+  font-size: 1.08rem;
+  font-weight: 800;
+  line-height: 1.55;
+}
+.readable-section .product-desc {
+  margin-top: 5px;
+  color: var(--text-secondary);
+  font-size: .84rem;
+  line-height: 1.7;
+}
+.readable-section .product-meta { margin-top: 16px; }
+.readable-section .product-price { font-size: 1.12rem; font-weight: 800; }
+.readable-section :is(.product-loyalty, .stock-indicator, .offer-chip) { font-size: .8rem; }
+.readable-section .offer-products-chips { gap: 6px; margin-top: 12px; }
+
+.readable-section :is(.delivery-card, .reservation-item) { padding: 21px; }
+.readable-section :is(.delivery-id, .product-name, .offer-name, .driver-name, .suggestion-meal-name) {
+  color: var(--text-primary);
+  font-size: 1.08rem;
+  font-weight: 800;
+}
+
+.readable-section .delivery-card-header { margin-bottom: 14px; padding-bottom: 14px; }
+.readable-section .delivery-customer { gap: 10px; margin-bottom: 13px; }
+.readable-section .delivery-customer-phone { font-size: .8rem; }
+.readable-section .route-point { min-height: 42px; padding: 9px 11px; font-size: .82rem; }
+.readable-section .delivery-driver { padding: 12px; font-size: .86rem; }
+.readable-section .delivery-actions { gap: 8px; }
+
+.readable-section .driver-identity { gap: 13px; }
+.readable-section .driver-rating-summary { padding: 13px; }
+.readable-section .driver-stat-box { padding: 12px; }
+.readable-section .driver-stat-box strong { font-size: 1.05rem; }
+
+.readable-section .reservation-item {
+  gap: 16px;
+  min-height: 102px;
+  border-radius: 16px;
+}
+.readable-section .reservation-time-badge { min-width: 88px; padding: 12px; }
+.readable-section .reservation-time-badge .time { font-size: 1.08rem; font-weight: 800; }
+.readable-section .reservation-time-badge .period { font-size: .76rem; }
+
+.readable-section :is(.delivery-customer-name, .customer-info-chip, .delivery-driver, .delivery-distance) {
+  font-size: .86rem;
+  line-height: 1.65;
+}
+
+.readable-section .badge {
+  padding: 5px 10px;
+  font-size: .76rem !important;
+  line-height: 1.4;
+}
+
+/* Normalize compact legacy inline text while templates are progressively cleaned. */
+.readable-section [style*="font-size:.6"] { font-size: .78rem !important; }
+.readable-section [style*="font-size:.7"] { font-size: .82rem !important; }
+.readable-section [style*="font-size:.8"] { font-size: .88rem !important; }
+.readable-section .stat-card[style*="padding"] { padding: 22px !important; }
+
+.readable-section .empty-state {
+  min-height: 240px;
+  padding: 42px 24px;
+}
+
+.readable-section .empty-icon { font-size: 2.5rem; }
+.readable-section .empty-title {
+  margin-top: 12px;
+  color: var(--text-primary);
+  font-size: 1.06rem;
+  font-weight: 800;
+}
+
+.readable-section .empty-desc {
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: .86rem;
+}
+
+/* Communication editor */
+.readable-section .restaurant-editor-shell { gap: 22px; }
+.readable-section .restaurant-editor-card { padding: 25px; }
+.readable-section .restaurant-card-heading { gap: 14px; margin-bottom: 22px; }
+.readable-section .restaurant-card-heading h3 {
+  color: var(--text-primary);
+  font-size: 1.08rem;
+  font-weight: 800;
+}
+.readable-section .restaurant-card-heading p { color: var(--text-secondary); font-size: .84rem; }
+.readable-section .restaurant-input-wrap i { font-size: .95rem; }
+.readable-section .content-editor-group { padding: 21px; border-radius: 15px; }
+.readable-section .content-editor-group-title { font-size: .95rem; }
+.readable-section .hours-row { min-height: 48px; }
+.readable-section .hours-day { color: var(--text-primary); font-size: .9rem; }
+.readable-section .restaurant-section-nav a {
+  min-height: 43px;
+  padding: 10px 12px;
+  font-size: .82rem;
+}
+.readable-section .restaurant-preview-label { font-size: .7rem; }
+.readable-section .restaurant-preview-copy strong { font-size: 1.12rem; }
+.readable-section .restaurant-preview-copy p { font-size: .78rem; line-height: 1.7; }
+.readable-section .restaurant-preview-contact span { min-height: 44px; font-size: .78rem; }
+.readable-section :is(.restaurant-completeness-heading, .restaurant-logo-help, .restaurant-save-state) { font-size: .75rem; }
+.readable-section .restaurant-section-badge { padding: 5px 9px; font-size: .72rem; }
+.readable-section .restaurant-subsection-heading { font-size: .9rem; }
+
+.readable-section .suggestion-card { padding: 22px; }
+.readable-section .suggestion-header { margin-bottom: 13px; }
+.readable-section .customer-info-chip { font-size: .82rem; }
+.readable-section .review-card { padding: 21px; }
+.readable-section .star-display { font-size: 1.05rem; letter-spacing: .04em; }
+
+/* Finance */
+.readable-section .finance-hero { padding: 28px; border-radius: 20px; }
+.readable-section .revenue-period-tabs { padding: 5px; }
+.readable-section .rev-tab { min-height: 38px; padding: 7px 13px; font-size: .8rem; }
+.readable-section .report-gen-card { padding: 28px; }
+.readable-section .gm-reports-list { display: grid; gap: 12px; }
+.readable-section .account-header { gap: 13px; margin-bottom: 18px; }
+.readable-section .account-type-icon { width: 50px; height: 50px; border-radius: 14px; font-size: 1.2rem; }
+.readable-section .account-number { margin-top: 3px; color: var(--text-muted); font-size: .82rem; }
+.readable-section .account-balance { margin-top: 16px; font-size: 1.55rem; font-weight: 800; }
+.readable-section .balance-label { color: var(--text-secondary); font-size: .82rem; }
+.readable-section .capacity-bar { margin-top: 17px; }
+.readable-section .capacity-pct { margin-bottom: 7px; font-size: .8rem; }
+
+/* Inventory editors and lists */
+.readable-section :is(.product-editor-section, .offer-editor-section) {
+  padding: 22px;
+  border-radius: 16px;
+}
+.readable-section :is(.product-editor-section-heading, .offer-editor-section-heading) {
+  margin-bottom: 18px;
+  font-size: .98rem;
+}
+
+/* General manager sections that were not individually redesigned. */
+.readable-section .emp-card { min-height: 260px; padding: 22px; }
+.readable-section .emp-card-header { gap: 14px; }
+.readable-section .emp-card-info strong,
+.readable-section .emp-name { font-size: 1.02rem; }
+.readable-section .emp-card-actions { gap: 8px; }
+.readable-section .loyalty-rank-row { min-height: 68px; padding: 12px 14px; }
+.readable-section .loyalty-rank { width: 38px; height: 38px; font-size: .9rem; }
+.readable-section .loyalty-name { font-size: .92rem; font-weight: 800; }
+.readable-section .loyalty-tier { font-size: .76rem; }
+.readable-section .loyalty-points { font-size: .9rem; font-weight: 800; }
+.readable-section .loyalty-multiplier-card { min-height: 170px; padding: 20px; }
+
+/* Notifications */
+.readable-section .notifications-page-list {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  max-width: none;
+}
+
+.readable-section .notif-item-full {
+  min-height: 94px;
+  padding: 17px 19px;
+  gap: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-xs);
+}
+
+.readable-section .notif-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  font-size: 1.1rem;
+}
+
+.readable-section .notif-title { color: var(--text-primary); font-size: .94rem; font-weight: 800; }
+.readable-section .notif-message { color: var(--text-secondary); font-size: .84rem; line-height: 1.7; }
+.readable-section .notif-time { color: var(--text-muted); font-size: .76rem; }
+
+/* Profile and settings */
+.readable-section .profile-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 760px);
+  gap: 22px;
+  align-items: start;
+}
+
+.readable-section .profile-identity-card { padding: 30px 24px; }
+.readable-section .profile-identity-card .avatar-xl {
+  width: 96px;
+  height: 96px;
+  font-size: 1.8rem;
+}
+
+.readable-section :is(.settings-section, .info-section) { padding: 25px; }
+.readable-section :is(.settings-section, .info-section) h3 {
+  margin-bottom: 20px;
+  padding-bottom: 13px;
+  color: var(--text-primary);
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+/* Modal content belongs to a readable section visually even though overlays are siblings. */
+body:has(.readable-section.active) .modal-box {
+  border-radius: 20px;
+  box-shadow: 0 26px 75px rgba(30, 18, 10, .26);
+}
+
+body:has(.readable-section.active) .modal-header { padding: 20px 23px; }
+body:has(.readable-section.active) .modal-title { font-size: 1.05rem; }
+body:has(.readable-section.active) .modal-body { padding: 23px; }
+body:has(.readable-section.active) .modal-footer { padding: 16px 23px; }
+
+@media (max-width: 1040px) {
+  .readable-section :is(
+    .communication-primary-grid,
+    .finance-insights-grid,
+    .inventory-insights-grid,
+    .delivery-primary-grid,
+    .delivery-insights-grid,
+    .overview-primary-grid,
+    .overview-secondary-grid,
+    .loyalty-content-grid,
+    .reports-grid,
+    .settings-grid
+  ) { grid-template-columns: 1fr; }
+
+  .readable-section .restaurant-editor-shell { grid-template-columns: 1fr; }
+  .readable-section .restaurant-editor-aside { position: static; }
+}
+
+@media (max-width: 760px) {
+  .readable-section { --readable-gap: 14px; }
+
+  .readable-section :is(.workspace-heading, .overview-heading, .page-header) {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .readable-section :is(.workspace-shortcuts, .overview-shortcuts, .section-actions) {
+    width: 100%;
+  }
+
+  .readable-section :is(.workspace-shortcuts, .overview-shortcuts) .btn { flex: 1; }
+  .readable-section :is(.stats-row, .grid-4, .transaction-stats-grid) { grid-template-columns: 1fr; }
+  .readable-section :is(.accounts-grid, .accounts-quick-grid, .products-grid, .offers-grid, .suggestions-grid, .drivers-grid, .active-deliveries-grid, .emp-grid) { grid-template-columns: 1fr; }
+  .readable-section .profile-layout { grid-template-columns: 1fr; }
+  .readable-section .card-header { padding: 16px 18px; }
+  .readable-section .card-body { padding: 18px; }
+  .readable-section .stat-card { min-height: 118px; padding: 18px; }
+  .readable-section .taza-table th,
+  .readable-section .taza-table td { padding: 14px; }
+  .readable-section .footer-link-row,
+  .readable-section .hours-row { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .readable-section *,
+  .readable-section *::before,
+  .readable-section *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

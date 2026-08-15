@@ -38,13 +38,28 @@ return Application::configure(basePath: dirname(__DIR__))
     // ─────────────────────────────────────────────
     ->withMiddleware(function (Middleware $middleware) {
 
+        // عند تشغيل التطبيق خلف Cloudflare Tunnel يجب الوثوق بترويسات
+        // X-Forwarded-* حتى يتعرف Laravel على HTTPS ويولّد روابط آمنة.
+        // لا يتم تفعيل ذلك محلياً إلا عند ضبط TRUSTED_PROXIES في البيئة.
+        $trustedProxies = env('TRUSTED_PROXIES');
+        if (is_string($trustedProxies) && trim($trustedProxies) !== '') {
+            $trustedProxies = trim($trustedProxies);
+            $middleware->trustProxies(
+                at: $trustedProxies === '*'
+                    ? '*'
+                    : array_values(array_filter(array_map('trim', explode(',', $trustedProxies))))
+            );
+        }
+
         // تفعيل CORS لكل طلبات الـ API
         $middleware->api(prepend: [
             HandleCors::class,
         ]);
 
-        // Sanctum — حماية نقاط الـ API بالتوكن
-        $middleware->statefulApi();
+        // الواجهات (الموقع، لوحة الموظفين وتطبيق الهاتف) تستخدم Sanctum
+        // عبر Bearer tokens. لا نفعّل statefulApi هنا لأنه يحوّل طلبات
+        // المتصفح من النطاق نفسه إلى جلسات Cookies تتطلب CSRF، بينما
+        // تسجيل الدخول نفسه نقطة عامة مسؤولة عن إصدار التوكن.
 
         // السماح للـ Dashboard بإرسال الطلبات (لا Redirect عند 401)
         $middleware->redirectGuestsTo(fn (Request $request) => $request->expectsJson()

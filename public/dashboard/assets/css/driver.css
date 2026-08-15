@@ -1,3 +1,93 @@
+/* Extracted from driver.html */
+.section-content{display:none}
+    .section-content.active{display:block;animation:fadeIn .25s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    .nav-tabs-custom{display:flex;gap:4px;flex-wrap:wrap;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--border-radius);padding:6px;margin-bottom:24px}
+    .nav-tab{padding:8px 18px;border-radius:var(--border-radius-sm);font-size:.825rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text-muted);transition:var(--transition-fast);font-family:inherit;display:flex;align-items:center;gap:7px}
+    .nav-tab:hover{background:var(--primary-soft);color:var(--primary)}
+    .nav-tab.active{background:var(--primary);color:white}
+
+    /* ── Delivery Card (Mobile-first large buttons) ── */
+    .delivery-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--border-radius);overflow:hidden;transition:var(--transition);position:relative}
+    .delivery-card:hover{box-shadow:var(--shadow-md)}
+
+    .delivery-status-bar{height:4px;width:100%}
+    .delivery-status-bar.pending    {background:var(--warning)}
+    .delivery-status-bar.assigned   {background:var(--info)}
+    .delivery-status-bar.picked_up  {background:var(--primary)}
+    .delivery-status-bar.in_delivery{background:var(--accent);animation:pulse-bar .8s infinite}
+    .delivery-status-bar.delivered  {background:var(--success)}
+    .delivery-status-bar.cancelled  {background:var(--danger)}
+    @keyframes pulse-bar{0%,100%{opacity:1}50%{opacity:.5}}
+
+    .delivery-card-body{padding:18px 20px}
+    .delivery-card-id{font-family:var(--font-latin);font-size:1.2rem;font-weight:800;color:var(--primary)}
+    .delivery-card-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+
+    /* Customer Section */
+    .customer-section{background:var(--bg-main);border-radius:var(--border-radius-sm);padding:12px 14px;margin-bottom:12px}
+    .customer-section-label{font-size:.68rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+    .customer-name-big{font-size:1rem;font-weight:700;color:var(--text-primary);margin-bottom:4px}
+    .customer-phone-big{font-size:.9rem;color:var(--primary);font-weight:600;display:flex;align-items:center;gap:6px}
+
+    /* Address Section */
+    .address-section{background:linear-gradient(135deg,var(--primary-soft),rgba(37,99,235,.03));border:1px solid var(--border);border-radius:var(--border-radius-sm);padding:12px 14px;margin-bottom:12px}
+    .address-text{font-size:.875rem;color:var(--text-primary);font-weight:600;line-height:1.5;margin-bottom:8px}
+    .distance-info{display:flex;align-items:center;gap:12px;font-size:.78rem;flex-wrap:wrap}
+    .distance-pill{display:inline-flex;align-items:center;gap:5px;background:var(--primary);color:white;padding:4px 12px;border-radius:var(--border-radius-full);font-weight:600;font-size:.78rem}
+    .time-pill{display:inline-flex;align-items:center;gap:5px;background:var(--accent-light);color:var(--accent);padding:4px 12px;border-radius:var(--border-radius-full);font-weight:600;font-size:.78rem}
+    .cost-pill{display:inline-flex;align-items:center;gap:5px;background:var(--success-light);color:var(--success);padding:4px 12px;border-radius:var(--border-radius-full);font-weight:600;font-size:.78rem}
+
+    /* Status Action Buttons — Large & Touch-Friendly */
+    .status-flow{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+    .status-btn{width:100%;height:52px;border-radius:var(--border-radius-sm);border:none;font-size:.95rem;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:var(--transition-fast)}
+    .status-btn-pickup   {background:var(--primary);color:white;box-shadow:var(--shadow-primary)}
+    .status-btn-pickup:hover   {background:var(--primary-hover);transform:translateY(-1px)}
+    .status-btn-enroute  {background:var(--accent);color:white;box-shadow:0 4px 14px rgba(245,158,11,.3)}
+    .status-btn-enroute:hover  {background:#D97706;transform:translateY(-1px)}
+    .status-btn-delivered{background:var(--success);color:white;box-shadow:0 4px 14px rgba(16,185,129,.3)}
+    .status-btn-delivered:hover{background:#059669;transform:translateY(-1px)}
+    .btn-maps{background:var(--bg-main);border:1px solid var(--border);color:var(--text-primary);height:44px;font-size:.85rem}
+    .btn-maps:hover{background:var(--primary-soft);border-color:var(--primary);color:var(--primary)}
+    .customer-location-chip{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:7px 10px;border-radius:999px;background:rgba(91,168,255,.12);border:1px solid rgba(91,168,255,.35);color:var(--info);font-size:.75rem;font-weight:800}
+    .customer-location-chip.missing{background:rgba(255,93,115,.10);border-color:rgba(255,93,115,.30);color:var(--danger)}
+    .coords-line{direction:ltr;text-align:left;font-family:var(--font-latin);font-size:.76rem;color:var(--text-muted);margin-top:8px}
+    .driver-route-map{height:420px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--bg-main)}
+    .driver-route-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+    .driver-route-metric{background:var(--bg-main);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center}
+    .driver-route-metric span{display:block;font-size:.68rem;color:var(--text-muted)}
+    .driver-route-metric strong{display:block;margin-top:3px;font-size:.88rem;color:var(--text-primary)}
+    .route-quality-label{font-size:.68rem;font-weight:800;padding:3px 8px;border-radius:999px;background:var(--success-light);color:var(--success)}
+    .route-quality-label.fallback{background:var(--warning-light);color:var(--warning)}
+
+    /* Rating Stars Display */
+    .star-display{color:var(--accent);font-size:1.1rem}
+    .rating-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+    .rating-bar-label{font-size:.78rem;color:var(--accent);width:20px;font-weight:700}
+    .rating-bar-count {font-size:.72rem;color:var(--text-muted);width:24px;text-align:center}
+
+    /* History item */
+    .history-item{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--border-radius-sm);padding:14px 18px;transition:var(--transition-fast);display:flex;gap:14px;align-items:center}
+    .history-item:hover{background:var(--bg-main)}
+    .history-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+
+    /* Profile Card Compact */
+    .driver-profile-hero{background:linear-gradient(135deg,var(--primary),#1D4ED8);color:white;border-radius:var(--border-radius);padding:28px;text-align:center;margin-bottom:16px;position:relative;overflow:hidden}
+    .driver-profile-hero::before{content:'';position:absolute;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.06);top:-60px;right:-60px}
+    .driver-profile-hero::after {content:'';position:absolute;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.04);bottom:-40px;left:-40px}
+    .theme-night .driver-profile-hero{background:linear-gradient(135deg,#1E3A5F,#1A2850)}
+
+    /* Notification */
+    .notif-item-full{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--border-radius-sm);padding:14px 16px;display:flex;gap:12px;align-items:flex-start;transition:var(--transition-fast)}
+    .notif-item-full.unread{border-color:var(--primary);background:var(--primary-soft)}
+    .notif-icon-wrap{width:40px;height:40px;border-radius:10px;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+
+    .stats-row-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+    @media(max-width:600px){.stats-row-3{grid-template-columns:1fr 1fr}.driver-route-map{height:340px}.driver-route-summary{grid-template-columns:1fr}}
+
+    #notif-panel{left:80px}
+    body.lang-en #notif-panel{left:auto;right:80px}
+
 /* TAZA 041 — Driver workspace. Presentation only. */
 body.driver-workspace {
   --primary:#d8741f; --primary-hover:#bd5f18; --primary-light:#ffead7; --primary-soft:rgba(216,116,31,.1);

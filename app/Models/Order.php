@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Order extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'orders';
 
@@ -22,6 +23,8 @@ class Order extends Model
         'discount',
         'final_price',
         'notes',
+        'archived_at',
+        'archived_by',
     ];
 
     protected $casts = [
@@ -30,6 +33,7 @@ class Order extends Model
         'final_price' => 'float',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'archived_at' => 'datetime',
     ];
 
     // ─────────────────────────────────────────────
@@ -112,6 +116,11 @@ class Order extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function archivedBy(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'archived_by');
     }
 
     public function items(): HasMany
@@ -197,6 +206,30 @@ class Order extends Model
         $allowed = $flow[$this->status] ?? [];
 
         return in_array($newStatus, $allowed);
+    }
+
+    public function isOperationallyClosed(): bool
+    {
+        if ($this->status === self::STATUS_CANCELLED) {
+            return true;
+        }
+
+        if ($this->type === self::TYPE_DELIVERY) {
+            return in_array($this->deliveryOrder?->status, [
+                DeliveryOrder::STATUS_DELIVERED,
+                DeliveryOrder::STATUS_CANCELLED,
+            ], true);
+        }
+
+        if ($this->type === self::TYPE_RESERVATION) {
+            return in_array($this->reservationOrder?->status, [
+                ReservationOrder::STATUS_COMPLETED,
+                ReservationOrder::STATUS_CANCELLED,
+                ReservationOrder::STATUS_NO_SHOW,
+            ], true);
+        }
+
+        return $this->status === self::STATUS_COMPLETED;
     }
 
     // تغيير حالة الطلب مع التحقق من الصلاحية
@@ -493,6 +526,9 @@ class Order extends Model
             'final_price' => $this->final_price,
             'final_price_formatted' => number_format($this->final_price, 0).' ل.س',
             'notes' => $this->notes,
+            'archived_at' => $this->archived_at?->toIso8601String(),
+            'is_archived' => ! is_null($this->archived_at),
+            'can_manage_record' => $this->isOperationallyClosed(),
             'customer' => $this->customer
                                      ? [
                                          'id' => $this->customer->id,

@@ -1,3 +1,103 @@
+/* Extracted from general-manager.html */
+/* ── Page-specific styles ──────────────────── */
+    .section-content { display: none; }
+    .section-content.active { display: block; animation: fadeIn .25s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+    .nav-tabs-custom {
+      display: flex; gap: 4px; flex-wrap: wrap;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--border-radius); padding: 6px; margin-bottom: 24px;
+    }
+
+    .nav-tab {
+      padding: 8px 16px; border-radius: var(--border-radius-sm);
+      font-size: .825rem; font-weight: 600; cursor: pointer;
+      border: none; background: transparent; color: var(--text-muted);
+      transition: var(--transition-fast); font-family: inherit;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .nav-tab:hover  { background: var(--primary-soft); color: var(--primary); }
+    .nav-tab.active { background: var(--primary); color: white; }
+
+    .tbl-actions { display:flex; gap:6px; }
+
+    /* Employee card grid */
+    .emp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .emp-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--border-radius); padding: 20px;
+      transition: var(--transition);
+      position: relative; overflow: hidden;
+    }
+    .emp-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+    .emp-card::before {
+      content: ''; position: absolute; top: 0; right: 0; left: 0;
+      height: 3px; background: linear-gradient(90deg, var(--primary), var(--accent));
+    }
+
+    .emp-card-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+    .emp-card-info h4 { font-size:.9rem; font-weight:700; color:var(--text-primary); margin-bottom:2px; }
+    .emp-card-info p  { font-size:.75rem; color:var(--primary); font-weight:600; }
+
+    .emp-card-stats {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px; margin-bottom: 14px;
+    }
+    .emp-stat {
+      background: var(--bg-main); border-radius: var(--border-radius-sm);
+      padding: 8px 10px; text-align:center;
+    }
+    .emp-stat-val { font-size:1.1rem; font-weight:700; color:var(--text-primary); }
+    .emp-stat-lbl { font-size:.65rem; color:var(--text-muted); }
+
+    /* Modal inputs tight */
+    .modal-body .form-group { margin-bottom: 14px; }
+    .modal-body .form-control { height: 42px; }
+    select.form-control { height: 42px; }
+    textarea.form-control { height: auto; min-height: 80px; }
+
+    /* Report card */
+    .report-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--border-radius); padding: 18px 20px;
+      transition: var(--transition); display:flex; flex-direction:column; gap:10px;
+    }
+    .report-card:hover { box-shadow: var(--shadow-sm); }
+    .report-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+    .report-type-badge { font-size:.7rem; padding: 3px 10px; }
+
+    /* Settings section */
+    .settings-section {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--border-radius); padding: 24px; margin-bottom: 16px;
+    }
+    .settings-section h3 {
+      font-size:.95rem; font-weight:700; color:var(--text-primary);
+      margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid var(--border);
+      display:flex; align-items:center; gap:8px;
+    }
+
+    /* Table scrollable wrapper */
+    .table-responsive { overflow-x: auto; }
+
+    /* Status badge inline */
+    .open-badge {
+      display:inline-flex; align-items:center; gap:5px;
+      padding:4px 12px; border-radius:20px; font-size:.75rem; font-weight:600;
+    }
+    .open-badge.open   { background:var(--success-light); color:var(--success); }
+    .open-badge.closed { background:var(--danger-light);  color:var(--danger);  }
+
+    /* Notification panel positioned */
+    #notif-panel { left: 80px; }
+    body.lang-en #notif-panel { left: auto; right: 80px; }
+
 /* =====================================================================
    TAZA 041 — General Manager workspace
    Presentation and usability layer only. Existing API hooks stay intact.
@@ -1020,54 +1120,363 @@ body.gm-dashboard {
 }
 
 /* ── Reports ──────────────────────────────────────────────────────── */
+.gm-dashboard #tab-reports > .page-header {
+  width: min(100%, 1120px);
+  margin-inline: auto;
+}
+
+.gm-dashboard .reports-toolbar {
+  display: flex;
+  gap: 8px;
+  width: min(100%, 1120px);
+  margin: 0 auto 18px;
+  padding: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  box-shadow: var(--shadow-xs);
+}
+
+.gm-dashboard .reports-view-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 8px 16px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 0;
+  border-radius: 11px;
+  font-family: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .2s ease, color .2s ease, box-shadow .2s ease;
+}
+
+.gm-dashboard .reports-view-btn:hover {
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.gm-dashboard .reports-view-btn.active {
+  color: #fff;
+  background: var(--primary);
+  box-shadow: 0 7px 18px rgba(216, 116, 31, .22);
+}
+
+.gm-dashboard .reports-view-count {
+  min-width: 25px;
+  padding: 2px 7px;
+  color: inherit;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  border-radius: 999px;
+  font-family: var(--font-latin);
+  font-size: .72rem;
+  text-align: center;
+}
+
+.gm-dashboard .reports-view-btn.active .reports-view-count {
+  background: rgba(255, 255, 255, .18);
+}
+
 .gm-dashboard .reports-list {
   display: grid;
-  gap: 12px;
+  gap: 20px;
+  width: min(100%, 1120px);
+  margin-inline: auto;
 }
 
 .gm-dashboard .report-card {
-  gap: 12px;
-  padding: 18px;
+  --report-accent: var(--primary);
+  position: relative;
+  display: block;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--report-accent) 22%, var(--border));
+  border-radius: 20px;
+  box-shadow: 0 16px 40px rgba(19, 12, 8, 0.08);
+}
+
+.gm-dashboard .report-card::before {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 4px;
+  content: '';
+  background: var(--report-accent);
+}
+
+.gm-dashboard .report-type-order { --report-accent: #3b82f6; }
+.gm-dashboard .report-type-delivery { --report-accent: #06b6d4; }
+.gm-dashboard .report-type-financial { --report-accent: #22c55e; }
+.gm-dashboard .report-type-inventory { --report-accent: #f59e0b; }
+.gm-dashboard .report-type-communication { --report-accent: #8b5cf6; }
+.gm-dashboard .report-type-ai_generated { --report-accent: #d97706; }
+
+.gm-dashboard .report-card:hover {
+  border-color: color-mix(in srgb, var(--report-accent) 36%, var(--border));
+  box-shadow: 0 18px 46px rgba(19, 12, 8, 0.12);
 }
 
 .gm-dashboard .report-card-header {
+  display: flex;
   align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 28px 20px;
+}
+
+.gm-dashboard .report-toggle {
+  width: 100%;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  font-family: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.gm-dashboard .report-toggle:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--report-accent) 35%, transparent);
+  outline-offset: -4px;
+}
+
+.gm-dashboard .report-heading {
+  min-width: 0;
+}
+
+.gm-dashboard .report-kind {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 11px;
+}
+
+.gm-dashboard .report-kind-icon {
+  display: inline-grid;
+  width: 30px;
+  height: 30px;
+  color: var(--report-accent);
+  background: color-mix(in srgb, var(--report-accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--report-accent) 20%, transparent);
+  border-radius: 9px;
+  place-items: center;
+}
+
+.gm-dashboard .report-type-badge {
+  padding: 5px 10px;
+  font-size: 0.72rem;
 }
 
 .gm-dashboard .report-title {
-  margin-bottom: 4px;
+  margin: 0 0 10px;
   color: var(--text-primary);
-  font-size: 0.86rem;
-  font-weight: 700;
+  font-size: clamp(1.05rem, 2vw, 1.28rem);
+  font-weight: 800;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
 }
 
 .gm-dashboard .report-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
   color: var(--text-muted);
-  font-size: 0.68rem;
+  font-size: 0.76rem;
+  line-height: 1.6;
+}
+
+.gm-dashboard .report-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gm-dashboard .report-meta i {
+  color: var(--report-accent);
+}
+
+.gm-dashboard .report-status-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.gm-dashboard .report-expand-indicator {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  color: var(--report-accent);
+  background: color-mix(in srgb, var(--report-accent) 9%, var(--bg-main));
+  border: 1px solid color-mix(in srgb, var(--report-accent) 18%, var(--border));
+  border-radius: 11px;
+  place-items: center;
+}
+
+.gm-dashboard .report-expand-indicator i {
+  transition: transform .28s ease;
+}
+
+.gm-dashboard .report-card.is-expanded .report-expand-indicator i {
+  transform: rotate(180deg);
+}
+
+.gm-dashboard .report-collapsible {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows .32s ease, opacity .22s ease;
+}
+
+.gm-dashboard .report-collapsible-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.gm-dashboard .report-card.is-expanded .report-collapsible {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.gm-dashboard .report-card.is-expanded {
+  border-color: color-mix(in srgb, var(--report-accent) 36%, var(--border));
+  box-shadow: 0 18px 46px rgba(19, 12, 8, 0.12);
+}
+
+.gm-dashboard .report-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  border-radius: 999px;
+}
+
+.gm-dashboard .report-status.is-pending {
+  color: var(--warning);
+  background: var(--warning-light);
+  border-color: color-mix(in srgb, var(--warning) 22%, transparent);
+}
+
+.gm-dashboard .report-status.is-reviewed {
+  color: var(--success);
+  background: var(--success-light);
+  border-color: color-mix(in srgb, var(--success) 22%, transparent);
+}
+
+.gm-dashboard .report-status.is-archived {
+  color: var(--text-muted);
+  background: var(--bg-main);
+  border-color: var(--border);
+}
+
+.gm-dashboard .report-summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  margin: 0 28px 18px;
+  padding: 14px 16px;
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--report-accent) 7%, var(--bg-main));
+  border: 1px solid color-mix(in srgb, var(--report-accent) 16%, var(--border));
+  border-radius: 13px;
+}
+
+.gm-dashboard .report-summary-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  color: var(--report-accent);
+  background: var(--bg-card);
+  border-radius: 10px;
+  place-items: center;
+}
+
+.gm-dashboard .report-summary strong {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--text-primary);
+  font-size: 0.78rem;
 }
 
 .gm-dashboard .report-description {
+  margin: 0;
   color: var(--text-secondary);
-  font-size: 0.76rem;
+  font-size: 0.84rem;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
-.gm-dashboard .report-content-preview {
-  max-height: 112px;
-  overflow-y: auto;
-  padding: 12px 13px;
+.gm-dashboard .report-content-section {
+  margin: 0 28px 24px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--bg-main) 78%, var(--bg-card));
+  border: 1px solid var(--border);
+  border-radius: 15px;
+}
+
+.gm-dashboard .report-content-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
   color: var(--text-secondary);
-  background: var(--bg-main);
-  border: 1px solid var(--border-light);
-  border-radius: 11px;
-  font-size: 0.75rem;
-  line-height: 1.75;
-  white-space: pre-line;
+  background: color-mix(in srgb, var(--bg-card) 78%, transparent);
+  border-bottom: 1px solid var(--border);
+}
+
+.gm-dashboard .report-content-heading span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.gm-dashboard .report-content-heading i {
+  color: var(--report-accent);
+}
+
+.gm-dashboard .report-content-heading small {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+}
+
+.gm-dashboard .report-content-body {
+  min-height: 92px;
+  padding: 22px 24px 24px;
+  color: var(--text-primary);
+  font-size: clamp(0.92rem, 1.4vw, 1rem);
+  font-weight: 500;
+  line-height: 2;
+  letter-spacing: 0.005em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .gm-dashboard .report-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 7px;
+  flex-wrap: wrap;
+  gap: 9px;
+  padding: 17px 28px;
+  background: color-mix(in srgb, var(--bg-main) 48%, transparent);
+  border-top: 1px solid var(--border);
+}
+
+.gm-dashboard .report-actions .btn {
+  min-height: 40px;
+  padding-inline: 16px;
 }
 
 /* ── Loyalty and settings ─────────────────────────────────────────── */
@@ -1688,6 +2097,47 @@ body.gm-dashboard {
 
   .gm-dashboard .report-card-header {
     flex-direction: column;
+    gap: 16px;
+    padding: 20px 18px 17px;
+  }
+
+  .gm-dashboard .reports-toolbar {
+    width: 100%;
+  }
+
+  .gm-dashboard .reports-view-btn {
+    flex: 1;
+    padding-inline: 10px;
+  }
+
+  .gm-dashboard .report-status-wrap {
+    align-self: flex-start;
+  }
+
+  .gm-dashboard .report-summary,
+  .gm-dashboard .report-content-section {
+    margin-inline: 18px;
+  }
+
+  .gm-dashboard .report-content-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .gm-dashboard .report-content-body {
+    padding: 18px;
+    font-size: 0.92rem;
+    line-height: 1.9;
+  }
+
+  .gm-dashboard .report-actions {
+    padding: 15px 18px;
+  }
+
+  .gm-dashboard .report-actions .btn {
+    flex: 1 1 145px;
+    justify-content: center;
   }
 
   .gm-dashboard .loyalty-settings-head {
@@ -1714,6 +2164,11 @@ body.gm-dashboard {
     animation: none;
     transition: none;
   }
+
+  .gm-dashboard .report-collapsible,
+  .gm-dashboard .report-expand-indicator i {
+    transition: none;
+  }
 }
 
 .gm-dashboard .data-pagination {
@@ -1724,6 +2179,226 @@ body.gm-dashboard {
   min-height: 52px;
   padding: 10px 16px;
   border-top: 1px solid var(--border-color);
+}
+
+/* Orders — readable record cards */
+.gm-dashboard .gm-orders-shell {
+  overflow: hidden;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-xs);
+}
+
+.gm-dashboard .gm-orders-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  padding: 22px;
+}
+
+.gm-dashboard .gm-order-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 420px;
+  padding: 24px;
+  background: var(--bg-main);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow-xs);
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+
+.gm-dashboard .gm-order-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(216, 116, 31, .35);
+  box-shadow: var(--shadow-sm);
+}
+
+.gm-dashboard .gm-order-card.is-archived {
+  background: color-mix(in srgb, var(--bg-main) 88%, var(--warning-light));
+  border-style: dashed;
+}
+
+.gm-dashboard .gm-order-card-header,
+.gm-dashboard .gm-order-primary,
+.gm-dashboard .gm-order-card-actions,
+.gm-dashboard .gm-order-identity,
+.gm-dashboard .gm-order-badges,
+.gm-dashboard .gm-order-section-title {
+  display: flex;
+  align-items: center;
+}
+
+.gm-dashboard .gm-order-card-header,
+.gm-dashboard .gm-order-primary,
+.gm-dashboard .gm-order-section-title {
+  justify-content: space-between;
+}
+
+.gm-dashboard .gm-order-card-header {
+  gap: 14px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.gm-dashboard .gm-order-identity { gap: 12px; }
+.gm-dashboard .gm-order-badges { justify-content: flex-end; gap: 7px; flex-wrap: wrap; }
+.gm-dashboard .gm-order-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  color: var(--primary);
+  background: var(--primary-soft);
+  border: 1px solid rgba(216, 116, 31, .2);
+  border-radius: 14px;
+  font-size: 1.15rem;
+}
+
+.gm-dashboard .gm-order-eyebrow,
+.gm-dashboard .gm-order-label,
+.gm-dashboard .gm-order-meta dt {
+  display: block;
+  color: var(--text-muted);
+  font-size: .78rem;
+  font-weight: 600;
+}
+
+.gm-dashboard .gm-order-identity h2 {
+  margin: 2px 0 0;
+  color: var(--primary);
+  font-family: var(--font-latin);
+  font-size: 1.45rem;
+}
+
+.gm-dashboard .gm-order-primary {
+  gap: 20px;
+  margin: 18px 0;
+  padding: 16px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+}
+
+.gm-dashboard .gm-order-customer strong,
+.gm-dashboard .gm-order-total strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-primary);
+  font-size: 1.06rem;
+}
+
+.gm-dashboard .gm-order-customer > span:last-child { color: var(--text-secondary); font-size: .83rem; }
+.gm-dashboard .gm-order-total { text-align: end; }
+.gm-dashboard .gm-order-total strong { color: var(--primary); font-size: 1.3rem; white-space: nowrap; }
+
+.gm-dashboard .gm-order-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 18px;
+}
+
+.gm-dashboard .gm-order-meta > div {
+  min-width: 0;
+  padding: 11px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 11px;
+}
+
+.gm-dashboard .gm-order-meta dd {
+  overflow: hidden;
+  margin: 5px 0 0;
+  color: var(--text-primary);
+  font-size: .88rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gm-dashboard .gm-order-items {
+  padding: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+}
+
+.gm-dashboard .gm-order-section-title {
+  margin-bottom: 9px;
+  color: var(--text-primary);
+  font-size: .9rem;
+  font-weight: 800;
+}
+
+.gm-dashboard .gm-order-section-title i { margin-inline-end: 5px; color: var(--primary); }
+.gm-dashboard .gm-order-section-title > span:last-child {
+  min-width: 26px;
+  padding: 3px 8px;
+  color: var(--primary);
+  background: var(--primary-soft);
+  border-radius: 999px;
+  text-align: center;
+}
+
+.gm-dashboard .gm-order-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 9px 3px;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border-light);
+  font-size: .88rem;
+}
+
+.gm-dashboard .gm-order-item strong { color: var(--primary); }
+.gm-dashboard .gm-order-no-items,
+.gm-dashboard .gm-order-more { padding: 10px 3px 0; color: var(--text-muted); font-size: .82rem; }
+.gm-dashboard .gm-order-note {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  color: var(--text-secondary);
+  background: var(--warning-light);
+  border-radius: 11px;
+  font-size: .88rem;
+  line-height: 1.7;
+}
+
+.gm-dashboard .gm-order-card-actions {
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 18px;
+}
+
+.gm-dashboard .gm-order-card-actions .btn { min-height: 40px; font-size: .84rem; }
+.gm-dashboard .gm-order-lock-note {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-muted);
+  font-size: .8rem;
+  line-height: 1.6;
+}
+
+.gm-dashboard .gm-orders-empty { grid-column: 1 / -1; min-height: 280px; }
+
+@media (max-width: 1100px) {
+  .gm-dashboard .gm-orders-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .gm-dashboard .gm-orders-grid { gap: 14px; padding: 14px; }
+  .gm-dashboard .gm-order-card { min-height: 0; padding: 18px; }
+  .gm-dashboard .gm-order-card-header,
+  .gm-dashboard .gm-order-primary { align-items: flex-start; flex-direction: column; }
+  .gm-dashboard .gm-order-total { text-align: start; }
+  .gm-dashboard .gm-order-meta { grid-template-columns: 1fr; }
+  .gm-dashboard .gm-order-card-actions .btn { flex: 1 1 140px; justify-content: center; }
 }
 
 .gm-dashboard .data-pagination-summary {

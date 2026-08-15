@@ -36,3 +36,4 @@ Thumbs.db
 /tmp/
 /public/dashboard/codex-session-bridge.html
 /public/dashboard/.codex-session-bridge.html
+/cloudflared-config.yml

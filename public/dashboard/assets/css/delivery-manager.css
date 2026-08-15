@@ -1,3 +1,170 @@
+/* Extracted from delivery-manager.html */
+/* ── Animations & Base ─────────────────── */
+    .section-content { display:none; }
+    .section-content.active { display:block; animation:fadeIn .25s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+    .nav-tabs-custom {
+      display:flex; gap:4px; flex-wrap:wrap;
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:var(--border-radius); padding:6px; margin-bottom:24px;
+    }
+    .nav-tab {
+      padding:8px 18px; border-radius:var(--border-radius-sm);
+      font-size:.825rem; font-weight:600; cursor:pointer;
+      border:none; background:transparent; color:var(--text-muted);
+      transition:var(--transition-fast); font-family:inherit;
+      display:flex; align-items:center; gap:7px;
+    }
+    .nav-tab:hover  { background:var(--primary-soft); color:var(--primary); }
+    .nav-tab.active { background:var(--primary); color:white; }
+
+    /* ── Delivery Cards ────────────────────── */
+    .delivery-card {
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:var(--border-radius); padding:18px 20px;
+      transition:var(--transition); position:relative; overflow:hidden;
+    }
+    .delivery-card:hover { box-shadow:var(--shadow-md); transform:translateY(-1px); }
+
+    .delivery-card-header {
+      display:flex; align-items:flex-start;
+      justify-content:space-between; gap:10px; margin-bottom:12px;
+    }
+
+    .delivery-id {
+      font-size:1.05rem; font-weight:800;
+      color:var(--primary); font-family:var(--font-latin);
+    }
+
+    /* Status strip */
+    .status-strip {
+      position:absolute; top:0; right:0; left:0; height:3px;
+    }
+    .status-strip.pending    { background:var(--warning); }
+    .status-strip.assigned   { background:var(--info); }
+    .status-strip.picked_up  { background:var(--primary); }
+    .status-strip.in_delivery{ background:var(--accent); animation:pulse-strip 1s infinite; }
+    .status-strip.delivered  { background:var(--success); }
+    .status-strip.cancelled  { background:var(--danger); }
+    @keyframes pulse-strip { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+    /* Delivery route line */
+    .delivery-route {
+      display:flex; align-items:center; gap:6px;
+      font-size:.78rem; margin:10px 0; flex-wrap:wrap;
+    }
+    .route-point {
+      display:flex; align-items:center; gap:5px;
+      background:var(--bg-main); border-radius:6px; padding:5px 8px;
+    }
+    .route-dot-restaurant { color:var(--danger); }
+    .route-dot-customer   { color:var(--success); }
+    .route-arrow          { color:var(--text-muted); font-size:.9rem; }
+
+    /* Cost badge */
+    .cost-badge {
+      display:inline-flex; align-items:center; gap:4px;
+      background:var(--success-light); color:var(--success);
+      padding:3px 10px; border-radius:var(--border-radius-full);
+      font-size:.78rem; font-weight:700;
+    }
+
+    /* ── Driver Card ───────────────────────── */
+    .driver-card {
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:var(--border-radius); padding:20px;
+      transition:var(--transition); text-align:center;
+    }
+    .driver-card:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); }
+
+    .driver-stars {
+      color:var(--accent); font-size:.9rem; margin:6px 0;
+    }
+
+    .driver-stats-grid {
+      display:grid; grid-template-columns:1fr 1fr;
+      gap:8px; margin-top:12px;
+    }
+    .driver-stat-box {
+      background:var(--bg-main); border-radius:8px; padding:8px;
+    }
+    .driver-stat-val { font-size:1rem; font-weight:700; color:var(--text-primary); }
+    .driver-stat-lbl { font-size:.65rem; color:var(--text-muted); }
+
+    /* ── Live Map Placeholder ──────────────── */
+    .live-map {
+      background:var(--bg-main); border:1px solid var(--border);
+      border-radius:var(--border-radius); padding:20px;
+      min-height:220px; position:relative; overflow:hidden;
+    }
+    .map-grid {
+      display:grid; grid-template-columns:repeat(6,1fr);
+      grid-template-rows:repeat(4,1fr); gap:4px; height:200px;
+    }
+    .map-cell {
+      border-radius:4px; background:var(--border-light);
+      transition:background .3s; position:relative;
+    }
+    .map-cell.road-h { background:rgba(100,116,139,.15); }
+    .map-cell.road-v { background:rgba(100,116,139,.15); }
+    .map-cell.block  { background:rgba(148,163,184,.08); border-radius:6px; }
+    .map-pin {
+      position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      font-size:1.1rem; animation:bounce-pin 1s infinite;
+    }
+    @keyframes bounce-pin { 0%,100%{transform:translate(-50%,-50%)} 50%{transform:translate(-50%,-60%)} }
+
+    .map-legend {
+      display:flex; gap:12px; margin-top:10px; font-size:.72rem;
+      color:var(--text-muted); flex-wrap:wrap;
+    }
+    .map-legend span { display:flex; align-items:center; gap:4px; }
+    .delivery-live-map { height:360px; border:1px solid var(--border); border-radius:14px; overflow:hidden; background:var(--bg-main); }
+    .delivery-map-filters { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+    .delivery-live-map .leaflet-popup-content { margin:10px 12px; min-width:190px; font-family:var(--font-ar); }
+    .delivery-live-map .leaflet-control-attribution { font-size:9px; }
+    .route-quality-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 8px; border-radius:999px; font-size:.68rem; font-weight:700; }
+    .route-quality-badge.road { color:var(--success); background:var(--success-light); }
+    .route-quality-badge.fallback { color:var(--warning); background:var(--warning-light); }
+    @media(max-width:700px){ .delivery-map-filters{grid-template-columns:1fr}.delivery-live-map{height:300px} }
+
+    /* ── Settings Calc ─────────────────────── */
+    .calc-preview {
+      background:var(--bg-main); border-radius:var(--border-radius);
+      padding:16px; margin-top:14px;
+    }
+    .calc-row {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:6px 0; border-bottom:1px solid var(--border-light);
+      font-size:.82rem;
+    }
+    .calc-row:last-child { border-bottom:none; font-weight:700; }
+    .calc-val { font-weight:600; color:var(--primary); }
+
+    /* Notification full */
+    .notif-item-full {
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:var(--border-radius-sm); padding:14px 16px;
+      display:flex; gap:12px; align-items:flex-start;
+      transition:var(--transition-fast); cursor:pointer;
+    }
+    .notif-item-full:hover { background:var(--primary-soft); }
+    .notif-item-full.unread { border-color:var(--primary); background:var(--primary-soft); }
+    .notif-icon-wrap {
+      width:40px; height:40px; border-radius:10px;
+      background:var(--primary-soft); color:var(--primary);
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.1rem; flex-shrink:0;
+    }
+
+    .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+    @media(max-width:900px){ .stats-row{grid-template-columns:repeat(2,1fr);} }
+
+    #notif-panel { left:80px; }
+    body.lang-en #notif-panel { left:auto; right:80px; }
+
 /* TAZA 041 — Delivery Manager workspace. Presentation only. */
 body.delivery-workspace {
   --primary:#d8741f; --primary-hover:#bd5f18; --primary-light:#ffead7; --primary-soft:rgba(216,116,31,.1);

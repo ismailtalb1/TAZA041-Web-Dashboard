@@ -113,13 +113,51 @@ class SecurityHardeningTest extends TestCase
 
     public function test_general_manager_dashboard_escapes_external_values_before_using_inner_html(): void
     {
-        $dashboard = file_get_contents(public_path('dashboard/general-manager.html'));
+        $dashboard = file_get_contents(public_path('dashboard/assets/js/pages/general-manager/customers.js'))
+            .file_get_contents(public_path('dashboard/assets/js/pages/general-manager/reports.js'));
 
         $this->assertIsString($dashboard);
         $this->assertStringContainsString('${escapeHtml(c.name ??', $dashboard);
-        $this->assertStringContainsString('${escapeHtml(r.content ??', $dashboard);
+        $this->assertStringContainsString('${formatReportContent(r.content)}', $dashboard);
+        $this->assertStringContainsString("return normalized ? escapeHtml(normalized) : '—';", $dashboard);
         $this->assertStringNotContainsString('${c.name ??', $dashboard);
         $this->assertStringNotContainsString('${r.content ??', $dashboard);
+    }
+
+    public function test_employee_dashboards_use_shared_components_and_external_page_assets(): void
+    {
+        $dashboards = [
+            'general-manager' => 'assets/js/pages/general-manager/core.js',
+            'order-manager' => 'assets/js/pages/order-manager/core.js',
+            'delivery-manager' => 'assets/js/pages/delivery-manager/core.js',
+            'inventory-manager' => 'assets/js/pages/inventory-manager/core.js',
+            'finance-manager' => 'assets/js/pages/finance-manager/core.js',
+            'communication-manager' => 'assets/js/pages/communication-manager/core.js',
+            'driver' => 'assets/js/pages/driver/core.js',
+        ];
+
+        foreach ($dashboards as $dashboardName => $entryScript) {
+            $dashboard = file_get_contents(public_path("dashboard/{$dashboardName}.html"));
+
+            $this->assertIsString($dashboard);
+            $this->assertStringContainsString('data-dashboard-sidebar', $dashboard);
+            $this->assertStringContainsString('data-dashboard-topbar', $dashboard);
+            $this->assertStringContainsString('data-dashboard-notifications', $dashboard);
+            $this->assertStringContainsString('assets/js/dashboard-components.js', $dashboard);
+            $this->assertStringContainsString($entryScript, $dashboard);
+            $this->assertStringNotContainsString('<style>', $dashboard);
+            $this->assertStringNotContainsString('<script>', $dashboard);
+            $this->assertStringNotContainsString('profile-legacy.js', $dashboard);
+
+            preg_match_all('/<script src="([^"]+)"><\/script>/', $dashboard, $scriptMatches);
+            foreach ($scriptMatches[1] as $scriptSource) {
+                if (str_starts_with($scriptSource, 'assets/js/')) {
+                    $scriptPath = parse_url($scriptSource, PHP_URL_PATH);
+                    $this->assertIsString($scriptPath);
+                    $this->assertFileExists(public_path("dashboard/{$scriptPath}"));
+                }
+            }
+        }
     }
 
     public function test_production_api_errors_do_not_expose_exception_details(): void

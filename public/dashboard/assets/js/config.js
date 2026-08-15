@@ -130,6 +130,9 @@
        SHOW:           (id) => `/orders/${id}`,
        CHANGE_STATUS:  (id) => `/orders/${id}/status`,
        NOTIFY_CUSTOMER:(id) => `/orders/${id}/notify-customer`,
+       ARCHIVE:        (id) => `/orders/${id}/archive`,
+       RESTORE:        (id) => `/orders/${id}/restore`,
+       DELETE:         (id) => `/orders/${id}`,
        NORMAL:         '/orders/normal',
        NORMAL_STATS:   '/orders/normal/stats',
      },
@@ -240,6 +243,7 @@
        STORE:          '/employee/reports',
        REVIEW:         (id) => `/employee/reports/${id}/review`,
        ARCHIVE:        (id) => `/employee/reports/${id}/archive`,
+       RESTORE:        (id) => `/employee/reports/${id}/restore`,
      },
 
      // ── التواصل ───────────────────────────────────────────────────────
@@ -1050,9 +1054,13 @@
      // تنسيق التاريخ
      formatDate(dateStr, options = {}) {
        if (!dateStr) return '—';
+       const usesStylePreset = options.dateStyle || options.timeStyle;
+       const formatOptions = usesStylePreset
+         ? options
+         : { year: 'numeric', month: 'short', day: 'numeric', ...options };
        return new Date(dateStr).toLocaleDateString(
          Lang.current === 'ar' ? 'ar-SY' : 'en-US',
-         { year: 'numeric', month: 'short', day: 'numeric', ...options }
+         formatOptions
        );
      },
 
@@ -1080,6 +1088,16 @@
      // أول حرف من الاسم (للـ Avatar)
      initials(name = '') {
        return name.trim().split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+     },
+
+     // ترميز القيم الخارجية قبل إدخالها في قوالب HTML.
+     escapeHtml(value = '') {
+       return String(value ?? '')
+         .replace(/&/g, '&amp;')
+         .replace(/</g, '&lt;')
+         .replace(/>/g, '&gt;')
+         .replace(/"/g, '&quot;')
+         .replace(/'/g, '&#039;');
      },
 
      // لون الحالة
@@ -1180,7 +1198,57 @@
    };
 
    // ─────────────────────────────────────────────────────────────────────
-   // [12] Confirm Dialog بسيط
+   // [12] نظام النوافذ المنبثقة المشترك
+   // ─────────────────────────────────────────────────────────────────────
+   const Modal = {
+     _initialized: false,
+
+     open(id) {
+       const modal = document.getElementById(id);
+       if (!modal) return false;
+
+       modal.classList.add('show');
+       modal.style.opacity = '1';
+       modal.style.visibility = 'visible';
+       modal.style.pointerEvents = 'auto';
+       document.body.style.overflow = 'hidden';
+       return true;
+     },
+
+     close(id) {
+       const modal = typeof id === 'string' ? document.getElementById(id) : id;
+       if (!modal) return false;
+
+       modal.classList.remove('show');
+       modal.style.opacity = '';
+       modal.style.visibility = '';
+       modal.style.pointerEvents = '';
+       if (!document.querySelector('.modal-overlay.show')) document.body.style.overflow = '';
+       return true;
+     },
+
+     closeAll() {
+       document.querySelectorAll('.modal-overlay.show').forEach(modal => this.close(modal));
+       document.body.style.overflow = '';
+     },
+
+     init() {
+       if (this._initialized) return;
+       this._initialized = true;
+
+       document.addEventListener('click', event => {
+         if (event.target.classList?.contains('modal-overlay') && event.target.classList.contains('show')) {
+           this.close(event.target);
+         }
+       });
+       document.addEventListener('keydown', event => {
+         if (event.key === 'Escape') this.closeAll();
+       });
+     },
+   };
+
+   // ─────────────────────────────────────────────────────────────────────
+   // [13] Confirm Dialog بسيط
    // ─────────────────────────────────────────────────────────────────────
    const Confirm = {
 
@@ -1231,7 +1299,7 @@
    };
 
    // ─────────────────────────────────────────────────────────────────────
-   // [13] تهيئة الصفحة
+   // [14] تهيئة الصفحة
    // ─────────────────────────────────────────────────────────────────────
    function initDashboardPage(allowedRoles = []) {
 
@@ -1253,7 +1321,10 @@
      // 6) بدء المزامنة الخفيفة للعرض التشغيلي المفتوح
      LiveSync.start();
 
-     // 7) ملء بيانات المستخدم في الـ Sidebar
+     // 7) ربط سلوك النوافذ المنبثقة مرة واحدة لكل صفحة
+     Modal.init();
+
+     // 8) ملء بيانات المستخدم في الـ Sidebar
      const user = Auth.getUser();
      if (user) {
        const nameEl   = document.getElementById('sidebar-user-name');
@@ -1277,7 +1348,7 @@
        }
      }
 
-     // 7) زر تسجيل الخروج
+     // 9) زر تسجيل الخروج
      document.getElementById('logout-btn')?.addEventListener('click', () => {
        Confirm.show(
          Lang.current === 'ar' ? 'هل تريد تسجيل الخروج؟' : 'Are you sure you want to logout?',
@@ -1289,7 +1360,7 @@
        );
      });
 
-     // 8) أزرار اللغة
+     // 10) أزرار اللغة
      document.querySelectorAll('.lang-btn').forEach(btn => {
        btn.addEventListener('click', () => Lang.apply(btn.dataset.lang));
      });
@@ -1297,13 +1368,13 @@
      // زر المظهر: يحفظ اختيار الموظف ويُبقي الثيم التلقائي هو الافتراضي للحسابات الجديدة.
      document.getElementById('theme-toggle')?.addEventListener('click', () => Theme.toggle());
 
-     // 9) زر طي/فتح الـ Sidebar
+     // 11) زر طي/فتح الـ Sidebar
      document.getElementById('sidebar-toggle')?.addEventListener('click', () => {
        document.querySelector('.sidebar')?.classList.toggle('collapsed');
        document.querySelector('.main-content')?.classList.toggle('sidebar-collapsed');
      });
 
-     // 10) لوحة الإشعارات
+     // 12) لوحة الإشعارات
      document.getElementById('notif-btn')?.addEventListener('click', (e) => {
        e.stopPropagation();
        document.getElementById('notif-panel')?.classList.toggle('show');
@@ -1315,7 +1386,7 @@
    }
 
    // ─────────────────────────────────────────────────────────────────────
-   // [14] Export — متاح لكل ملفات الـ Dashboard
+   // [15] Export — متاح لكل ملفات الـ Dashboard
    // ─────────────────────────────────────────────────────────────────────
    window.TAZA = {
      CONFIG: TAZA_CONFIG,
@@ -1329,13 +1400,21 @@
      NotifBadge,
      LiveSync,
      Utils,
+     Modal,
      Confirm,
      Media: { url: buildAssetURL },
+     loadEmployeeProfile() {
+       return window.TAZA.EmployeeProfile?.load();
+     },
      initDashboardPage,
    };
 
+   // إبقاء الأسماء القديمة متاحة للأزرار الموجودة داخل HTML أثناء التفكيك التدريجي.
+   window.openModal = id => Modal.open(id);
+   window.closeModal = id => Modal.close(id);
+
    // ─────────────────────────────────────────────────────────────────────
-   // [15] تهيئة فورية (تطبيق اللغة قبل أي شيء لتجنب الوميض)
+   // [16] تهيئة فورية (تطبيق اللغة قبل أي شيء لتجنب الوميض)
    // ─────────────────────────────────────────────────────────────────────
    (function () {
      const lang = localStorage.getItem(TAZA_CONFIG.LANG_KEY) ?? 'ar';

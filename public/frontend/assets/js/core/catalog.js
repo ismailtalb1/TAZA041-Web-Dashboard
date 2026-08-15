@@ -265,6 +265,21 @@ async function refreshLivePublicData() {
   }
 }
 
+function syncRestaurantStatusUI() {
+  const isOpen = restaurantIsOpen();
+  const statusText = restaurantStatusText();
+
+  $$('[data-restaurant-status]').forEach(el => {
+    el.textContent = statusText;
+  });
+
+  $$('[data-restaurant-status-card]').forEach(card => {
+    card.classList.toggle('is-open', isOpen);
+    card.classList.toggle('is-closed', !isOpen);
+    card.setAttribute('aria-label', `${langText('حالة المطعم', 'Restaurant status')}: ${statusText}`);
+  });
+}
+
 function applyRestaurantBranding() {
   const restaurant = AppState.restaurant || {};
   const websiteContent = restaurant.website_content || {};
@@ -287,6 +302,7 @@ function applyRestaurantBranding() {
     statusPill.textContent = restaurantStatusText();
     statusHost.prepend(statusPill);
   }
+  syncRestaurantStatusUI();
 
   const footerContact = document.body.dataset.page === 'about' ? null : $('.footer-grid > div:nth-child(3) ul');
   if (footerContact && restaurant) {

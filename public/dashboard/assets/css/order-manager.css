@@ -1,3 +1,133 @@
+/* Extracted from order-manager.html */
+.section-content { display:none; }
+    .section-content.active { display:block; animation:fadeIn .25s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+    .nav-tabs-custom {
+      display:flex; gap:4px; flex-wrap:wrap;
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:var(--border-radius); padding:6px; margin-bottom:24px;
+    }
+    .nav-tab {
+      padding:8px 18px; border-radius:var(--border-radius-sm);
+      font-size:.825rem; font-weight:600; cursor:pointer;
+      border:none; background:transparent; color:var(--text-muted);
+      transition:var(--transition-fast); font-family:inherit;
+      display:flex; align-items:center; gap:7px;
+    }
+    .nav-tab:hover  { background:var(--primary-soft); color:var(--primary); }
+    .nav-tab.active { background:var(--primary); color:white; }
+
+    /* Order Status Card */
+    .order-card {
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:var(--border-radius); padding:18px 20px;
+      transition:var(--transition); position:relative; overflow:hidden;
+    }
+    .order-card:hover { box-shadow:var(--shadow-md); }
+    .order-card.urgent::before {
+      content:''; position:absolute; top:0; right:0; left:0; height:3px;
+      background:var(--danger);
+    }
+    .order-card.normal-type::before {
+      content:''; position:absolute; top:0; right:0; left:0; height:3px;
+      background:var(--primary);
+    }
+    .order-card-header {
+      display:flex; align-items:flex-start;
+      justify-content:space-between; gap:12px; margin-bottom:12px;
+    }
+    .order-id {
+      font-size:1.1rem; font-weight:800; color:var(--primary); font-family:var(--font-latin);
+    }
+    .order-items-list { margin:10px 0; }
+    .order-item-row {
+      display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:4px 8px;
+      padding:5px 8px; border-radius:6px; font-size:.8rem;
+      background:var(--bg-main); margin-bottom:4px;
+    }
+    .order-item-name { font-weight:600; color:var(--text-primary); }
+    .order-item-qty  { color:var(--primary); font-weight:700; }
+    .order-actions   { display:flex; gap:6px; flex-wrap:wrap; margin-top:12px; }
+
+    /* Timer for pending orders */
+    .order-timer {
+      font-size:.72rem; font-weight:600; padding:3px 8px;
+      border-radius:var(--border-radius-full);
+    }
+    .order-timer.fresh  { background:var(--success-light); color:var(--success); }
+    .order-timer.normal { background:var(--warning-light); color:var(--warning); }
+    .order-timer.late   { background:var(--danger-light);  color:var(--danger);  animation:pulse-late .8s infinite; }
+    @keyframes pulse-late { 0%,100%{opacity:1} 50%{opacity:.6} }
+
+    /* Reservation Table Grid */
+    .tables-grid {
+      display:grid; grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); gap:10px;
+    }
+    .table-cell {
+      aspect-ratio:1; border-radius:var(--border-radius);
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:4px; cursor:pointer; transition:var(--transition-fast);
+      border:2px solid transparent; font-size:.75rem; font-weight:600;
+    }
+    .table-cell.available {
+      background:var(--success-light); color:var(--success);
+      border-color:var(--success);
+    }
+    .table-cell.reserved {
+      background:var(--danger-light); color:var(--danger);
+      border-color:var(--danger); cursor:not-allowed;
+    }
+    .table-cell.vip {
+      background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(245,158,11,.05));
+      color:var(--accent); border-color:var(--accent);
+    }
+    .table-cell.vip.reserved {
+      background:linear-gradient(135deg,rgba(239,68,68,.15),rgba(239,68,68,.05));
+      color:var(--danger); border-color:var(--danger);
+    }
+    .table-cell:hover:not(.reserved) { transform:scale(1.05); box-shadow:var(--shadow-md); }
+    .table-icon { font-size:1.4rem; }
+    .table-num  { font-size:.7rem; }
+
+    /* Reservation list item */
+    .reservation-item {
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:var(--border-radius); padding:16px 20px;
+      transition:var(--transition); display:flex; gap:14px; align-items:flex-start;
+    }
+    .reservation-item:hover { box-shadow:var(--shadow-sm); }
+    .reservation-time-badge {
+      background:var(--primary-soft); color:var(--primary);
+      border-radius:var(--border-radius-sm); padding:8px 12px;
+      text-align:center; flex-shrink:0; min-width:64px;
+    }
+    .reservation-time-badge .time { font-size:1rem; font-weight:800; font-family:var(--font-latin); }
+    .reservation-time-badge .period { font-size:.65rem; color:var(--text-muted); }
+
+    /* Notification item */
+    .notif-item-full {
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:var(--border-radius-sm); padding:14px 16px;
+      display:flex; gap:12px; align-items:flex-start;
+      transition:var(--transition-fast); cursor:pointer;
+    }
+    .notif-item-full:hover { background:var(--primary-soft); }
+    .notif-item-full.unread { border-color:var(--primary); background:var(--primary-soft); }
+    .notif-icon-wrap {
+      width:40px; height:40px; border-radius:10px;
+      background:var(--primary-soft); color:var(--primary);
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.1rem; flex-shrink:0;
+    }
+
+    /* Stat cards */
+    .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+    @media(max-width:900px) { .stats-row { grid-template-columns:repeat(2,1fr); } }
+
+    #notif-panel { left:80px; }
+    body.lang-en #notif-panel { left:auto; right:80px; }
+
 /* =====================================================================
    TAZA 041 — Order Manager workspace
    Frontend presentation layer only; existing API hooks remain unchanged.
@@ -238,7 +368,7 @@ body.orders-workspace {
 .orders-workspace .pending-work-card { margin-bottom: 16px; }
 .orders-workspace .pending-work-card .card-body { padding-top: 4px; }
 .orders-workspace .pending-work-card .empty-state { min-height: 150px; padding-block: 34px; }
-.orders-workspace .orders-work-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; }
+.orders-workspace .orders-work-grid { display: grid; grid-template-columns: repeat(2,minmax(320px,1fr)); gap: 20px; }
 .orders-workspace .orders-insights-grid { display: grid; grid-template-columns: minmax(0,1.7fr) minmax(290px,.8fr); gap: 16px; }
 .orders-workspace .chart-card-header { align-items: flex-start; padding: 17px 18px 0; }
 .orders-workspace .chart-heading { display: grid; gap: 3px; }
@@ -254,7 +384,7 @@ body.orders-workspace {
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  padding: 16px;
+  padding: 22px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -265,23 +395,25 @@ body[dir="ltr"].orders-workspace .order-card::before { left: auto; right: 0; bor
 .orders-workspace .order-card.urgent::before { background: var(--danger); }
 .orders-workspace .order-card.normal-type::before { background: var(--primary); }
 .orders-workspace .order-card:hover { transform: translateY(-2px); border-color: rgba(216,116,31,.27); box-shadow: var(--shadow-sm); }
+.orders-workspace .order-card.is-archived { background: color-mix(in srgb, var(--bg-card) 90%, var(--warning-light)); border-style: dashed; }
 .orders-workspace .order-card-header { margin-bottom: 10px; padding-bottom: 11px; border-bottom: 1px solid var(--border-light); }
 .orders-workspace .order-card-headline { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-.orders-workspace .order-id { font-size: 1.02rem; letter-spacing: .025em; }
+.orders-workspace .order-id { font-size: 1.3rem; letter-spacing: .025em; }
 .orders-workspace .order-card-summary { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
-.orders-workspace .order-total { color: var(--text-primary); font-size: .82rem; font-weight: 800; }
-.orders-workspace .order-customer-meta { display: flex; align-items: center; gap: 7px; margin-bottom: 9px; color: var(--text-muted); font-size: .74rem; }
+.orders-workspace .order-total { color: var(--text-primary); font-size: 1rem; font-weight: 800; }
+.orders-workspace .order-customer-meta { display: flex; align-items: center; gap: 7px; margin-bottom: 12px; color: var(--text-muted); font-size: .88rem; }
 .orders-workspace .order-customer-meta i { color: var(--primary); }
 .orders-workspace .order-items-list { margin: 0 0 10px; }
-.orders-workspace .order-item-row { padding: 7px 9px; margin-bottom: 5px; background: var(--bg-main); border: 1px solid var(--border-light); border-radius: 9px; }
+.orders-workspace .order-item-row { padding: 10px 12px; margin-bottom: 7px; background: var(--bg-main); border: 1px solid var(--border-light); border-radius: 10px; font-size: .9rem; }
 .orders-workspace .order-item-name { flex: 1; }
-.orders-workspace .order-item-price { color: var(--text-muted); font-size: .7rem; }
+.orders-workspace .order-item-price { color: var(--text-muted); font-size: .82rem; }
 .orders-workspace .order-more-items { padding: 4px; color: var(--text-muted); font-size: .7rem; text-align: center; }
 .orders-workspace .order-note { margin-bottom: 9px; padding: 8px 10px; color: var(--text-secondary); background: var(--warning-light); border: 1px solid rgba(201,137,32,.15); border-radius: 9px; font-size: .73rem; }
-.orders-workspace .order-actions { display: grid; grid-template-columns: minmax(120px,1fr) 38px 38px 38px; gap: 6px; margin-top: auto; padding-top: 2px; }
+.orders-workspace .order-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 8px; }
 .orders-workspace .order-actions .btn { min-width: 0; }
 .orders-workspace .order-actions .btn-ghost,
 .orders-workspace .order-actions .btn-danger { width: 38px; padding: 0; }
+.orders-workspace .order-actions .record-action-btn { width: auto; min-height: 38px; padding-inline: 12px; }
 .orders-workspace .order-timer { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; font-size: .68rem; }
 .orders-workspace .order-timer.late { animation: none; font-weight: 800; }
 

@@ -8,9 +8,42 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.bundle.css?v=20260808-mobile-bar-order">
+  <link rel="stylesheet" href="assets/css/styles.bundle.css?v=20260814-guest-splash">
 </head>
-<body data-page="guest-home">
+<body data-page="guest-home" class="site-booting">
+
+<div class="site-loader" id="taza-site-loader" role="status" aria-live="polite" aria-label="جاري تجهيز موقع TAZA 041">
+  <div class="site-loader-ambient" aria-hidden="true">
+    <span class="site-loader-orb site-loader-orb-one"></span>
+    <span class="site-loader-orb site-loader-orb-two"></span>
+    <span class="site-loader-orb site-loader-orb-three"></span>
+  </div>
+  <div class="site-loader-stage">
+    <div class="site-loader-kicker" data-ar="تجربة تازا تبدأ الآن" data-en="Your TAZA experience begins now">تجربة تازا تبدأ الآن</div>
+    <div class="site-loader-mark">
+      <span class="site-loader-ring site-loader-ring-one" aria-hidden="true"></span>
+      <span class="site-loader-ring site-loader-ring-two" aria-hidden="true"></span>
+      <div class="site-loader-logo logo-image logo-loaded">
+        <img loading="eager" decoding="async" src="assets/images/taza041-logo.jpg" alt="TAZA 041">
+      </div>
+      <span class="site-loader-spark site-loader-spark-one" aria-hidden="true"></span>
+      <span class="site-loader-spark site-loader-spark-two" aria-hidden="true"></span>
+      <span class="site-loader-spark site-loader-spark-three" aria-hidden="true"></span>
+    </div>
+    <div class="site-loader-copy">
+      <strong class="site-loader-name">TAZA <em>041</em></strong>
+      <span class="site-loader-tagline" data-ar="نكهة تجمعنا" data-en="Flavor brings us together">نكهة تجمعنا</span>
+    </div>
+    <div class="site-loader-progress" aria-hidden="true"><span></span></div>
+    <p class="site-loader-status" data-site-loader-status data-ar="نحضّر لك تجربة طازجة…" data-en="Preparing a fresh experience…">نحضّر لك تجربة طازجة…</p>
+  </div>
+  <div class="site-loader-note" aria-hidden="true">
+    <span data-ar="المنيو" data-en="MENU">المنيو</span><i></i>
+    <span data-ar="العروض" data-en="OFFERS">العروض</span><i></i>
+    <span data-ar="الطلب" data-en="ORDER">الطلب</span>
+  </div>
+</div>
+<script>window.__TAZA_SPLASH_STARTED__ = performance.now();</script>
 
 <header class="site-header">
   <div class="container nav-row guest-index-nav-row">

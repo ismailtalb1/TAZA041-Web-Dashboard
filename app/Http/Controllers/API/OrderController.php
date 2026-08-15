@@ -48,6 +48,15 @@ class OrderController extends BaseController
         return $request->user() instanceof Customer;
     }
 
+    private function applyRecordState($query, Request $request): void
+    {
+        match ($request->input('record_state', 'active')) {
+            'archived' => $query->whereNotNull('archived_at'),
+            'all' => null,
+            default => $query->whereNull('archived_at'),
+        };
+    }
+
     // ─────────────────────────────────────────────
     // GET /api/orders
     // مدير الطلبات — طلباته المسؤول عنها
@@ -58,9 +67,13 @@ class OrderController extends BaseController
             return $this->unauthorized('صلاحية مدير الطلبات مطلوبة');
         }
 
-        $query = Order::forOrderManager()
+        $query = ($request->input('record_state') === 'archived'
+            ? Order::query()
+            : Order::forOrderManager())
             ->with(['customer', 'items', 'paymentRecord',
                 'deliveryOrder', 'reservationOrder']);
+
+        $this->applyRecordState($query, $request);
 
         // فلاتر
         if ($request->filled('type')) {
@@ -130,6 +143,8 @@ class OrderController extends BaseController
 
         $query = Order::normal()
             ->with(['customer', 'items', 'paymentRecord']);
+
+        $this->applyRecordState($query, $request);
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -364,6 +379,84 @@ class OrderController extends BaseController
     }
 
     // ─────────────────────────────────────────────
+    // إدارة سجل الطلب — مدير الطلبات والمدير العام
+    // ─────────────────────────────────────────────
+    public function archive(Request $request, int $id)
+    {
+        if (! $this->isOrderManager($request)) {
+            return $this->unauthorized('صلاحية إدارة سجلات الطلبات مطلوبة');
+        }
+
+        $order = Order::with(['customer', 'items', 'paymentRecord',
+            'deliveryOrder', 'reservationOrder'])->find($id);
+        if (! $order) {
+            return $this->notFound('الطلب غير موجود');
+        }
+
+        if (! $order->isOperationallyClosed()) {
+            return $this->error('لا يمكن أرشفة طلب نشط. ألغِ الطلب أو أكمل خدمته أولاً.', 422);
+        }
+
+        if (! $order->archived_at) {
+            $order->forceFill([
+                'archived_at' => now(),
+                'archived_by' => $request->user()->id,
+            ])->save();
+        }
+
+        return $this->success([
+            'order' => $order->fresh()->load([
+                'customer', 'items', 'paymentRecord', 'deliveryOrder', 'reservationOrder',
+            ])->getDetails(),
+        ], 'تمت أرشفة الطلب وإخفاؤه من القوائم النشطة');
+    }
+
+    public function restoreArchive(Request $request, int $id)
+    {
+        if (! $this->isOrderManager($request)) {
+            return $this->unauthorized('صلاحية إدارة سجلات الطلبات مطلوبة');
+        }
+
+        $order = Order::find($id);
+        if (! $order) {
+            return $this->notFound('الطلب غير موجود');
+        }
+
+        $order->forceFill([
+            'archived_at' => null,
+            'archived_by' => null,
+        ])->save();
+
+        return $this->success(null, 'تمت إعادة الطلب إلى السجلات النشطة');
+    }
+
+    public function destroy(Request $request, int $id)
+    {
+        if (! $this->isOrderManager($request)) {
+            return $this->unauthorized('صلاحية حذف سجلات الطلبات مطلوبة');
+        }
+
+        $order = Order::with(['deliveryOrder', 'reservationOrder'])->find($id);
+        if (! $order) {
+            return $this->notFound('الطلب غير موجود');
+        }
+
+        if (! $order->isOperationallyClosed()) {
+            return $this->error('لا يمكن حذف طلب نشط. ألغِ الطلب أو أكمل خدمته أولاً.', 422);
+        }
+
+        DB::transaction(function () use ($order) {
+            // حذف منطقي قابل للتدقيق: يخفي الطلب وملحقاته عن كل لوحات الموظفين
+            // مع إبقاء السجلات المالية وعناصر الطلب محفوظة للمراجعة المحاسبية.
+            $order->deliveryOrder?->delete();
+            $order->reservationOrder?->delete();
+            $order->delete();
+        });
+
+        return $this->success(['id' => $id], 'تم حذف الطلب من جميع واجهات الموقع');
+    }
+
+    // ─────────────────────────────────────────────
     // GET /api/admin/orders
     // المدير العام — كل الطلبات
     // ─────────────────────────────────────────────
@@ -375,6 +468,8 @@ class OrderController extends BaseController
 
         $query = Order::with(['customer', 'items', 'paymentRecord',
             'deliveryOrder', 'reservationOrder']);
+
+        $this->applyRecordState($query, $request);
 
         if ($request->filled('type')) {
             $query->where('type', $request->type);
