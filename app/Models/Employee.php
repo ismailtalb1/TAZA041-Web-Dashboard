@@ -131,6 +131,20 @@ class Employee extends Authenticatable
         self::ROLE_DRIVER,
     ];
 
+    const ADMINISTRATIVE_ROLES = [
+        self::ROLE_GENERAL_MANAGER,
+        self::ROLE_ORDER_MANAGER,
+        self::ROLE_DELIVERY_MANAGER,
+        self::ROLE_FINANCE_MANAGER,
+        self::ROLE_INVENTORY_MANAGER,
+        self::ROLE_COMMUNICATION_MANAGER,
+    ];
+
+    public static function isAdministrativeRole(string $role): bool
+    {
+        return in_array($role, self::ADMINISTRATIVE_ROLES, true);
+    }
+
     // ─────────────────────────────────────────────
     // الصلاحيات حسب الدور
     // ─────────────────────────────────────────────

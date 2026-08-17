@@ -3447,6 +3447,38 @@ html[data-theme="dark"] .table-card.vip { background: rgba(246,183,60,.16); }
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
+.reservation-time-field { grid-column: 1 / -1; }
+.reservation-time-picker {
+  min-height: 66px;
+  padding: 6px;
+  display: grid;
+  grid-template-columns: minmax(76px, 1fr) auto minmax(76px, 1fr) minmax(86px, .8fr);
+  align-items: center;
+  gap: 8px;
+  border-radius: 22px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--surface) 82%, transparent), color-mix(in srgb, var(--surface-2) 88%, transparent));
+  border: 1px solid color-mix(in srgb, var(--line) 72%, var(--accent) 16%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+}
+.reservation-time-picker .input {
+  min-height: 52px;
+  padding-inline: 14px 34px;
+  text-align: center;
+  font-size: 1.08rem;
+  font-weight: 900;
+}
+.reservation-time-separator {
+  color: var(--accent-2);
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+.reservation-period-select { text-transform: uppercase; }
+.reservation-time-note {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.55;
+}
 .reservation-seats-field { grid-column: 1 / -1; }
 .reservation-seat-stepper {
   min-height: 66px;
@@ -3601,16 +3633,30 @@ html[data-theme="light"] .reservation-seat-stepper {
   height: 48%;
   inset: 26%;
   border-radius: 34%;
+  z-index: 2;
+}
+.room-chairs {
+  --chair-distance: 112px;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
 }
 .room-chair {
-  width: 24%;
-  height: 16%;
+  width: 58px;
+  height: 38px;
+  top: 50%;
+  left: 50%;
   border-radius: 999px;
+  transform: translate(-50%, -50%) rotate(var(--chair-angle)) translateY(calc(var(--chair-distance) * -1));
+  transform-origin: center;
+  transition: transform .34s ease, width .24s ease, height .24s ease;
 }
-.room-chair.c1 { top: 12%; left: 38%; }
-.room-chair.c2 { bottom: 12%; left: 38%; }
-.room-chair.c3 { top: 42%; left: 8%; transform: rotate(90deg); }
-.room-chair.c4 { top: 42%; right: 8%; transform: rotate(90deg); }
+.room-orbit[data-seat-count="1"] .room-table.main,
+.room-orbit[data-seat-count="2"] .room-table.main { width: 54%; height: 42%; inset: 29% 23%; border-radius: 42%; }
+.room-orbit[data-seat-count="7"] .room-chair,
+.room-orbit[data-seat-count="8"] .room-chair,
+.room-orbit[data-seat-count="9"] .room-chair,
+.room-orbit[data-seat-count="10"] .room-chair { width: 48px; height: 32px; }
 .reservation-preview-copy {
   position: absolute;
   inset-inline: 26px;
@@ -3655,6 +3701,9 @@ html[data-theme="light"] .reservation-panel {
   .reservation-section-head { flex-direction: column; }
   .reservation-legend { justify-content: flex-start; }
   .reservation-room-preview { min-height: 360px; }
+  .reservation-time-picker { grid-template-columns: minmax(62px, 1fr) auto minmax(62px, 1fr) minmax(76px, .8fr); }
+  .reservation-time-picker .input { padding-inline: 10px 28px; font-size: 1rem; }
+  .room-chairs { --chair-distance: 102px; }
 }
 .payment-methods { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
 .payment-method { padding: 18px; border-radius: 18px; background: var(--surface-2); border: 1px solid var(--line); cursor: pointer; }

@@ -22,7 +22,9 @@ const STORAGE_KEYS = {
   deliveryMeta: 'taza_delivery_meta',
   savedAddresses: 'taza_saved_addresses',
   savedAddressesOwner: 'taza_saved_addresses_owner',
-  reservationMeta: 'taza_reservation_meta'
+  reservationMeta: 'taza_reservation_meta',
+  customerStateOwner: 'taza_customer_state_owner',
+  customerStatePrefix: 'taza_customer_state_v1_'
 };
 
 function safeStorageJson(key, fallback) {
@@ -99,19 +101,65 @@ const fallbackCatalog = [
   { key:'offer:fallback-o1', id:'fallback-o1', item_type:'offer', reference_id:'fallback-o1', name:'Pizza Today Offer', nameAr:'عرض بيتزا اليوم', nameEn:'Pizza Today Offer', category:'offers', apiCategory:'mixed', price:250, rating:4.9, popular:true, top:true, available:false, demoOnly:true, offer:true, oldPrice:330, description:'عرض بيتزا اليوم مع مشروب', descriptionAr:'عرض بيتزا اليوم مع مشروب', descriptionEn:'Today’s pizza offer served with a drink.', keywords:['pizza','بيتزا','offer','عرض'], imageUrl:null }
 ];
 
+function emptyCustomerOrderState() {
+  return { cart: {}, orderNotes: '', orderType: '', deliveryMeta: null, reservationMeta: null };
+}
+
+function customerOrderStateStorageKey(customerId) {
+  return `${STORAGE_KEYS.customerStatePrefix}${String(customerId || '')}`;
+}
+
+function legacyCustomerOrderState() {
+  return {
+    cart: safeStorageJson(STORAGE_KEYS.cart, {}),
+    orderNotes: localStorage.getItem(STORAGE_KEYS.orderNotes) || '',
+    orderType: localStorage.getItem(STORAGE_KEYS.orderType) || '',
+    deliveryMeta: safeStorageJson(STORAGE_KEYS.deliveryMeta, null),
+    reservationMeta: safeStorageJson(STORAGE_KEYS.reservationMeta, null)
+  };
+}
+
+function readCustomerOrderState(customerId, allowLegacy = false) {
+  if (!customerId) return emptyCustomerOrderState();
+  const scoped = safeStorageJson(customerOrderStateStorageKey(customerId), null);
+  const source = scoped && typeof scoped === 'object'
+    ? scoped
+    : (allowLegacy ? legacyCustomerOrderState() : emptyCustomerOrderState());
+  return {
+    cart: source.cart && typeof source.cart === 'object' ? source.cart : {},
+    orderNotes: String(source.orderNotes || ''),
+    orderType: String(source.orderType || ''),
+    deliveryMeta: source.deliveryMeta || null,
+    reservationMeta: source.reservationMeta || null
+  };
+}
+
+const initialStoredUser = normalizeUser(safeStorageJson(STORAGE_KEYS.user, null));
+const initialCustomerId = initialStoredUser.id ? String(initialStoredUser.id) : '';
+const initialCustomerStateOwner = localStorage.getItem(STORAGE_KEYS.customerStateOwner) || '';
+const initialCustomerOrderState = readCustomerOrderState(
+  initialCustomerId,
+  Boolean(initialCustomerId) && (!initialCustomerStateOwner || initialCustomerStateOwner === initialCustomerId)
+);
+const initialSavedAddressesOwner = localStorage.getItem(STORAGE_KEYS.savedAddressesOwner) || '';
+
 const AppState = {
   theme: localStorage.getItem(STORAGE_KEYS.theme) || 'dark',
   lang: localStorage.getItem(STORAGE_KEYS.lang) || 'ar',
   token: localStorage.getItem(STORAGE_KEYS.token) || '',
-  user: normalizeUser(safeStorageJson(STORAGE_KEYS.user, null)),
+  user: initialStoredUser,
   loggedIn: Boolean(localStorage.getItem(STORAGE_KEYS.token)) || localStorage.getItem(STORAGE_KEYS.loggedIn) === 'true',
-  cart: safeStorageJson(STORAGE_KEYS.cart, {}),
-  orderNotes: localStorage.getItem(STORAGE_KEYS.orderNotes) || '',
-  orderType: localStorage.getItem(STORAGE_KEYS.orderType) || '',
-  deliveryMeta: safeStorageJson(STORAGE_KEYS.deliveryMeta, null),
-  savedAddresses: normalizeSavedAddresses(safeStorageJson(STORAGE_KEYS.savedAddresses, null)),
+  cart: initialCustomerOrderState.cart,
+  orderNotes: initialCustomerOrderState.orderNotes,
+  orderType: initialCustomerOrderState.orderType,
+  deliveryMeta: initialCustomerOrderState.deliveryMeta,
+  savedAddresses: normalizeSavedAddresses(
+    initialCustomerId && initialSavedAddressesOwner === initialCustomerId
+      ? safeStorageJson(STORAGE_KEYS.savedAddresses, null)
+      : null
+  ),
   hasPendingSavedAddressMigration: false,
-  reservationMeta: safeStorageJson(STORAGE_KEYS.reservationMeta, null),
+  reservationMeta: initialCustomerOrderState.reservationMeta,
   restaurant: null,
   images: {},
   pricing: null,
@@ -372,6 +420,43 @@ function loyaltyPointsRequired(total) {
   return Math.max(0, Math.ceil(Number(total || 0) / LOYALTY_POINT_VALUE_SYP));
 }
 
+function currentCustomerOrderState() {
+  return {
+    cart: AppState.cart || {},
+    orderNotes: AppState.orderNotes || '',
+    orderType: AppState.orderType || '',
+    deliveryMeta: AppState.deliveryMeta || null,
+    reservationMeta: AppState.reservationMeta || null
+  };
+}
+
+function saveCurrentCustomerOrderState(customerId = AppState.user?.id) {
+  if (!customerId) return;
+  localStorage.setItem(customerOrderStateStorageKey(customerId), JSON.stringify(currentCustomerOrderState()));
+}
+
+function switchCustomerOrderState(customerId) {
+  const nextId = customerId ? String(customerId) : '';
+  const previousId = localStorage.getItem(STORAGE_KEYS.customerStateOwner)
+    || (AppState.user?.id ? String(AppState.user.id) : '');
+  if (previousId && previousId !== nextId) saveCurrentCustomerOrderState(previousId);
+
+  const nextState = readCustomerOrderState(nextId, false);
+  AppState.cart = nextState.cart;
+  AppState.orderNotes = nextState.orderNotes;
+  AppState.orderType = nextState.orderType;
+  AppState.deliveryMeta = nextState.deliveryMeta;
+  AppState.reservationMeta = nextState.reservationMeta;
+  AppState.savedAddresses = normalizeSavedAddresses();
+  AppState.hasPendingSavedAddressMigration = false;
+  localStorage.removeItem(STORAGE_KEYS.savedAddressesOwner);
+  localStorage.removeItem(STORAGE_KEYS.savedAddresses);
+  try { sessionStorage.removeItem('taza_profile_avatar_preview'); } catch (_) {}
+
+  if (nextId) localStorage.setItem(STORAGE_KEYS.customerStateOwner, nextId);
+  else localStorage.removeItem(STORAGE_KEYS.customerStateOwner);
+}
+
 function persist() {
   localStorage.setItem(STORAGE_KEYS.theme, AppState.theme);
   localStorage.setItem(STORAGE_KEYS.lang, AppState.lang);
@@ -383,6 +468,10 @@ function persist() {
   localStorage.setItem(STORAGE_KEYS.deliveryMeta, JSON.stringify(AppState.deliveryMeta));
   localStorage.setItem(STORAGE_KEYS.savedAddresses, JSON.stringify(AppState.savedAddresses));
   localStorage.setItem(STORAGE_KEYS.reservationMeta, JSON.stringify(AppState.reservationMeta));
+  if (AppState.loggedIn && AppState.user?.id) {
+    localStorage.setItem(STORAGE_KEYS.customerStateOwner, String(AppState.user.id));
+    saveCurrentCustomerOrderState(AppState.user.id);
+  }
   if (AppState.token) localStorage.setItem(STORAGE_KEYS.token, AppState.token);
   else localStorage.removeItem(STORAGE_KEYS.token);
   if (typeof TazaCookies !== 'undefined') TazaCookies.syncPreferences?.();

@@ -56,10 +56,7 @@ class ReviewController extends BaseController
 
         // جلب كل السائقين
         $drivers = Employee::active()
-            ->whereIn('role', [
-                Employee::ROLE_DRIVER,
-                Employee::ROLE_DELIVERY_MANAGER,
-            ])
+            ->where('role', Employee::ROLE_DRIVER)
             ->get();
 
         $driversData = $drivers->map(function ($driver) {
@@ -173,10 +170,7 @@ class ReviewController extends BaseController
             return $this->notFound('السائق غير موجود');
         }
 
-        if (! in_array($driver->role, [
-            Employee::ROLE_DRIVER,
-            Employee::ROLE_DELIVERY_MANAGER,
-        ])) {
+        if ($driver->role !== Employee::ROLE_DRIVER) {
             return $this->error('الموظف المحدد ليس سائقاً');
         }
 

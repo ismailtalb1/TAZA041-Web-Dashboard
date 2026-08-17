@@ -75,7 +75,7 @@ class DeliveryOrder extends Model
     const MAX_DELIVERY_DISTANCE_METERS = 10000;
 
     // تسلسل الحالات المسموح به
-    // delivery_manager فقط يغير الحالة بعد ASSIGNED
+    // مدير التوصيل يدير التعيين والإلغاء، أما التنفيذ الميداني فللسائق فقط.
     const STATUS_FLOW = [
         'order_manager' => [
             // Order Manager يحول الطلب من pending إلى assigned
@@ -84,9 +84,9 @@ class DeliveryOrder extends Model
         ],
         'delivery_manager' => [
             self::STATUS_PENDING => [self::STATUS_CANCELLED],
-            self::STATUS_ASSIGNED => [self::STATUS_IN_DELIVERY, self::STATUS_CANCELLED],
-            self::STATUS_PICKED_UP => [self::STATUS_IN_DELIVERY, self::STATUS_CANCELLED], // دعم بيانات قديمة
-            self::STATUS_IN_DELIVERY => [self::STATUS_DELIVERED, self::STATUS_CANCELLED],
+            self::STATUS_ASSIGNED => [self::STATUS_CANCELLED],
+            self::STATUS_PICKED_UP => [self::STATUS_CANCELLED],
+            self::STATUS_IN_DELIVERY => [self::STATUS_CANCELLED],
         ],
         'driver' => [
             self::STATUS_ASSIGNED => [self::STATUS_IN_DELIVERY],
@@ -103,7 +103,7 @@ class DeliveryOrder extends Model
         return $this->belongsTo(Order::class);
     }
 
-    // السائق (delivery_manager أو driver)
+    // السائق
     public function driver(): BelongsTo
     {
         return $this->belongsTo(Employee::class, 'driver_id');
@@ -211,10 +211,7 @@ class DeliveryOrder extends Model
     public function assignDriver(int $driverId): bool
     {
         $driver = Employee::find($driverId);
-        if (! $driver || ! in_array($driver->role, [
-            Employee::ROLE_DELIVERY_MANAGER,
-            Employee::ROLE_DRIVER,
-        ])) {
+        if (! $driver || $driver->role !== Employee::ROLE_DRIVER) {
             return false;
         }
 

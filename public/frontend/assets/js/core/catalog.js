@@ -250,11 +250,11 @@ async function refreshLivePublicData() {
     if (typeof syncRestaurantOrderAvailability === 'function') syncRestaurantOrderAvailability();
     window.dispatchEvent(new CustomEvent('taza:public-data-updated', { detail: changes }));
 
-    if (changes.restaurant && wasOpen !== restaurantIsOpen()) {
+    if (changes.restaurant && wasOpen !== restaurantIsOpen() && AppState.loggedIn && AppState.token) {
       showToast(
         restaurantIsOpen()
-          ? langText('المطعم مفتوح الآن ويمكنك إرسال طلبك', 'The restaurant is now open and accepting orders')
-          : langText('المطعم مغلق الآن، تم إيقاف إرسال الطلبات', 'The restaurant is now closed; ordering has been paused'),
+          ? langText('أهلاً بك، المطعم يستقبل طلباتك الآن', 'Welcome back! The restaurant is now accepting your orders')
+          : langText('المطعم مغلق حالياً، وسنعلمك عندما يعود لاستقبال الطلبات', 'The restaurant is currently closed; we will let you know when ordering resumes'),
         { kind: restaurantIsOpen() ? 'success' : 'warning', position: 'top', duration: 6500 }
       );
     }

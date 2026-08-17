@@ -168,9 +168,15 @@ function requireCustomerLogin() {
 }
 
 function setAuth(payload) {
+  const payloadUser = payload?.customer || payload?.user || {};
+  const nextCustomerId = payloadUser?.id ? String(payloadUser.id) : '';
+  const currentCustomerId = AppState.user?.id ? String(AppState.user.id) : '';
+  const currentStateOwner = localStorage.getItem(STORAGE_KEYS.customerStateOwner) || currentCustomerId;
+  if (nextCustomerId && nextCustomerId !== currentStateOwner) {
+    switchCustomerOrderState(nextCustomerId);
+  }
   AppState.token = payload?.token || '';
   AppState.loggedIn = Boolean(AppState.token);
-  const payloadUser = payload?.customer || payload?.user || {};
   AppState.user = normalizeUser({ ...payloadUser, loyalty: payload?.loyalty || payloadUser.loyalty });
   applyLoyaltySnapshot(payload?.loyalty, AppState.user);
   persist();
@@ -233,13 +239,21 @@ function authErrorMessage(error, fallbackAr, fallbackEn) {
 
 async function logoutCustomer() {
   if (AppState.token) await safeApi('/customer/auth/logout', { method: 'POST' });
+  saveCurrentCustomerOrderState();
   AppState.token = '';
   AppState.loggedIn = false;
   AppState.user = { ...defaultUser };
+  AppState.cart = {};
+  AppState.orderNotes = '';
+  AppState.orderType = '';
+  AppState.deliveryMeta = null;
+  AppState.reservationMeta = null;
   AppState.savedAddresses = normalizeSavedAddresses();
   AppState.hasPendingSavedAddressMigration = false;
+  localStorage.removeItem(STORAGE_KEYS.customerStateOwner);
   localStorage.removeItem(STORAGE_KEYS.savedAddressesOwner);
   localStorage.removeItem(STORAGE_KEYS.savedAddresses);
+  try { sessionStorage.removeItem('taza_profile_avatar_preview'); } catch (_) {}
   persist();
 }
 

@@ -101,19 +101,31 @@
             </div>
           </div>
           <div class="reservation-form-grid">
-            <div class="form-group">
-              <label class="label" data-ar="تاريخ الحجز" data-en="Reservation date">تاريخ الحجز</label>
-              <input class="input" type="date" data-reserve-date>
-            </div>
-            <div class="form-group">
+            <div class="form-group reservation-time-field">
               <label class="label" data-ar="وقت الحجز" data-en="Reservation time">وقت الحجز</label>
-              <input class="input" type="time" data-reserve-time>
+              <div class="reservation-time-picker" role="group" aria-label="Reservation time">
+                <select class="input" data-reserve-hour aria-label="Hour">
+                  <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+                  <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+                  <option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
+                </select>
+                <span class="reservation-time-separator" aria-hidden="true">:</span>
+                <select class="input" data-reserve-minute aria-label="Minutes">
+                  <option value="00">00</option><option value="05">05</option><option value="10">10</option><option value="15">15</option>
+                  <option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option>
+                  <option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option>
+                </select>
+                <select class="input reservation-period-select" data-reserve-period aria-label="AM or PM">
+                  <option value="am">AM</option><option value="pm">PM</option>
+                </select>
+              </div>
+              <small class="reservation-time-note" data-ar="سنحجز أقرب موعد قادم بهذا الوقت ضمن 24 ساعة." data-en="We will use the next occurrence of this time within 24 hours.">سنحجز أقرب موعد قادم بهذا الوقت ضمن 24 ساعة.</small>
             </div>
             <div class="form-group reservation-seats-field">
               <label class="label" data-ar="عدد الكراسي (حتى 10)" data-en="Seats count (up to 10)">عدد الكراسي (حتى 10)</label>
               <div class="reservation-seat-stepper">
                 <button type="button" class="seat-stepper-btn" data-seat-step="-1" aria-label="Decrease seats">-</button>
-                <input class="input" type="number" min="1" max="10" value="4" inputmode="numeric" data-reserve-seats>
+                <input class="input" type="number" min="1" max="10" value="2" inputmode="numeric" data-reserve-seats>
                 <button type="button" class="seat-stepper-btn" data-seat-step="1" aria-label="Increase seats">+</button>
               </div>
             </div>
@@ -121,7 +133,7 @@
           <div class="reservation-selection-strip">
             <div><span data-ar="الطاولة" data-en="Table">الطاولة</span><strong data-selected-table>-</strong></div>
             <div><span data-ar="النوع" data-en="Type">النوع</span><strong data-selected-type>-</strong></div>
-            <div><span data-ar="المقاعد" data-en="Seats">المقاعد</span><strong data-selected-seats>4</strong></div>
+            <div><span data-ar="المقاعد" data-en="Seats">المقاعد</span><strong data-selected-seats>2</strong></div>
           </div>
           <div class="reservation-actions">
             <button class="btn btn-success" data-confirm-reservation data-ar="تأكيد الحجز" data-en="Confirm reservation">تأكيد الحجز</button>
@@ -149,17 +161,17 @@
 
         <section class="reservation-panel reservation-ambience-panel">
           <div class="reservation-room-preview">
-            <div class="room-orbit">
+            <div class="room-orbit" data-room-orbit data-seat-count="2">
               <span class="room-table main"></span>
-              <span class="room-chair c1"></span>
-              <span class="room-chair c2"></span>
-              <span class="room-chair c3"></span>
-              <span class="room-chair c4"></span>
+              <div class="room-chairs" data-room-chairs aria-hidden="true">
+                <span class="room-chair" style="--chair-angle:0deg"></span>
+                <span class="room-chair" style="--chair-angle:180deg"></span>
+              </div>
             </div>
             <div class="reservation-preview-copy">
               <span data-ar="TAZA 041" data-en="TAZA 041">TAZA 041</span>
-              <strong data-ar="جلسة محجوزة بعناية" data-en="A table set with care">جلسة محجوزة بعناية</strong>
-              <small data-ar="سيتم تثبيت بيانات الحجز مع الطلب عند المتابعة للدفع." data-en="Reservation details will be attached to the order at payment.">سيتم تثبيت بيانات الحجز مع الطلب عند المتابعة للدفع.</small>
+              <strong data-seating-title>طاولة مجهزة لشخصين</strong>
+              <small data-seating-copy>غيّر عدد الكراسي لتشاهد ترتيب الطاولة مباشرة.</small>
             </div>
           </div>
         </section>

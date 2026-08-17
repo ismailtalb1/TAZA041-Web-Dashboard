@@ -242,6 +242,11 @@ class Order extends Model
         $this->status = $newStatus;
         $this->save();
 
+        // الطلب العادي ينتهي هنا؛ أما التوصيل والحجز فينتظران التسليم/انتهاء الجلسة.
+        if ($this->type === self::TYPE_NORMAL && $newStatus === self::STATUS_COMPLETED) {
+            $this->awardLoyaltyPoints();
+        }
+
         // إشعار الزبون بتغيير الحالة
         $this->notifyCustomer($newStatus);
 

@@ -9,12 +9,15 @@ async function initReservationPage() {
 
   let tables = [];
   const wrap = $('[data-tables]');
-  const dateInput = $('[data-reserve-date]');
-  const timeInput = $('[data-reserve-time]');
+  const hourInput = $('[data-reserve-hour]');
+  const minuteInput = $('[data-reserve-minute]');
+  const periodInput = $('[data-reserve-period]');
   const selectedTableEl = $('[data-selected-table]');
   const selectedTypeEl = $('[data-selected-type]');
   const selectedSeatsEl = $('[data-selected-seats]');
   const seatsInput = $('[data-reserve-seats]');
+  const roomOrbit = $('[data-room-orbit]');
+  const roomChairs = $('[data-room-chairs]');
   let selectedTable = null;
 
   const pad = n => String(n).padStart(2, '0');
@@ -28,11 +31,16 @@ async function initReservationPage() {
     };
   };
   const getSelectedDateTime = () => {
-    const date = dateInput?.value;
-    const time = timeInput?.value;
-    if (!date || !time) return null;
-    const selected = new Date(`${date}T${time}:00`);
-    return Number.isNaN(selected.getTime()) ? null : selected;
+    const hour12 = Number(hourInput?.value);
+    const minute = Number(minuteInput?.value);
+    const period = periodInput?.value;
+    if (!hour12 || !Number.isInteger(minute) || !['am', 'pm'].includes(period)) return null;
+    const hour24 = (hour12 % 12) + (period === 'pm' ? 12 : 0);
+    const { min } = reservationWindow();
+    const selected = new Date(min);
+    selected.setHours(hour24, minute, 0, 0);
+    if (selected < min) selected.setDate(selected.getDate() + 1);
+    return selected;
   };
   const getReservationDateTime = () => {
     const selected = getSelectedDateTime();
@@ -41,7 +49,7 @@ async function initReservationPage() {
   const validateReservationWindow = ({ silent = false } = {}) => {
     const selected = getSelectedDateTime();
     if (!selected) {
-      if (!silent) showToast(langText('يرجى تحديد تاريخ ووقت الحجز أولاً', 'Please select reservation date and time first'), { kind: 'warning' });
+      if (!silent) showToast(langText('يرجى تحديد وقت الحجز أولاً', 'Please select the reservation time first'), { kind: 'warning' });
       return false;
     }
     const { min, max } = reservationWindow();
@@ -55,13 +63,15 @@ async function initReservationPage() {
     }
     return true;
   };
-  const setInitialDateLimits = () => {
-    if (!dateInput || !timeInput) return;
-    const { min, max } = reservationWindow();
-    dateInput.min = toDateValue(min);
-    dateInput.max = toDateValue(max);
-    if (!dateInput.value) dateInput.value = toDateValue(min);
-    if (!timeInput.value) timeInput.value = '';
+  const setInitialTime = () => {
+    if (!hourInput || !minuteInput || !periodInput) return;
+    const initial = new Date(Date.now() + 5 * 60 * 1000);
+    initial.setSeconds(0, 0);
+    initial.setMinutes(Math.ceil(initial.getMinutes() / 5) * 5);
+    const hour24 = initial.getHours();
+    hourInput.value = String(hour24 % 12 || 12);
+    minuteInput.value = pad(initial.getMinutes());
+    periodInput.value = hour24 >= 12 ? 'pm' : 'am';
   };
   const selectedMaxSeats = () => Number(selectedTable?.maxSeats || 10);
   const clampSeats = value => Math.min(selectedMaxSeats(), Math.max(1, Number(value) || 1));
@@ -71,9 +81,24 @@ async function initReservationPage() {
     updateReservationPreview();
   };
   const updateReservationPreview = () => {
+    const seats = clampSeats(seatsInput?.value || 2);
     if (selectedTableEl) selectedTableEl.textContent = selectedTable ? `T${selectedTable.id}` : '-';
     if (selectedTypeEl) selectedTypeEl.textContent = selectedTable ? (selectedTable.type === 'vip' ? 'VIP' : langText('عادية', 'Standard')) : '-';
-    if (selectedSeatsEl) selectedSeatsEl.textContent = seatsInput?.value || '4';
+    if (selectedSeatsEl) selectedSeatsEl.textContent = String(seats);
+    if (roomOrbit) roomOrbit.dataset.seatCount = String(seats);
+    if (roomChairs) {
+      roomChairs.innerHTML = Array.from({ length: seats }, (_, index) => {
+        const angle = (360 / seats) * index;
+        return `<span class="room-chair" style="--chair-angle:${angle}deg"></span>`;
+      }).join('');
+    }
+    const seatingTitle = $('[data-seating-title]');
+    const seatingCopy = $('[data-seating-copy]');
+    if (seatingTitle) seatingTitle.textContent = langText(`طاولة مجهزة لـ ${seats} ضيوف`, `A table set for ${seats} guests`);
+    if (seatingCopy) seatingCopy.textContent = langText(
+      `تم ترتيب ${seats} كراسٍ حول الطاولة، وسيثبت هذا العدد مع طلبك.`,
+      `${seats} chairs are arranged around your table and will be saved with your order.`
+    );
     $$('[data-table]', wrap || document).forEach(card => {
       const active = selectedTable && card.dataset.table === String(selectedTable.id);
       card.classList.toggle('selected', Boolean(active));
@@ -168,22 +193,15 @@ async function initReservationPage() {
     updateReservationPreview();
   });
 
-  setInitialDateLimits();
-  await loadTableCatalog();
-  markTablesWaitingForTime();
-  dateInput?.addEventListener('change', () => {
+  setInitialTime();
+  await loadTableCatalog(getReservationDateTime());
+  const handleTimeChange = () => {
     selectedTable = null;
     refreshTableAvailability();
-  });
-  timeInput?.addEventListener('change', () => {
-    selectedTable = null;
-    refreshTableAvailability();
-  });
-  timeInput?.addEventListener('blur', () => {
-    if (!validateReservationWindow({ silent: true }) && timeInput.value) validateReservationWindow();
-  });
+  };
+  [hourInput, minuteInput, periodInput].forEach(input => input?.addEventListener('change', handleTimeChange));
   $$('[data-seat-step]').forEach(btn => btn.addEventListener('click', () => {
-    setSeats(Number(seatsInput?.value || 4) + Number(btn.dataset.seatStep || 0));
+    setSeats(Number(seatsInput?.value || 2) + Number(btn.dataset.seatStep || 0));
   }));
   seatsInput?.addEventListener('input', () => {
     if (Number(seatsInput.value) > 10) seatsInput.value = '10';
@@ -195,13 +213,13 @@ async function initReservationPage() {
   $('[data-confirm-reservation]')?.addEventListener('click', () => {
     if (!validateReservationWindow()) return;
     if (!selectedTable) return showToast(langText('يرجى اختيار طاولة متاحة في الوقت المحدد', 'Choose an available table at the selected time'), { kind: 'warning' });
-    const date = dateInput?.value;
-    const time = timeInput?.value;
+    const reservationTime = getReservationDateTime();
+    const displayTime = `${hourInput?.value}:${minuteInput?.value} ${String(periodInput?.value || '').toUpperCase()}`;
     const seats = Number(seatsInput?.value || 0);
     if (!seats || seats > 10) return showToast(langText('عدد الكراسي يجب أن يكون بين 1 و10', 'Seats must be between 1 and 10'), { kind: 'warning' });
 
     const pricing = AppState.pricing?.reservation || {};
-    const availabilityPath = `/public/reservations/table/${selectedTable.id}/availability?reservation_time=${encodeURIComponent(`${date} ${time}:00`)}&duration_minutes=60&live=1`;
+    const availabilityPath = `/public/reservations/table/${selectedTable.id}/availability?reservation_time=${encodeURIComponent(reservationTime)}&duration_minutes=60&live=1`;
     safeApi(availabilityPath).then(availability => {
       if (!availability || availability.is_available === false) {
         showToast(langText('هذه الطاولة محجوزة في الوقت المحدد', 'This table is already reserved at that time'), { kind: 'warning' });
@@ -220,8 +238,8 @@ async function initReservationPage() {
         table: `T${selectedTable.id}`,
         tableNumber: selectedTable.id,
         tableType,
-        reservationTime: `${date} ${time}:00`,
-        time: `${date} ${time}`,
+        reservationTime,
+        time: displayTime,
         seats,
         fee,
         durationMinutes: 60

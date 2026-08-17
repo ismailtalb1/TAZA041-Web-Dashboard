@@ -37,10 +37,7 @@ class DeliveryController extends BaseController
         $user = $request->user();
 
         return $user instanceof Employee
-            && in_array($user->role, [
-                Employee::ROLE_DRIVER,
-                Employee::ROLE_DELIVERY_MANAGER,
-            ]);
+            && $user->role === Employee::ROLE_DRIVER;
     }
 
     private function canViewDelivery(Request $request): bool
@@ -205,10 +202,7 @@ class DeliveryController extends BaseController
 
         // أداء السائقين
         $drivers = Employee::active()
-            ->whereIn('role', [
-                Employee::ROLE_DRIVER,
-                Employee::ROLE_DELIVERY_MANAGER,
-            ])
+            ->where('role', Employee::ROLE_DRIVER)
             ->get()
             ->map(fn ($driver) => [
                 'id' => $driver->id,
@@ -355,10 +349,7 @@ class DeliveryController extends BaseController
 
         $driver = Employee::find($request->driver_id);
 
-        if (! in_array($driver->role, [
-            Employee::ROLE_DRIVER,
-            Employee::ROLE_DELIVERY_MANAGER,
-        ])) {
+        if ($driver->role !== Employee::ROLE_DRIVER) {
             return $this->error('الموظف المحدد ليس سائقاً');
         }
 
@@ -386,7 +377,7 @@ class DeliveryController extends BaseController
     // ─────────────────────────────────────────────
     public function changeStatus(Request $request, int $id)
     {
-        if (! $this->isDriver($request)) {
+        if (! $this->isDriver($request) && ! $this->canManageDelivery($request)) {
             return $this->unauthorized('هذا المسار للسائقين ومدير التوصيل فقط');
         }
 
@@ -456,6 +447,10 @@ class DeliveryController extends BaseController
             ], 'تم إلغاء التوصيل وإتمام تسوية الدفع بنجاح');
         }
 
+        if (! $this->isDriver($request)) {
+            return $this->unauthorized('تحديث حالة التوصيل الميدانية متاح للسائق المعيّن فقط');
+        }
+
         $changed = $delivery->changeStatus($request->status, $user->role);
 
         if (! $changed) {
@@ -485,6 +480,10 @@ class DeliveryController extends BaseController
         $delivery = DeliveryOrder::with(['order'])->find($id);
         if (! $delivery) {
             return $this->notFound('طلب التوصيل غير موجود');
+        }
+
+        if ($delivery->driver_id !== $request->user()->id) {
+            return $this->unauthorized('ليس لديك صلاحية إرسال تحديثات لهذا الطلب');
         }
 
         $customerId = $delivery->order?->customer_id;
@@ -541,10 +540,7 @@ class DeliveryController extends BaseController
             return $this->notFound('السائق غير موجود');
         }
 
-        if (! in_array($driver->role, [
-            Employee::ROLE_DRIVER,
-            Employee::ROLE_DELIVERY_MANAGER,
-        ])) {
+        if ($driver->role !== Employee::ROLE_DRIVER) {
             return $this->error('الموظف المحدد ليس سائقاً');
         }
 
@@ -613,6 +609,10 @@ class DeliveryController extends BaseController
         $driver = Employee::find($id);
         if (! $driver) {
             return $this->notFound('السائق غير موجود');
+        }
+
+        if ($driver->role !== Employee::ROLE_DRIVER) {
+            return $this->error('الموظف المحدد ليس سائقاً');
         }
 
         $allDeliveries = DeliveryOrder::assignedToDriver($id);
@@ -703,10 +703,7 @@ class DeliveryController extends BaseController
         }
 
         $drivers = Employee::active()
-            ->whereIn('role', [
-                Employee::ROLE_DRIVER,
-                Employee::ROLE_DELIVERY_MANAGER,
-            ])
+            ->where('role', Employee::ROLE_DRIVER)
             ->get()
             ->map(fn ($d) => [
                 'id' => $d->id,

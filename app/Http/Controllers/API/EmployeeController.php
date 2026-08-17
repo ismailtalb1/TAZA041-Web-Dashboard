@@ -184,6 +184,13 @@ class EmployeeController extends BaseController
 
         DB::beginTransaction();
         try {
+            if (Employee::isAdministrativeRole($request->role)
+                && Employee::where('role', $request->role)->lockForUpdate()->exists()) {
+                DB::rollBack();
+
+                return $this->error('يوجد موظف إداري مسجل مسبقاً بهذا الدور، ولا يمكن إنشاء حساب إداري ثانٍ له', 422);
+            }
+
             $employee = Employee::create([
                 'name' => $request->name,
                 'username' => $request->username,
@@ -292,6 +299,13 @@ class EmployeeController extends BaseController
 
         if (! Hash::check((string) $request->manager_password, $gm->password_hash)) {
             return $this->error('كلمة مرور المدير العام غير صحيحة', 422);
+        }
+
+        $requestedRole = $request->input('role', $employee->role);
+        if ($requestedRole !== $employee->role
+            && Employee::isAdministrativeRole($requestedRole)
+            && Employee::where('role', $requestedRole)->whereKeyNot($employee->id)->exists()) {
+            return $this->error('يوجد موظف إداري مسجل مسبقاً بهذا الدور، ولا يمكن إسناده لموظف آخر', 422);
         }
 
         $changes = [];

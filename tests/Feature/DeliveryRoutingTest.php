@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\DeliveryOrder;
+use App\Models\Customer;
 use App\Models\Employee;
 use App\Models\Order;
 use App\Models\Product;
@@ -165,5 +166,43 @@ class DeliveryRoutingTest extends TestCase
 
         $this->assertGreaterThan(0, (float) $response->json('data.distance_meters'));
         $this->assertGreaterThan(0, (int) $response->json('data.route.duration_seconds'));
+    }
+
+    public function test_delivery_manager_is_not_listed_or_assignable_as_a_driver(): void
+    {
+        $manager = Employee::where('role', Employee::ROLE_DELIVERY_MANAGER)->firstOrFail();
+        $driver = Employee::where('role', Employee::ROLE_DRIVER)->firstOrFail();
+        Sanctum::actingAs($manager);
+
+        $this->getJson('/api/delivery/drivers')
+            ->assertOk()
+            ->assertJsonPath('data.count', 1)
+            ->assertJsonPath('data.all.0.id', $driver->id)
+            ->assertJsonPath('data.all.0.role', Employee::ROLE_DRIVER);
+
+        $customer = Customer::create([
+            'name' => 'Driver separation customer',
+            'email' => 'driver-separation@example.test',
+            'status' => Customer::STATUS_REGISTERED,
+        ]);
+        $order = Order::create([
+            'customer_id' => $customer->id,
+            'type' => Order::TYPE_DELIVERY,
+            'status' => Order::STATUS_COMPLETED,
+            'total_price' => 280,
+            'discount' => 0,
+            'final_price' => 280,
+        ]);
+        $delivery = DeliveryOrder::create([
+            'order_id' => $order->id,
+            'delivery_address' => 'Damascus',
+            'status' => DeliveryOrder::STATUS_PENDING,
+        ]);
+
+        $this->putJson("/api/delivery/{$delivery->id}/assign", ['driver_id' => $manager->id])
+            ->assertBadRequest()
+            ->assertJsonPath('success', false);
+
+        $this->assertNull($delivery->fresh()->driver_id);
     }
 }

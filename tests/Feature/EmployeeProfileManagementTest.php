@@ -203,6 +203,55 @@ class EmployeeProfileManagementTest extends TestCase
             ->assertJsonPath('data.employee.phone', '+963933333333');
     }
 
+    public function test_administrative_roles_are_unique_while_drivers_can_be_created_multiple_times(): void
+    {
+        $login = $this->postJson('/api/auth/employee/login', [
+            'username' => 'admin',
+            'password' => 'Admin@041',
+        ])->assertOk();
+        $token = $login->json('data.token');
+
+        $this->withToken($token)->postJson('/api/admin/employees', [
+            'name' => 'مدير طلبات ثانٍ',
+            'username' => 'second_order_manager',
+            'password' => 'Staff@042',
+            'role' => Employee::ROLE_ORDER_MANAGER,
+            'manager_password' => 'Admin@041',
+        ])->assertStatus(422)->assertJsonPath('success', false);
+
+        foreach ([1, 2] as $number) {
+            $this->withToken($token)->postJson('/api/admin/employees', [
+                'name' => "سائق إضافي {$number}",
+                'username' => "extra_driver_{$number}",
+                'password' => 'Staff@042',
+                'role' => Employee::ROLE_DRIVER,
+                'manager_password' => 'Admin@041',
+            ])->assertCreated()->assertJsonPath('data.employee.role', Employee::ROLE_DRIVER);
+        }
+
+        $this->assertSame(1, Employee::where('role', Employee::ROLE_ORDER_MANAGER)->count());
+        $this->assertSame(3, Employee::where('role', Employee::ROLE_DRIVER)->count());
+    }
+
+    public function test_employee_cannot_be_moved_into_an_occupied_administrative_role(): void
+    {
+        $login = $this->postJson('/api/auth/employee/login', [
+            'username' => 'admin',
+            'password' => 'Admin@041',
+        ])->assertOk();
+        $driver = Employee::where('role', Employee::ROLE_DRIVER)->firstOrFail();
+
+        $this->withToken($login->json('data.token'))
+            ->putJson('/api/admin/employees/'.$driver->id, [
+                'role' => Employee::ROLE_FINANCE_MANAGER,
+                'manager_password' => 'Admin@041',
+            ])
+            ->assertStatus(422)
+            ->assertJsonPath('success', false);
+
+        $this->assertSame(Employee::ROLE_DRIVER, $driver->fresh()->role);
+    }
+
     private function fakePng(string $name): UploadedFile
     {
         $png = base64_decode(
