@@ -28,6 +28,7 @@ use App\Http\Controllers\API\ReservationController;
 use App\Http\Controllers\API\RestaurantController;
 use App\Http\Controllers\API\ReviewController;
 use App\Http\Controllers\API\UploadController;
+use App\Http\Middleware\TrackCustomerIp;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
@@ -249,6 +250,10 @@ Route::middleware('auth:sanctum')->prefix('admin')->name('admin.')->group(functi
         // GET /api/admin/customers/{id}/orders — طلبات زبون معين
         Route::get('{id}/orders', [CustomerController::class, 'orders'])
             ->name('orders');
+
+        // POST /api/admin/customers/{id}/warning — تحذير حسب حالة الأمان
+        Route::post('{id}/warning', [CustomerController::class, 'warning'])
+            ->name('warning');
 
         // POST /api/admin/customers/{id}/ban — حظر زبون
         Route::post('{id}/ban', [CustomerController::class, 'ban'])
@@ -849,11 +854,11 @@ Route::prefix('customer')->name('customer.')->group(function () {
         Route::post('reset-password', [CustomerAuthController::class, 'resetPassword'])
             ->middleware('throttle:customer-password-reset')->name('reset-password');
         Route::post('logout', [CustomerAuthController::class, 'logout'])
-            ->middleware('auth:sanctum')->name('logout');
+            ->middleware(['auth:sanctum', TrackCustomerIp::class])->name('logout');
     });
 
     // ── مسارات الزبون المحمية ─────────────────────────────────────
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', TrackCustomerIp::class])->group(function () {
 
         // الملف الشخصي
         Route::get('profile', [CustomerController::class, 'profile'])->name('profile');
@@ -894,6 +899,7 @@ Route::prefix('customer')->name('customer.')->group(function () {
         Route::post('orders/{orderId}/products/{productId}/rate', [ReviewController::class, 'customerRateProduct'])->name('rate-product');
 
         // اقتراح وجبة
+        Route::get('meal-suggestions', [MealSuggestionController::class, 'customerIndex'])->name('meal-suggestions');
         Route::post('meal-suggestion', [MealSuggestionController::class, 'store'])->name('meal-suggestion');
 
         // الذكاء الاصطناعي

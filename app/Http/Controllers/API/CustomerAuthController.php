@@ -3,15 +3,16 @@
 namespace App\Http\Controllers\API;
 
 use App\Models\Customer;
+use App\Models\CustomerBlockedIp;
 use App\Models\LoyaltyAccount;
 use App\Models\Notification;
+use App\Support\CustomerInputRules;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rules\Password as PasswordRule;
 
 class CustomerAuthController extends BaseController
 {
@@ -20,23 +21,42 @@ class CustomerAuthController extends BaseController
     // ─────────────────────────────────────────────
     public function register(Request $request)
     {
+        if (CustomerBlockedIp::isBlocked($request->ip())) {
+            return $this->error(
+                'لا يمكن إنشاء حساب جديد من هذا الاتصال لأن عنوان IP مرتبط بحساب محظور. تواصل مع إدارة المطعم للمراجعة.',
+                403
+            );
+        }
+
+        $request->merge([
+            'name' => CustomerInputRules::normalizeName($request->input('name')),
+            'email' => CustomerInputRules::normalizeEmail($request->input('email')),
+            'phone' => CustomerInputRules::normalizePhone($request->input('phone')),
+            'address' => CustomerInputRules::normalizeText($request->input('address')),
+        ]);
+
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'nullable|required_without:phone|email|max:255|unique:customers,email',
-            'phone' => 'nullable|required_without:email|string|max:30|unique:customers,phone',
-            'address' => 'nullable|string|max:1000',
+            'name' => CustomerInputRules::fullName(),
+            'email' => [...CustomerInputRules::email(), 'required_without:phone', 'unique:customers,email'],
+            'phone' => [...CustomerInputRules::phone(), 'required_without:email', 'unique:customers,phone'],
+            'address' => CustomerInputRules::safeText(false, 500, 3),
             'date_of_birth' => 'nullable|date|before:today',
-            'password' => 'required|string|min:6|confirmed',
-            'password_confirmation' => 'required|string',
+            'password' => CustomerInputRules::strongPassword(),
+            'password_confirmation' => 'required|string|max:128',
         ], [
             'name.required' => 'الاسم مطلوب',
+            'name.regex' => 'الاسم يجب أن يتكوّن من أحرف فقط، ويمكن استخدام المسافات أو الشرطة أو الفاصلة العليا',
+            'name.min' => 'الاسم يجب أن يتكوّن من حرفين على الأقل',
             'email.required_without' => 'يرجى إدخال البريد الإلكتروني أو رقم الهاتف',
             'email.email' => 'البريد الإلكتروني غير صحيح',
             'email.unique' => 'هذا البريد مسجّل مسبقاً',
             'phone.required_without' => 'يرجى إدخال رقم الهاتف أو البريد الإلكتروني',
+            'phone.regex' => 'رقم الهاتف يجب أن يتكوّن من 10 أرقام ويبدأ بـ 09',
             'phone.unique' => 'رقم الهاتف مسجّل مسبقاً',
             'password.required' => 'كلمة المرور مطلوبة',
-            'password.min' => 'كلمة المرور يجب أن تكون 6 أحرف على الأقل',
+            'password.min' => 'كلمة المرور يجب أن تكون 8 أحرف على الأقل',
+            'password.letters' => 'كلمة المرور يجب أن تتضمن حرفاً واحداً على الأقل',
+            'password.numbers' => 'كلمة المرور يجب أن تتضمن رقماً واحداً على الأقل',
             'password.confirmed' => 'تأكيد كلمة المرور غير متطابق',
         ]);
 
@@ -55,6 +75,7 @@ class CustomerAuthController extends BaseController
                 'date_of_birth' => $request->date_of_birth ?: null,
                 'password_hash' => Hash::make($request->password),
                 'status' => Customer::STATUS_REGISTERED,
+                'last_ip_address' => CustomerBlockedIp::normalize($request->ip()),
                 'loyalty_points' => 0,
             ]);
 
@@ -115,11 +136,26 @@ class CustomerAuthController extends BaseController
     // ─────────────────────────────────────────────
     public function login(Request $request)
     {
+        if (CustomerBlockedIp::isBlocked($request->ip())) {
+            return $this->error(
+                'تم رفض تسجيل الدخول من هذا الاتصال لأن عنوان IP محظور. تواصل مع إدارة المطعم للمراجعة.',
+                403
+            );
+        }
+
+        $rawIdentifier = $request->input('identifier', $request->input('email', $request->input('phone')));
+        $identifier = is_string($rawIdentifier) && filter_var(trim($rawIdentifier), FILTER_VALIDATE_EMAIL)
+            ? CustomerInputRules::normalizeEmail($rawIdentifier)
+            : CustomerInputRules::normalizePhone($rawIdentifier);
+        $request->merge(['identifier' => $identifier]);
+
         $validator = Validator::make($request->all(), [
-            'identifier' => 'required_without:email|required_without:phone|string|max:255',
-            'email' => 'nullable|string|max:255',
-            'phone' => 'nullable|string|max:30',
-            'password' => 'required|string',
+            'identifier' => ['required', 'string', 'max:254', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! filter_var($value, FILTER_VALIDATE_EMAIL) && ! preg_match(CustomerInputRules::PHONE_PATTERN, $value)) {
+                    $fail('يرجى إدخال بريد إلكتروني صحيح أو رقم هاتف من 10 أرقام يبدأ بـ 09');
+                }
+            }],
+            'password' => 'required|string|max:128',
         ], [
             'identifier.required_without' => 'يرجى إدخال البريد الإلكتروني أو رقم الهاتف',
             'password.required' => 'كلمة المرور مطلوبة',
@@ -129,8 +165,7 @@ class CustomerAuthController extends BaseController
             return $this->validationError($validator->errors()->toArray());
         }
 
-        $identifier = $request->identifier ?: $request->email ?: $request->phone;
-        $identifier = trim($identifier);
+        $identifier = trim((string) $request->identifier);
 
         $customer = Customer::findByIdentifier($identifier);
 
@@ -148,6 +183,8 @@ class CustomerAuthController extends BaseController
                 403
             );
         }
+
+        $customer->recordAccessIp($request->ip());
 
         // توليد التوكن
         $token = $customer->generateAuthToken();
@@ -172,8 +209,9 @@ class CustomerAuthController extends BaseController
     // ─────────────────────────────────────────────
     public function forgotPassword(Request $request)
     {
+        $request->merge(['email' => CustomerInputRules::normalizeEmail($request->input('email'))]);
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|max:255',
+            'email' => 'required|email:rfc|max:254',
         ], [
             'email.required' => 'يرجى إدخال البريد الإلكتروني',
             'email.email' => 'يرجى إدخال بريد إلكتروني صحيح',
@@ -224,11 +262,12 @@ class CustomerAuthController extends BaseController
     // ─────────────────────────────────────────────
     public function resetPassword(Request $request)
     {
+        $request->merge(['email' => CustomerInputRules::normalizeEmail($request->input('email'))]);
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|max:255',
-            'token' => 'required|string',
-            'password' => ['required', 'string', PasswordRule::min(8)->letters()->numbers(), 'confirmed'],
-            'password_confirmation' => 'required|string',
+            'email' => 'required|email:rfc|max:254',
+            'token' => 'required|string|max:255',
+            'password' => CustomerInputRules::strongPassword(),
+            'password_confirmation' => 'required|string|max:128',
         ], [
             'email.required' => 'البريد الإلكتروني مطلوب',
             'email.email' => 'يرجى إدخال بريد إلكتروني صحيح',

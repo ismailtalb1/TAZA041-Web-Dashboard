@@ -15,8 +15,8 @@ async function loadOverview() {
     const counts = stats.status_counts ?? {};
     const isAr = TAZA.Lang.current === 'ar';
     TAZA.Charts.dashboard.deliveryStatuses('chart-delivery-status', {
-      labels: [isAr?'بانتظار السائق':'Pending', isAr?'تم التعيين':'Assigned', isAr?'تم الاستلام':'Picked Up', isAr?'في الطريق':'In Delivery', isAr?'تم اليوم':'Delivered Today'],
-      values: ['pending', 'assigned', 'picked_up', 'in_delivery', 'delivered']
+      labels: [isAr?'بانتظار السائق':'Pending', isAr?'في الطريق':'In Delivery', isAr?'تم اليوم':'Delivered Today'],
+      values: ['pending', 'in_delivery', 'delivered']
         .map(status => Number(counts[status] ?? 0)),
     });
     renderDriverRatingsChart(stats.drivers ?? []);

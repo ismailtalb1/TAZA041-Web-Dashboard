@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Review;
+use App\Support\CustomerInputRules;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -373,7 +374,7 @@ class ReviewController extends BaseController
 
         $validator = Validator::make($request->all(), [
             'rating' => 'required|integer|min:1|max:5',
-            'feedback' => 'nullable|string|max:500',
+            'feedback' => CustomerInputRules::safeText(false, 500, 2),
         ], [
             'rating.required' => 'التقييم مطلوب',
             'rating.min' => 'التقييم من 1 إلى 5',
@@ -454,7 +455,7 @@ class ReviewController extends BaseController
 
         $validator = Validator::make($request->all(), [
             'rating' => 'required|integer|min:1|max:5',
-            'comment' => 'nullable|string|max:500',
+            'comment' => CustomerInputRules::safeText(false, 500, 2),
         ], [
             'rating.required' => 'التقييم مطلوب',
             'rating.min' => 'التقييم من 1 إلى 5',

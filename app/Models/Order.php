@@ -606,14 +606,16 @@ class Order extends Model
             $steps = [
                 ...$baseSteps,
                 ['key' => 'awaiting_driver', 'label_ar' => 'بانتظار سائق', 'label_en' => 'Awaiting driver'],
-                ['key' => 'assigned', 'label_ar' => 'تم تعيين السائق', 'label_en' => 'Driver assigned'],
-                ['key' => 'picked_up', 'label_ar' => 'استلم السائق الطلب', 'label_en' => 'Picked up'],
-                ['key' => 'in_delivery', 'label_ar' => 'في الطريق', 'label_en' => 'On the way'],
+                ['key' => 'in_delivery', 'label_ar' => 'في الطريق مع السائق', 'label_en' => 'On the way'],
                 ['key' => 'delivered', 'label_ar' => 'تم التسليم', 'label_en' => 'Delivered'],
             ];
             if ($this->status === self::STATUS_COMPLETED && $this->deliveryOrder) {
                 $deliveryStatus = $this->deliveryOrder->status;
-                $key = $deliveryStatus === DeliveryOrder::STATUS_PENDING ? 'awaiting_driver' : $deliveryStatus;
+                $key = match ($deliveryStatus) {
+                    DeliveryOrder::STATUS_PENDING => 'awaiting_driver',
+                    DeliveryOrder::STATUS_ASSIGNED, DeliveryOrder::STATUS_PICKED_UP => 'in_delivery',
+                    default => $deliveryStatus,
+                };
                 $deliveryIndex = array_search($key, array_column($steps, 'key'), true);
                 $index = $deliveryIndex === false ? 4 : $deliveryIndex;
                 $terminal = $deliveryStatus === DeliveryOrder::STATUS_DELIVERED;
@@ -625,7 +627,7 @@ class Order extends Model
             $steps = [
                 ...$baseSteps,
                 ['key' => 'seated', 'label_ar' => 'الجلسة قائمة', 'label_en' => 'Session active'],
-                ['key' => 'reservation_completed', 'label_ar' => 'الطاولة جاهزة', 'label_en' => 'Table ready'],
+                ['key' => 'reservation_completed', 'label_ar' => 'انتهت الجلسة', 'label_en' => 'Session ended'],
             ];
             $reservationStatus = $this->reservationOrder?->status;
             if ($this->status === self::STATUS_COMPLETED && $reservationStatus) {
@@ -652,12 +654,12 @@ class Order extends Model
 
         $labels = [
             'awaiting_driver' => ['بانتظار سائق', 'Awaiting driver'],
-            'assigned' => ['تم تعيين السائق', 'Driver assigned'],
-            'picked_up' => ['استلم السائق الطلب', 'Picked up by driver'],
+            'assigned' => ['في الطريق مع السائق', 'On the way'],
+            'picked_up' => ['في الطريق مع السائق', 'On the way'],
             'in_delivery' => ['في الطريق', 'On the way'],
             'delivered' => ['تم التسليم', 'Delivered'],
             'seated' => ['الجلسة قائمة', 'Session active'],
-            'reservation_completed' => ['الطاولة جاهزة', 'Table ready'],
+            'reservation_completed' => ['انتهت الجلسة', 'Session ended'],
             'no_show' => ['لم يحضر', 'No show'],
             'cancelled' => ['ملغى', 'Cancelled'],
         ];

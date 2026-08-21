@@ -53,6 +53,7 @@ const tazaSiteLoader = (() => {
 })();
 
 document.addEventListener('DOMContentLoaded', async () => {
+  if (typeof hardenCustomerInputs === 'function') hardenCustomerInputs(document);
   if (typeof TazaCookies !== 'undefined') TazaCookies.init?.();
 
   try {

@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Jobs\BroadcastCustomerAnnouncement;
 use App\Models\Customer;
 use App\Models\Employee;
 use App\Models\Notification;
 use App\Models\Order;
+use App\Support\CustomerInputRules;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class CustomerController extends BaseController
 {
@@ -41,6 +44,16 @@ class CustomerController extends BaseController
         // ── الفلاتر ──────────────────────────────
         $filter = $request->get('filter', 'all');
 
+        $securityFilter = $request->get('security_status');
+        if (in_array($securityFilter, [
+            Customer::SECURITY_SAFE,
+            Customer::SECURITY_WATCH,
+            Customer::SECURITY_HIGH_RISK,
+            Customer::SECURITY_BLOCKED,
+        ], true)) {
+            $query->securityStatus($securityFilter);
+        }
+
         switch ($filter) {
             case 'most_orders':
                 $query->mostOrders();
@@ -59,6 +72,18 @@ class CustomerController extends BaseController
                 break;
             case 'active':
                 $query->active();
+                break;
+            case 'security_safe':
+                $query->securityStatus(Customer::SECURITY_SAFE);
+                break;
+            case 'security_watch':
+                $query->securityStatus(Customer::SECURITY_WATCH);
+                break;
+            case 'security_high_risk':
+                $query->securityStatus(Customer::SECURITY_HIGH_RISK);
+                break;
+            case 'security_blocked':
+                $query->securityStatus(Customer::SECURITY_BLOCKED);
                 break;
             default:
                 $query->latest();
@@ -98,6 +123,12 @@ class CustomerController extends BaseController
             'total_active' => (clone $allRegistered)->active()->count(),
             'total_banned' => (clone $allRegistered)->banned()->count(),
             'total_suspicious' => (clone $allRegistered)->suspicious()->count(),
+            'security' => [
+                'safe' => Customer::registered()->securityStatus(Customer::SECURITY_SAFE)->count(),
+                'watch' => Customer::registered()->securityStatus(Customer::SECURITY_WATCH)->count(),
+                'high_risk' => Customer::registered()->securityStatus(Customer::SECURITY_HIGH_RISK)->count(),
+                'blocked' => Customer::registered()->securityStatus(Customer::SECURITY_BLOCKED)->count(),
+            ],
         ];
 
         return $this->success([
@@ -251,6 +282,62 @@ class CustomerController extends BaseController
     }
 
     // ─────────────────────────────────────────────
+    // POST /api/admin/customers/{id}/warning
+    // إرسال تحذير فردي بصياغة مناسبة لحالة الأمان الحالية
+    // ─────────────────────────────────────────────
+    public function warning(Request $request, int $id)
+    {
+        $gm = $this->getGM($request);
+        if (! $gm) {
+            return $this->unauthorized('هذا المسار للمدير العام فقط');
+        }
+
+        $customer = Customer::registered()->find($id);
+        if (! $customer) {
+            return $this->notFound('الزبون غير موجود');
+        }
+
+        $suggested = $customer->getSuggestedSecurityWarning();
+        $validator = Validator::make($request->all(), [
+            'title' => 'sometimes|nullable|string|max:255',
+            'message' => 'sometimes|nullable|string|min:10|max:1000',
+        ], [
+            'message.min' => 'نص التحذير يجب أن يكون 10 أحرف على الأقل',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator->errors()->toArray());
+        }
+
+        $title = $request->filled('title') ? trim((string) $request->title) : $suggested['title'];
+        $message = $request->filled('message') ? trim((string) $request->message) : $suggested['message'];
+        $securityStatus = $customer->getSecurityStatus();
+
+        $notification = Notification::create([
+            'sender_type' => Notification::SENDER_EMPLOYEE,
+            'sender_id' => $gm->id,
+            'receiver_type' => Notification::RECEIVER_CUSTOMER,
+            'receiver_id' => $customer->id,
+            'type' => Notification::TYPE_SYSTEM_ANNOUNCEMENT,
+            'title' => $title,
+            'message' => $message,
+            'data' => [
+                'security_warning' => true,
+                'security_status' => $securityStatus,
+                'sent_by' => $gm->name,
+            ],
+            'status' => Notification::STATUS_SENT,
+        ]);
+
+        return $this->success([
+            'notification_id' => $notification->id,
+            'security_status' => $securityStatus,
+            'title' => $title,
+            'message' => $message,
+        ], "تم إرسال التحذير إلى {$customer->name}");
+    }
+
+    // ─────────────────────────────────────────────
     // POST /api/admin/customers/broadcast
     // إشعار جماعي لكل الزبائن
     // ─────────────────────────────────────────────
@@ -273,37 +360,23 @@ class CustomerController extends BaseController
             return $this->validationError($validator->errors()->toArray());
         }
 
-        $customers = Customer::registered()->active()->get(['id']);
-        $count = $customers->count();
+        $count = Customer::registered()->active()->count();
 
         if ($count === 0) {
             return $this->error('لا يوجد زبائن مسجلون حالياً');
         }
 
-        // إدراج الإشعارات دفعة واحدة لأداء أفضل
-        $rows = $customers->map(fn ($c) => [
-            'sender_type' => Notification::SENDER_EMPLOYEE,
-            'sender_id' => $gm->id,
-            'receiver_type' => Notification::RECEIVER_CUSTOMER,
-            'receiver_id' => $c->id,
-            'type' => Notification::TYPE_SYSTEM_ANNOUNCEMENT,
-            'title' => $request->title,
-            'message' => $request->message,
-            'data' => json_encode([
-                'broadcast' => true,
-                'sent_by' => $gm->name,
-            ]),
-            'status' => Notification::STATUS_SENT,
-            'read_at' => null,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ])->toArray();
-
-        Notification::insert($rows);
+        BroadcastCustomerAnnouncement::dispatch(
+            $gm->id,
+            (string) Str::uuid(),
+            $request->string('title')->toString(),
+            $request->string('message')->toString(),
+        )->onQueue('notifications');
 
         return $this->success([
             'sent_to' => $count,
-        ], "تم إرسال الإشعار لـ {$count} زبون بنجاح");
+            'queued' => true,
+        ], "تمت جدولة الإشعار لـ {$count} زبون");
     }
 
     // ─────────────────────────────────────────────
@@ -357,19 +430,39 @@ class CustomerController extends BaseController
             return $this->error('حسابك موقوف', 403);
         }
 
+        $normalized = [];
+        if ($request->has('name')) {
+            $normalized['name'] = CustomerInputRules::normalizeName($request->input('name'));
+        }
+        if ($request->has('phone')) {
+            $normalized['phone'] = CustomerInputRules::normalizePhone($request->input('phone'));
+        }
+        if ($request->has('address')) {
+            $normalized['address'] = CustomerInputRules::normalizeText($request->input('address'));
+        }
+        if ($request->has('bio')) {
+            $normalized['bio'] = CustomerInputRules::normalizeText($request->input('bio'));
+        }
+        $request->merge($normalized);
+
         $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|string|max:255',
-            'phone' => 'sometimes|string|max:30|unique:customers,phone,'.$customer->id,
-            'address' => 'sometimes|nullable|string|max:500',
-            'bio' => 'sometimes|nullable|string|max:1000',
+            'name' => CustomerInputRules::fullName(true),
+            'phone' => [...CustomerInputRules::phone(true), 'unique:customers,phone,'.$customer->id],
+            'address' => CustomerInputRules::safeText(false, 500, 3, true),
+            'bio' => CustomerInputRules::safeText(false, 500, 2, true),
             'date_of_birth' => 'sometimes|nullable|date|before:today',
-            'current_password' => 'required|string',
-            'new_password' => 'sometimes|string|min:6|confirmed|different:current_password',
-            'new_password_confirmation' => 'sometimes|string',
+            'current_password' => 'required|string|max:128',
+            'new_password' => ['sometimes', ...CustomerInputRules::strongPassword(), 'different:current_password'],
+            'new_password_confirmation' => 'sometimes|string|max:128',
         ], [
+            'name.regex' => 'الاسم يجب أن يتكوّن من أحرف فقط',
+            'name.min' => 'الاسم يجب أن يتكوّن من حرفين على الأقل',
             'phone.unique' => 'رقم الهاتف مستخدم مسبقاً',
+            'phone.regex' => 'رقم الهاتف يجب أن يتكوّن من 10 أرقام ويبدأ بـ 09',
             'date_of_birth.before' => 'تاريخ الميلاد غير صحيح',
-            'new_password.min' => 'كلمة المرور 6 أحرف على الأقل',
+            'new_password.min' => 'كلمة المرور 8 أحرف على الأقل',
+            'new_password.letters' => 'كلمة المرور يجب أن تتضمن حرفاً واحداً على الأقل',
+            'new_password.numbers' => 'كلمة المرور يجب أن تتضمن رقماً واحداً على الأقل',
             'new_password.confirmed' => 'تأكيد كلمة المرور غير متطابق',
             'new_password.different' => 'يجب أن تختلف كلمة المرور الجديدة عن الحالية',
             'current_password.required' => 'كلمة المرور الحالية مطلوبة لحماية بيانات الحساب',
@@ -386,12 +479,12 @@ class CustomerController extends BaseController
         $changes = [];
 
         if ($request->filled('name')) {
-            $customer->name = $request->name;
+            $customer->name = CustomerInputRules::normalizeName($request->name);
             $changes[] = 'الاسم';
         }
 
         if ($request->filled('phone')) {
-            $customer->phone = $request->phone;
+            $customer->phone = CustomerInputRules::normalizePhone($request->phone);
             $changes[] = 'رقم الهاتف';
         }
 

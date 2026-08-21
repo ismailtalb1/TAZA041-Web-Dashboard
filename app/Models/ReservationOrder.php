@@ -336,7 +336,7 @@ class ReservationOrder extends Model
         $messages = [
             self::STATUS_CONFIRMED => "تم تأكيد حجزك! طاولة رقم {$this->table_number} ({$tableLabel}) في {$this->reservation_time?->format('H:i — d/m/Y')}",
             self::STATUS_SEATED => "أهلاً بك! جلستك قائمة الآن على الطاولة رقم {$this->table_number}",
-            self::STATUS_COMPLETED => 'أصبحت الطاولة جاهزة من جديد، شكراً لزيارتك ونأمل أن تعود قريباً 🌟',
+            self::STATUS_COMPLETED => 'انتهت جلستك، شكراً لزيارتك ونأمل أن تعود قريباً 🌟',
             self::STATUS_CANCELLED => "تم إلغاء حجز الطاولة رقم {$this->table_number}",
             self::STATUS_NO_SHOW => "انتهى وقت حجزك للطاولة رقم {$this->table_number}",
         ];
@@ -369,7 +369,7 @@ class ReservationOrder extends Model
             self::STATUS_PENDING => 'معلق',
             self::STATUS_CONFIRMED => 'مؤكد',
             self::STATUS_SEATED => 'الجلسة قائمة',
-            self::STATUS_COMPLETED => 'الطاولة جاهزة',
+            self::STATUS_COMPLETED => 'انتهت الجلسة',
             self::STATUS_CANCELLED => 'ملغى',
             self::STATUS_NO_SHOW => 'لم يحضر',
             default => $this->status,

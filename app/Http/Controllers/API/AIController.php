@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Jobs\GenerateDailyAiReport;
 use App\Models\AiConversation;
 use App\Models\Customer;
 use App\Models\Employee;
 use App\Models\MealSuggestion;
 use App\Models\Report;
+use App\Support\CustomerInputRules;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class AIController extends BaseController
 {
@@ -55,7 +58,7 @@ class AIController extends BaseController
     public function chat(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'message' => 'required|string|min:2|max:1000',
+            'message' => CustomerInputRules::safeText(true, 1000, 2),
             'conversation_id' => 'nullable|integer',
         ], [
             'message.required' => 'الرسالة مطلوبة',
@@ -70,10 +73,21 @@ class AIController extends BaseController
         // تحديد هوية المستخدم
         $customer = $this->getCustomer($request);
 
+        // استعادة آخر خطوة في نفس محادثة الزبون فقط. تجاهل أي معرّف لا يخصه
+        // يمنع مشاركة سياق المحادثات بين الحسابات.
+        $previousConversation = null;
+        if ($customer && $request->filled('conversation_id')) {
+            $previousConversation = AiConversation::query()
+                ->whereKey((int) $request->conversation_id)
+                ->where('customer_id', $customer->id)
+                ->first();
+        }
+
         // تشغيل الـ AI
         $result = AiConversation::chat(
             message: $request->message,
-            customer: $customer
+            customer: $customer,
+            previousConversation: $previousConversation,
         );
 
         // بناء الرد
@@ -81,6 +95,9 @@ class AIController extends BaseController
             'reply' => $result['message'],
             'intent' => $result['intent'],
             'conversation_id' => $result['conversation_id'],
+            'reply_type' => $result['reply_type'] ?? 'message',
+            'quick_replies' => $result['quick_replies'] ?? [],
+            'missing_field' => $result['missing_field'] ?? null,
         ];
 
         // إضافة المنتجات المقترحة إن وُجدت
@@ -292,18 +309,21 @@ class AIController extends BaseController
             );
         }
 
-        $report = AiConversation::generateDailyReport();
-
-        if (! $report) {
+        $conversationsCount = AiConversation::recent(24)->count();
+        if ($conversationsCount === 0) {
             return $this->error(
                 'لا توجد محادثات في آخر 24 ساعة — لا يوجد ما يُرفع'
             );
         }
 
+        $force = $request->boolean('force');
+        GenerateDailyAiReport::dispatch($force, $force ? (string) Str::uuid() : null)
+            ->onQueue('reports');
+
         return $this->success([
-            'report' => $report->getDetails(),
-            'conversations_count' => AiConversation::recent(24)->count(),
+            'queued' => true,
+            'conversations_count' => $conversationsCount,
             'suggestions_count' => MealSuggestion::recent(24)->count(),
-        ], 'تم توليد التقرير اليومي وإرساله لمدير التواصل 🤖');
+        ], 'تمت جدولة التقرير اليومي وسيصل لمدير التواصل بعد توليده 🤖');
     }
 }

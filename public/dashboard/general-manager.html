@@ -301,11 +301,19 @@
         <button class="filter-chip" data-filter="top_loyalty" onclick="loadCustomers(this)">
           <span data-lang-ar="نقاط الولاء" data-lang-en="Loyalty Points">نقاط الولاء</span>
         </button>
-        <button class="filter-chip" data-filter="suspicious" onclick="loadCustomers(this)">
-          <i class="fa-solid fa-triangle-exclamation" style="color:var(--warning)"></i>
-          <span data-lang-ar="مشبوهون" data-lang-en="Suspicious">مشبوهون</span>
+        <button class="filter-chip" data-filter="security_safe" onclick="loadCustomers(this)">
+          <i class="fa-solid fa-shield-halved" style="color:var(--success)"></i>
+          <span data-lang-ar="آمنون" data-lang-en="Safe">آمنون</span>
         </button>
-        <button class="filter-chip" data-filter="banned" onclick="loadCustomers(this)">
+        <button class="filter-chip" data-filter="security_watch" onclick="loadCustomers(this)">
+          <i class="fa-solid fa-eye" style="color:var(--warning)"></i>
+          <span data-lang-ar="تحت المراقبة" data-lang-en="Watch">تحت المراقبة</span>
+        </button>
+        <button class="filter-chip" data-filter="security_high_risk" onclick="loadCustomers(this)">
+          <i class="fa-solid fa-triangle-exclamation" style="color:var(--danger)"></i>
+          <span data-lang-ar="خطورة عالية" data-lang-en="High risk">خطورة عالية</span>
+        </button>
+        <button class="filter-chip" data-filter="security_blocked" onclick="loadCustomers(this)">
           <i class="fa-solid fa-ban" style="color:var(--danger)"></i>
           <span data-lang-ar="محظورون" data-lang-en="Banned">محظورون</span>
         </button>
@@ -323,12 +331,13 @@
                 <th data-lang-ar="الإنفاق"         data-lang-en="Spent">الإنفاق</th>
                 <th data-lang-ar="نقاط الولاء"     data-lang-en="Points">نقاط الولاء</th>
                 <th data-lang-ar="المستوى"         data-lang-en="Tier">المستوى</th>
+                <th data-lang-ar="حالة الأمان"     data-lang-en="Security">حالة الأمان</th>
                 <th data-lang-ar="الحالة"          data-lang-en="Status">الحالة</th>
                 <th data-lang-ar="الإجراءات"       data-lang-en="Actions">الإجراءات</th>
               </tr>
             </thead>
             <tbody id="customers-tbody">
-              <tr><td colspan="8" class="text-center p-5">
+              <tr><td colspan="9" class="text-center p-5">
                 <div class="loader-ring" style="margin:0 auto"></div>
               </td></tr>
             </tbody>
@@ -852,12 +861,49 @@
         <textarea class="form-control" id="ban-reason" rows="3"
                   placeholder="اذكر سبب الحظر..."></textarea>
       </div>
+      <small style="display:block;color:var(--warning)" data-lang-ar="سيشمل الحظر آخر عنوان IP معروف للزبون لمنع إنشاء حساب بديل. انتبه إلى أن الشبكات المشتركة قد تستخدم IP واحداً لعدة أجهزة." data-lang-en="The ban also covers the customer's last known IP to prevent replacement accounts. Shared networks may use one IP for multiple devices.">سيشمل الحظر آخر عنوان IP معروف للزبون لمنع إنشاء حساب بديل. انتبه إلى أن الشبكات المشتركة قد تستخدم IP واحداً لعدة أجهزة.</small>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline btn-sm" onclick="closeModal('ban-modal')" data-lang-ar="إلغاء" data-lang-en="Cancel">إلغاء</button>
       <button class="btn btn-danger btn-sm" onclick="confirmBan()">
         <i class="fa-solid fa-ban"></i>
         <span data-lang-ar="تأكيد الحظر" data-lang-en="Confirm Ban">تأكيد الحظر</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: تحذير أمني للزبون -->
+<div class="modal-overlay" id="customer-warning-modal">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-header">
+      <span class="modal-title">
+        <i class="fa-solid fa-shield-halved"></i>
+        <span data-lang-ar="إرسال تحذير أمني" data-lang-en="Send Security Warning">إرسال تحذير أمني</span>
+      </span>
+      <button class="modal-close" onclick="closeModal('customer-warning-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="warning-cust-id">
+      <div class="form-group">
+        <label class="form-label" data-lang-ar="الحالة الحالية" data-lang-en="Current status">الحالة الحالية</label>
+        <div id="warning-security-status" class="badge badge-warning">—</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-lang-ar="العنوان" data-lang-en="Title">العنوان</label>
+        <input type="text" class="form-control" id="warning-title" maxlength="255">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-lang-ar="نص التحذير" data-lang-en="Warning message">نص التحذير</label>
+        <textarea class="form-control" id="warning-message" rows="5" minlength="10" maxlength="1000"></textarea>
+        <small data-lang-ar="تمت تعبئة صياغة مناسبة آلياً ويمكنك تعديلها قبل الإرسال." data-lang-en="A suitable message was filled automatically and can be edited before sending.">تمت تعبئة صياغة مناسبة آلياً ويمكنك تعديلها قبل الإرسال.</small>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('customer-warning-modal')" data-lang-ar="إلغاء" data-lang-en="Cancel">إلغاء</button>
+      <button class="btn btn-warning btn-sm" onclick="sendCustomerWarning()">
+        <i class="fa-solid fa-paper-plane"></i>
+        <span data-lang-ar="إرسال التحذير" data-lang-en="Send warning">إرسال التحذير</span>
       </button>
     </div>
   </div>
@@ -937,15 +983,15 @@
 <!-- ══════════════════════════════════
      Scripts
      ══════════════════════════════════ -->
-<script src="assets/js/config.js?v=20260810-live-sync"></script>
-<script src="assets/js/dashboard-components.js"></script>
+<script src="assets/js/config.js?v=20260820-customer-security"></script>
+<script src="assets/js/dashboard-components.js?v=20260820-restored"></script>
 <script src="assets/js/employee-profile.js"></script>
 <script src="assets/js/charts.js"></script>
 
 <script src="assets/js/pages/general-manager/core.js"></script>
 <script src="assets/js/pages/general-manager/overview.js"></script>
 <script src="assets/js/pages/general-manager/employees.js"></script>
-<script src="assets/js/pages/general-manager/customers.js"></script>
+<script src="assets/js/pages/general-manager/customers.js?v=20260820-customer-security"></script>
 <script src="assets/js/pages/general-manager/orders.js"></script>
 <script src="assets/js/pages/general-manager/reports.js"></script>
 <script src="assets/js/pages/general-manager/loyalty.js"></script>

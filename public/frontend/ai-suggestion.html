@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TAZA 041 | Meal Guide</title>
+  <title>TAZA 041 | Meal Conversations</title>
   <link rel="icon" href="assets/images/taza041-logo.jpg?v=20260801" type="image/jpeg" data-restaurant-favicon>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.bundle.css?v=20260714-privacy-trigger">
+  <link rel="stylesheet" href="assets/css/styles.bundle.css?v=20260820-sidebar-cookie">
 </head>
 <body data-page="ai">
 
@@ -30,7 +30,7 @@
     <div class="header-actions">
       <div class="header-page-context">
         <span class="header-page-marker" aria-hidden="true"></span>
-        <span><small data-ar="الصفحة الحالية" data-en="Current page">الصفحة الحالية</small><strong data-ar="مرشد الوجبة" data-en="Meal guide">مرشد الوجبة</strong></span>
+        <span><small data-ar="الصفحة الحالية" data-en="Current page">الصفحة الحالية</small><strong data-ar="محادثات الوجبة" data-en="Meal conversations">محادثات الوجبة</strong></span>
       </div>
       <button class="menu-toggle" data-open-sidebar>☰</button>
       <div class="header-preferences" aria-label="Preferences">
@@ -47,7 +47,7 @@
     <a class="sidebar-link" href="notifications.html"><span>🔔</span><span data-ar="الإشعارات" data-en="Notifications">الإشعارات</span></a>
     <a class="sidebar-link" href="profile.html"><span>👤</span><span data-ar="إعداد الحساب الشخصي" data-en="Profile settings">إعداد الحساب الشخصي</span></a>
     <a class="sidebar-link" href="orders.html"><span>🧾</span><span data-ar="الطلبات السابقة" data-en="Previous orders">الطلبات السابقة</span></a>
-    <a class="sidebar-link" href="ai-suggestion.html"><span>🍽</span><span data-ar="مرشد اختيار الوجبة" data-en="Meal selection guide">مرشد اختيار الوجبة</span></a>
+    <a class="sidebar-link" href="ai-suggestion.html"><span>🍽</span><span data-ar="محادثات الوجبة" data-en="Meal conversations">محادثات الوجبة</span></a>
     <a class="sidebar-link" href="index.html" onclick="localStorage.setItem('taza_logged_in','false')"><span>🚪</span><span data-ar="تسجيل الخروج" data-en="Logout">تسجيل الخروج</span></a>
   </div>
 </div>
@@ -62,62 +62,112 @@
   <nav class="page-back-nav" data-page-back-nav>
     <div class="container"><a class="page-back-link" data-page-back href="home-user.html" data-ar="رجوع" data-en="Back">رجوع</a></div>
   </nav>
-  <main class="section ai-page"><div class="container ai-layout">
-  <section class="hero-panel ai-intro meal-guide-intro">
-    <span class="section-tag" data-ar="مرشد اختيار الوجبة" data-en="Meal selection guide">مرشد اختيار الوجبة</span>
-    <h1 data-ar="اختيار ألذ، أسرع، وأنسب لذوقك" data-en="A better meal choice, faster">اختيار ألذ، أسرع، وأنسب لذوقك</h1>
-    <p class="muted" data-ar="اكتب مزاجك، عدد الأشخاص، أو الميزانية. سنرتب لك اقتراحاً واضحاً مع سبب الاختيار وخطوة مباشرة للمنيو." data-en="Share your mood, party size, or budget. We will shape a clear suggestion with the reason behind it and a direct step to the menu.">اكتب مزاجك، عدد الأشخاص، أو الميزانية. سنرتب لك اقتراحاً واضحاً مع سبب الاختيار وخطوة مباشرة للمنيو.</p>
-    <div class="guide-highlights" aria-label="Meal guide benefits">
-      <div>
-        <span>01</span>
-        <strong data-ar="حسب المزاج" data-en="By mood">حسب المزاج</strong>
-        <small data-ar="خفيف، مشبع، أو مشاركة" data-en="Light, filling, or sharing">خفيف، مشبع، أو مشاركة</small>
-      </div>
-      <div>
-        <span>02</span>
-        <strong data-ar="حسب الميزانية" data-en="By budget">حسب الميزانية</strong>
-        <small data-ar="اقتراح يناسب المبلغ" data-en="Matched to your spend">اقتراح يناسب المبلغ</small>
-      </div>
-      <div>
-        <span>03</span>
-        <strong data-ar="جاهز للطلب" data-en="Ready to order">جاهز للطلب</strong>
-        <small data-ar="انتقال سريع للمنيو" data-en="Quick menu handoff">انتقال سريع للمنيو</small>
-      </div>
+  <main class="section ai-page">
+    <div class="container meal-conversations-page">
+      <header class="meal-conversations-heading">
+        <div>
+          <span class="section-tag" data-ar="مساحة الذوق والأفكار" data-en="TASTE & IDEAS">مساحة الذوق والأفكار</span>
+          <h1 data-ar="محادثات الوجبة" data-en="Meal conversations">محادثات الوجبة</h1>
+          <p class="muted" data-ar="اختر مسارك: احصل على ترشيح فوري، أو شارك المطعم بفكرة وجبة وتابع حالتها." data-en="Choose your path: get an instant recommendation, or share a meal idea with the restaurant and track its status.">اختر مسارك: احصل على ترشيح فوري، أو شارك المطعم بفكرة وجبة وتابع حالتها.</p>
+        </div>
+        <div class="meal-conversation-switch" role="tablist" aria-label="اختيار المحادثة">
+          <button type="button" class="active" data-conversation-mode="advisor" role="tab" aria-selected="true">
+            <span class="conversation-switch-icon">✦</span>
+            <span><strong data-ar="المستشار الرقمي" data-en="Digital advisor">المستشار الرقمي</strong><small data-ar="اختيار من المنيو" data-en="Choose from the menu">اختيار من المنيو</small></span>
+          </button>
+          <button type="button" data-conversation-mode="idea" role="tab" aria-selected="false">
+            <span class="conversation-switch-icon">💡</span>
+            <span><strong data-ar="شاركنا فكرة وجبة" data-en="Share a meal idea">شاركنا فكرة وجبة</strong><small data-ar="اقتراح لمدير التواصل" data-en="Suggest to the communication manager">اقتراح لمدير التواصل</small></span>
+          </button>
+        </div>
+      </header>
+
+      <section class="meal-conversation-panel active" data-conversation-panel="advisor" role="tabpanel">
+        <div class="meal-conversation-layout">
+          <section class="hero-panel ai-intro meal-guide-intro">
+            <span class="section-tag" data-ar="المستشار الرقمي" data-en="Digital advisor">المستشار الرقمي</span>
+            <h2 data-ar="اختيار ألذ، أسرع، وأنسب لذوقك" data-en="A better meal choice, faster">اختيار ألذ، أسرع، وأنسب لذوقك</h2>
+            <p class="muted" data-ar="اكتب مزاجك، عدد الأشخاص، أو الميزانية. سنرتب لك اقتراحاً واضحاً مع سبب الاختيار وخطوة مباشرة للمنيو." data-en="Share your mood, party size, or budget. We will shape a clear suggestion with the reason behind it and a direct step to the menu.">اكتب مزاجك، عدد الأشخاص، أو الميزانية. سنرتب لك اقتراحاً واضحاً مع سبب الاختيار وخطوة مباشرة للمنيو.</p>
+            <div class="guide-highlights" aria-label="مزايا المستشار الرقمي">
+              <div><span>01</span><strong data-ar="حسب المزاج" data-en="By mood">حسب المزاج</strong><small data-ar="خفيف، مشبع، أو مشاركة" data-en="Light, filling, or sharing">خفيف، مشبع، أو مشاركة</small></div>
+              <div><span>02</span><strong data-ar="حسب الميزانية" data-en="By budget">حسب الميزانية</strong><small data-ar="اقتراح يناسب المبلغ" data-en="Matched to your spend">اقتراح يناسب المبلغ</small></div>
+              <div><span>03</span><strong data-ar="جاهز للطلب" data-en="Ready to order">جاهز للطلب</strong><small data-ar="انتقال سريع للمنيو" data-en="Quick menu handoff">انتقال سريع للمنيو</small></div>
+            </div>
+            <div class="ai-suggestion-chips">
+              <button type="button" data-ai-prompt-ar="أريد وجبة فاخرة لشخصين" data-ai-prompt-en="I want a premium meal for two" data-ar="مشاركة فاخرة لشخصين" data-en="Premium sharing for two">مشاركة فاخرة لشخصين</button>
+              <button type="button" data-ai-prompt-ar="اقترح وجبة خفيفة وسريعة" data-ai-prompt-en="Suggest a light and quick meal" data-ar="خفيفة وسريعة" data-en="Light and quick">خفيفة وسريعة</button>
+              <button type="button" data-ai-prompt-ar="أريد وجبة مشبعة بميزانية محددة" data-ai-prompt-en="I want a filling meal on a specific budget" data-ar="مشبعة بميزانية محددة" data-en="Filling on a budget">مشبعة بميزانية محددة</button>
+              <button type="button" data-ai-prompt-ar="ما أفضل عرض اليوم؟" data-ai-prompt-en="What is today's best value offer?" data-ar="عرض مناسب اليوم" data-en="Today's best value">عرض مناسب اليوم</button>
+            </div>
+          </section>
+          <section class="card ai-chat-card meal-chat-card">
+            <div class="chat-header">
+              <div><span class="section-tag" data-ar="ترشيح مخصص" data-en="Personalized recommendation">ترشيح مخصص</span><h2 data-ar="ماذا تحب أن تأكل اليوم؟" data-en="What would you like today?">ماذا تحب أن تأكل اليوم؟</h2></div>
+              <span class="ai-status" data-ar="متصل بالمنيو" data-en="Connected to menu">متصل بالمنيو</span>
+            </div>
+            <div class="chat-shell">
+              <div class="chat-messages conversation-messages" data-chat-messages aria-live="polite"></div>
+              <form class="chat-input-row" data-chat-form>
+                <input class="input" data-chat-input data-placeholder-ar="مثال: وجبة دافئة لشخصين بحدود 100 ألف..." data-placeholder-en="Example: a warm meal for two around 100k..." placeholder="مثال: وجبة دافئة لشخصين بحدود 100 ألف...">
+                <button class="btn btn-primary" type="submit" data-ar="إرسال" data-en="Send">إرسال</button>
+              </form>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="meal-conversation-panel" data-conversation-panel="idea" role="tabpanel" hidden>
+        <div class="meal-conversation-layout">
+          <section class="hero-panel ai-intro meal-guide-intro meal-idea-intro">
+            <span class="section-tag" data-ar="من فكرتك إلى قائمتنا" data-en="FROM YOUR IDEA TO OUR MENU">من فكرتك إلى قائمتنا</span>
+            <h2 data-ar="شاركنا الوجبة التي تتمنى تجربتها" data-en="Share the meal you wish to try">شاركنا الوجبة التي تتمنى تجربتها</h2>
+            <p class="muted" data-ar="صف فكرتك وأرفق صورة توضيحية إن رغبت. تصل مباشرة إلى مدير التواصل، ويمكنك متابعة قرار المراجعة هنا." data-en="Describe your idea and optionally attach a reference image. It goes directly to the communication manager, and you can track the review here.">صف فكرتك وأرفق صورة توضيحية إن رغبت. تصل مباشرة إلى مدير التواصل، ويمكنك متابعة قرار المراجعة هنا.</p>
+            <div class="idea-journey">
+              <div><span>01</span><p><strong data-ar="أرسل الفكرة" data-en="Send the idea">أرسل الفكرة</strong><small data-ar="نص وصورة اختيارية" data-en="Text and optional image">نص وصورة اختيارية</small></p></div>
+              <div><span>02</span><p><strong data-ar="يراجعها مدير التواصل" data-en="Communication manager reviews it">يراجعها مدير التواصل</strong><small data-ar="تظهر حالة المراجعة تلقائياً" data-en="Review status updates automatically">تظهر حالة المراجعة تلقائياً</small></p></div>
+              <div><span>03</span><p><strong data-ar="تابع النتيجة" data-en="Track the outcome">تابع النتيجة</strong><small data-ar="قيد المراجعة، تمت المراجعة، أو تم التطبيق" data-en="Pending, reviewed, or implemented">قيد المراجعة، تمت المراجعة، أو تم التطبيق</small></p></div>
+            </div>
+          </section>
+          <section class="card ai-chat-card meal-chat-card idea-chat-card">
+            <div class="chat-header">
+              <div><span class="section-tag" data-ar="سجل أفكارك" data-en="YOUR IDEA HISTORY">سجل أفكارك</span><h2 data-ar="اقترح وجبة جديدة" data-en="Suggest a new meal">اقترح وجبة جديدة</h2></div>
+              <span class="ai-status manager-status" data-ar="تحديث مباشر مع مدير التواصل" data-en="Live with communication manager">تحديث مباشر مع مدير التواصل</span>
+            </div>
+            <div class="chat-shell suggestion-chat-shell">
+              <div class="chat-messages conversation-messages suggestion-messages" data-suggestion-messages aria-live="polite"></div>
+              <form class="suggestion-chat-form" data-suggestion-form>
+                <textarea class="input" rows="3" maxlength="1000" data-suggestion-input data-placeholder-ar="صف الوجبة، مكوناتها، أو النكهة التي تتخيلها..." data-placeholder-en="Describe the meal, ingredients, or flavor you imagine..." placeholder="صف الوجبة، مكوناتها، أو النكهة التي تتخيلها..."></textarea>
+                <div class="suggestion-image-preview" data-suggestion-image-preview hidden>
+                  <img data-suggestion-image-thumb alt="معاينة صورة الاقتراح">
+                  <span data-suggestion-image-name></span>
+                  <button type="button" data-remove-suggestion-image aria-label="إزالة الصورة">×</button>
+                </div>
+                <div class="suggestion-composer-actions">
+                  <label class="suggestion-attach-btn">
+                    <input type="file" accept="image/jpeg,image/png,image/webp" data-suggestion-image hidden>
+                    <span class="suggestion-attach-icon">＋</span>
+                    <span><strong data-ar="إضافة صورة" data-en="Add image">إضافة صورة</strong><small data-ar="JPG أو PNG أو WebP — حتى 5 MB" data-en="JPG, PNG, or WebP — up to 5 MB">JPG أو PNG أو WebP — حتى 5 MB</small></span>
+                  </label>
+                  <button class="btn btn-primary" type="submit" data-suggestion-submit data-ar="إرسال الاقتراح" data-en="Send suggestion">إرسال الاقتراح</button>
+                </div>
+              </form>
+            </div>
+          </section>
+        </div>
+      </section>
     </div>
-    <div class="ai-suggestion-chips">
-      <button type="button" data-ai-prompt-ar="أريد وجبة فاخرة لشخصين" data-ai-prompt-en="I want a premium meal for two" data-ar="مشاركة فاخرة لشخصين" data-en="Premium sharing for two">مشاركة فاخرة لشخصين</button>
-      <button type="button" data-ai-prompt-ar="اقترح وجبة خفيفة وسريعة" data-ai-prompt-en="Suggest a light and quick meal" data-ar="خفيفة وسريعة" data-en="Light and quick">خفيفة وسريعة</button>
-      <button type="button" data-ai-prompt-ar="أريد وجبة مشبعة بميزانية محددة" data-ai-prompt-en="I want a filling meal on a specific budget" data-ar="مشبعة بميزانية محددة" data-en="Filling on a budget">مشبعة بميزانية محددة</button>
-      <button type="button" data-ai-prompt-ar="ما أفضل عرض اليوم؟" data-ai-prompt-en="What is today's best value offer?" data-ar="عرض مناسب اليوم" data-en="Today's best value">عرض مناسب اليوم</button>
-    </div>
-  </section>
-  <section class="card ai-chat-card">
-    <div class="chat-header">
-      <div>
-        <span class="section-tag" data-ar="اقتراح مخصص" data-en="Personalized suggestion">اقتراح مخصص</span>
-        <h2 data-ar="ماذا تحب أن تأكل اليوم؟" data-en="What would you like today?">ماذا تحب أن تأكل اليوم؟</h2>
-      </div>
-      <span class="ai-status" data-ar="جاهز للمساعدة" data-en="Ready to help">جاهز للمساعدة</span>
-    </div>
-    <div class="chat-shell">
-      <div class="chat-messages" data-chat-messages></div>
-      <form class="chat-input-row" data-chat-form>
-        <input class="input" data-chat-input data-placeholder-ar="مثال: وجبة دافئة لشخصين بحدود 100 ألف..." data-placeholder-en="Example: a warm meal for two around 100k..." placeholder="مثال: وجبة دافئة لشخصين بحدود 100 ألف...">
-        <button class="btn btn-primary" type="submit" data-ar="اقترح" data-en="Suggest">اقترح</button>
-      </form>
-    </div>
-  </section>
-</div></main></div>
+  </main>
+</div>
 
 
 <div class="overlay" data-overlay></div>
 <div class="toast" data-toast></div>
 
-<script src="assets/js/core/state.js?v=20260801-api-origin"></script>
-<script src="assets/js/core/cookies.js?v=20260714-privacy-trigger"></script>
+<script src="assets/js/core/state.js?v=20260820-restored"></script>
+<script src="assets/js/core/cookies.js?v=20260820-sidebar-cookie"></script>
 <script src="assets/js/core/ui.js?v=20260801-authenticated-notifications"></script>
-<script src="assets/js/core/catalog.js?v=20260801-restaurant-favicon"></script>
-<script src="assets/js/core/customer-cart.js"></script>
-<script src="assets/js/pages/router-auth.js?v=20260801-auth-direct-submit"></script>
+<script src="assets/js/core/catalog.js?v=20260820-restored"></script>
+<script src="assets/js/core/customer-cart.js?v=20260820-restored"></script>
+<script src="assets/js/pages/router-auth.js?v=20260820-generative-advisor-v2"></script>
 <script src="assets/js/app.js?v=20260707-ready"></script>
 </body></html>

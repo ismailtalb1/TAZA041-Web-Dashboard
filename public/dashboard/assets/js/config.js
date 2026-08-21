@@ -95,6 +95,7 @@
        LIST:           '/admin/customers',
        SHOW:           (id) => `/admin/customers/${id}`,
        ORDERS:         (id) => `/admin/customers/${id}/orders`,
+       WARNING:        (id) => `/admin/customers/${id}/warning`,
        BAN:            (id) => `/admin/customers/${id}/ban`,
        UNBAN:          (id) => `/admin/customers/${id}/unban`,
        BROADCAST:      '/admin/customers/broadcast',
@@ -420,16 +421,19 @@
      },
 
      // معالجة الرد
-     async _handle(response) {
+     async _handle(response, { logoutOnUnauthorized = true } = {}) {
        const data = await response.json().catch(() => ({
          success: false,
          message: 'خطأ في قراءة الرد من الخادم',
        }));
 
        if (response.status === 401) {
-         // انتهاء التوكن
-         Toast.error('انتهت جلستك — يرجى تسجيل الدخول مجدداً');
-         setTimeout(() => Auth.logout(), 1500);
+         // لا يكون رد 401 من طلب تسجيل الدخول «انتهاء جلسة»؛ بل بيانات دخول خاطئة.
+         // أما بقية الطلبات المحمية فتُبقي سلوك إنهاء الجلسة المعتاد.
+         if (logoutOnUnauthorized) {
+           Toast.error('انتهت جلستك — يرجى تسجيل الدخول مجدداً');
+           setTimeout(() => Auth.logout(), 1500);
+         }
          throw { status: 401, message: data.message };
        }
 
@@ -469,7 +473,9 @@
          headers: this._headers(),
          body:    JSON.stringify(body),
        });
-       return this._handle(res);
+       return this._handle(res, {
+         logoutOnUnauthorized: endpoint !== API.AUTH.LOGIN,
+       });
      },
 
      // PUT
@@ -771,9 +777,9 @@
          completed:      'مكتمل',
          cancelled:      'ملغى',
          // حالات التوصيل
-         assigned:       'تم التعيين',
-         picked_up:      'مع السائق',
-         in_delivery:    'جاري التوصيل',
+         assigned:       'في الطريق مع السائق',
+         picked_up:      'في الطريق مع السائق',
+         in_delivery:    'في الطريق مع السائق',
          delivered:      'تم التسليم',
          // الأدوار
          general_manager:       'المدير العام',
@@ -832,9 +838,9 @@
          ready:          'Preparing',
          completed:      'Completed',
          cancelled:      'Cancelled',
-         assigned:       'Assigned',
-         picked_up:      'Picked Up',
-         in_delivery:    'In Delivery',
+         assigned:       'On the Way',
+         picked_up:      'On the Way',
+         in_delivery:    'On the Way',
          delivered:      'Delivered',
          general_manager:       'General Manager',
          order_manager:         'Order Manager',
@@ -1388,6 +1394,23 @@
    // ─────────────────────────────────────────────────────────────────────
    // [15] Export — متاح لكل ملفات الـ Dashboard
    // ─────────────────────────────────────────────────────────────────────
+   const OrderComment = {
+     render(note, { isAr = Lang.current === 'ar', compact = false, label = null } = {}) {
+       const value = String(note ?? '').trim();
+       if (!value) return '';
+
+       const heading = label ?? (isAr ? 'ملاحظة الزبون' : 'Customer note');
+       return `
+         <aside class="order-comment${compact ? ' order-comment--compact' : ''}" aria-label="${heading}">
+           <span class="order-comment__icon" aria-hidden="true"><i class="fa-solid fa-comment-dots"></i></span>
+           <div class="order-comment__copy">
+             <strong>${heading}</strong>
+             <p>${Utils.escapeHtml(value)}</p>
+           </div>
+         </aside>`;
+     },
+   };
+
    window.TAZA = {
      CONFIG: TAZA_CONFIG,
      API,
@@ -1402,6 +1425,7 @@
      Utils,
      Modal,
      Confirm,
+     OrderComment,
      Media: { url: buildAssetURL },
      loadEmployeeProfile() {
        return window.TAZA.EmployeeProfile?.load();

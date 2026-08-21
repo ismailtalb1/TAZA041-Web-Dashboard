@@ -1,8 +1,50 @@
 'use strict';
 
+let mealSuggestionStatusChannel = null;
+try {
+  if ('BroadcastChannel' in window) {
+    mealSuggestionStatusChannel = new BroadcastChannel('taza-meal-suggestions');
+  }
+} catch (_) { /* Dashboard LiveSync remains the timed fallback. */ }
+
+function publishMealSuggestionStatusChange(id, status) {
+  mealSuggestionStatusChannel?.postMessage({
+    type: 'suggestion-status-changed',
+    suggestionId: Number(id),
+    status,
+    changedAt: new Date().toISOString()
+  });
+}
+
+window.addEventListener('pagehide', () => mealSuggestionStatusChannel?.close(), { once: true });
+
 // ═══════════════════════════════════════════
 // [4] Meal Suggestions
 // ═══════════════════════════════════════════
+function switchSuggestionView(view = 'direct') {
+  _suggestionView = view === 'advisor' ? 'advisor' : 'direct';
+
+  document.querySelectorAll('[data-suggestion-view]').forEach(button => {
+    const isActive = button.dataset.suggestionView === _suggestionView;
+    button.classList.toggle('active', isActive);
+    button.setAttribute('aria-selected', String(isActive));
+  });
+
+  document.querySelectorAll('[data-suggestion-panel]').forEach(panel => {
+    const isActive = panel.dataset.suggestionPanel === _suggestionView;
+    panel.classList.toggle('active', isActive);
+    panel.hidden = !isActive;
+  });
+
+  if (_suggestionView === 'advisor') {
+    loadAdvisorConversations();
+  } else if (_suggestions.length) {
+    renderSuggestionsGrid(_suggestions);
+  } else {
+    loadSuggestions();
+  }
+}
+
 async function loadSuggestions(filterStatus = '') {
   const isAr = TAZA.Lang.current === 'ar';
   try {
@@ -44,7 +86,9 @@ function renderSuggestionsGrid(suggestions) {
             <div style="font-size:.68rem;font-weight:600;color:${si.color};margin-bottom:4px">${si.label}</div>
             <div class="suggestion-meal-name">${escapeDashboardValue(s.meal_name || s.suggestion_text || (isAr?'اقتراح وجبة':'Meal suggestion'))}</div>
           </div>
-          <span style="font-size:1.4rem">${catIcons[s.category] ?? '🍽️'}</span>
+          ${s.image_url
+            ? `<img class="suggestion-card-image" src="${escapeDashboardValue(s.image_url)}" alt="${isAr?'صورة اقتراح الوجبة':'Meal suggestion image'}" loading="lazy">`
+            : `<span style="font-size:1.4rem">${catIcons[s.category] ?? '🍽️'}</span>`}
         </div>
 
         <div class="customer-info-chip" style="margin-bottom:8px">
@@ -114,6 +158,12 @@ async function handleSuggestionAction(e) {
     'reject-suggestion':    isAr?'تم رفض الاقتراح':'Suggestion rejected',
   };
 
+  const payloads = {
+    'review-suggestion':    { note:'تمت مراجعة الاقتراح من مدير التواصل' },
+    'implement-suggestion': { note:'تم اعتماد الاقتراح للتطبيق' },
+    'reject-suggestion':    { reason:'لن يتم اعتماد الاقتراح في الوقت الحالي' },
+  };
+
   const ep = endpoints[action];
   if (!ep) return;
 
@@ -122,7 +172,8 @@ async function handleSuggestionAction(e) {
       isAr ? 'رفض هذا الاقتراح؟' : 'Reject this suggestion?',
       async () => {
         try {
-          await TAZA.Http.put(ep);
+          await TAZA.Http.put(ep, payloads[action]);
+          publishMealSuggestionStatusChange(id, 'rejected');
           TAZA.Toast.success(messages[action]);
           _suggestions = [];
           loadSuggestions();
@@ -134,7 +185,11 @@ async function handleSuggestionAction(e) {
   }
 
   try {
-    await TAZA.Http.put(ep);
+    await TAZA.Http.put(ep, payloads[action]);
+    publishMealSuggestionStatusChange(id, {
+      'review-suggestion': 'reviewed',
+      'implement-suggestion': 'implemented'
+    }[action]);
     TAZA.Toast.success(messages[action]);
     _suggestions = [];
     loadSuggestions();
@@ -160,6 +215,10 @@ async function openSuggestionModal(id) {
         <div style="font-size:1.2rem;font-weight:700;margin-top:6px">${escapeDashboardValue(s.meal_name || s.suggestion_text || (isAr?'اقتراح وجبة':'Meal suggestion'))}</div>
         ${TAZA.Utils.statusBadge(s.status)}
       </div>
+      ${s.image_url ? `
+        <a class="suggestion-modal-image" href="${escapeDashboardValue(s.image_url)}" target="_blank" rel="noopener">
+          <img src="${escapeDashboardValue(s.image_url)}" alt="${isAr?'صورة اقتراح الوجبة':'Meal suggestion image'}">
+        </a>` : ''}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
         <div style="background:var(--bg-main);border-radius:8px;padding:10px">
           <div style="font-size:.7rem;color:var(--text-muted)">${isAr?'مقترح من':'Suggested by'}</div>
@@ -225,8 +284,13 @@ async function quickAction(id, action) {
     implement: TAZA.API.COMM.SUGGESTION_IMPL(id),
     reject:    TAZA.API.COMM.SUGGESTION_REJECT(id),
   };
+  const payloads = {
+    implement: { note:'تم اعتماد الاقتراح للتطبيق' },
+    reject:    { reason:'لن يتم اعتماد الاقتراح في الوقت الحالي' },
+  };
   try {
-    await TAZA.Http.put(endpoints[action]);
+    await TAZA.Http.put(endpoints[action], payloads[action]);
+    publishMealSuggestionStatusChange(id, action === 'implement' ? 'implemented' : 'rejected');
     TAZA.Toast.success(action === 'implement'
       ? (isAr?'تم التطبيق 🎉':'Implemented 🎉')
       : (isAr?'تم الرفض':'Rejected'));
@@ -234,4 +298,66 @@ async function quickAction(id, action) {
     _suggestions = [];
     loadSuggestions();
   } catch(e) { TAZA.Toast.apiError(e); }
+}
+
+async function loadAdvisorConversations() {
+  const container = document.getElementById('advisor-conversations');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="stat-card skeleton" style="height:210px"></div>
+    <div class="stat-card skeleton" style="height:210px"></div>`;
+
+  try {
+    const res = await TAZA.Http.get(TAZA.API.AI.CONVERSATIONS, { intent:'meal_suggestion' });
+    renderAdvisorConversations(res?.data?.conversations ?? []);
+  } catch (e) {
+    container.innerHTML = renderAdvisorEmptyState(
+      TAZA.Lang.current === 'ar' ? 'تعذّر تحميل المحادثات' : 'Could not load conversations',
+      'fa-triangle-exclamation'
+    );
+  }
+}
+
+function renderAdvisorEmptyState(title, icon = 'fa-comments') {
+  return `<div class="empty-state advisor-empty-state">
+    <div class="empty-icon"><i class="fa-solid ${icon}"></i></div>
+    <div class="empty-title">${title}</div>
+  </div>`;
+}
+
+function renderAdvisorConversations(conversations) {
+  const container = document.getElementById('advisor-conversations');
+  if (!container) return;
+  const isAr = TAZA.Lang.current === 'ar';
+
+  if (!conversations.length) {
+    container.innerHTML = renderAdvisorEmptyState(isAr ? 'لا توجد محادثات اقتراح وجبات بعد' : 'No meal suggestion conversations yet');
+    return;
+  }
+
+  container.innerHTML = conversations.map((conversation, index) => {
+    const customerName = conversation.customer_name || conversation.customer?.name || (isAr ? 'زائر' : 'Guest');
+    return `
+      <article class="advisor-conversation-card">
+        <header class="advisor-conversation-header">
+          <div class="advisor-customer">
+            <span class="avatar avatar-sm">${TAZA.Utils.initials(customerName)}</span>
+            <div>
+              <strong>${escapeDashboardValue(customerName)}</strong>
+              <span>${TAZA.Utils.timeAgo(conversation.created_at)}</span>
+            </div>
+          </div>
+          <span class="advisor-conversation-number">#${String(index + 1).padStart(2, '0')}</span>
+        </header>
+        <div class="advisor-message customer-message">
+          <span class="advisor-message-label"><i class="fa-solid fa-user"></i>${isAr ? 'طلب الزبون' : 'Customer request'}</span>
+          <p>${escapeDashboardValue(conversation.user_message || '—')}</p>
+        </div>
+        <div class="advisor-message ai-message">
+          <span class="advisor-message-label"><i class="fa-solid fa-wand-magic-sparkles"></i>${isAr ? 'رد المستشار الرقمي' : 'Digital advisor reply'}</span>
+          <p>${escapeDashboardValue(conversation.ai_response || '—')}</p>
+        </div>
+      </article>`;
+  }).join('');
 }

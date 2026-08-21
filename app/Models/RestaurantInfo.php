@@ -116,23 +116,51 @@ class RestaurantInfo extends Model
             return true;
         }
 
-        $dayKey = strtolower(now()->englishDayOfWeek);
-        $dayData = $this->working_hours[$dayKey] ?? null;
-
-        if (! $dayData || ($dayData['is_closed'] ?? false)) {
-            return false;
-        }
-
-        $openTime = Carbon::parse($dayData['open'] ?? '10:00');
-        $closeTime = Carbon::parse($dayData['close'] ?? '00:00');
         $now = now();
 
-        // إذا وقت الإغلاق بعد منتصف الليل
-        if ($closeTime->lessThan($openTime)) {
-            $closeTime->addDay();
+        // نفحص جدول اليوم وجدول الأمس كي تبقى فترة العمل بعد منتصف الليل صحيحة.
+        foreach ([0, -1] as $dayOffset) {
+            $scheduleDate = $now->copy()->addDays($dayOffset);
+            $dayKey = strtolower($scheduleDate->englishDayOfWeek);
+            $dayData = $this->getNormalizedWorkingHours()[$dayKey] ?? null;
+            if (! $dayData || ! $dayData['open']) {
+                continue;
+            }
+
+            $openTime = Carbon::parse($scheduleDate->toDateString().' '.$dayData['from']);
+            $closeTime = Carbon::parse($scheduleDate->toDateString().' '.$dayData['to']);
+            if ($closeTime->lessThanOrEqualTo($openTime)) {
+                $closeTime->addDay();
+            }
+
+            if ($now->betweenIncluded($openTime, $closeTime)) {
+                return true;
+            }
         }
 
-        return $now->between($openTime, $closeTime);
+        return false;
+    }
+
+    /** @return array<string, array{open: bool, from: string, to: string}> */
+    public function getNormalizedWorkingHours(): array
+    {
+        $normalized = [];
+        foreach ((array) $this->working_hours as $day => $hours) {
+            if (! is_array($hours)) {
+                continue;
+            }
+
+            $openValue = $hours['open'] ?? null;
+            $normalized[strtolower((string) $day)] = [
+                'open' => is_bool($openValue)
+                    ? $openValue
+                    : ! (bool) ($hours['is_closed'] ?? false),
+                'from' => (string) ($hours['from'] ?? $hours['open_time'] ?? (is_string($openValue) ? $openValue : '09:00')),
+                'to' => (string) ($hours['to'] ?? $hours['close_time'] ?? $hours['close'] ?? '22:00'),
+            ];
+        }
+
+        return $normalized;
     }
 
     // ساعات عمل اليوم
@@ -144,7 +172,7 @@ class RestaurantInfo extends Model
 
         $dayKey = strtolower(now()->englishDayOfWeek);
 
-        return $this->working_hours[$dayKey] ?? null;
+        return $this->getNormalizedWorkingHours()[$dayKey] ?? null;
     }
 
     // ─────────────────────────────────────────────
@@ -157,6 +185,11 @@ class RestaurantInfo extends Model
     {
         // الاسم ثابت — لا يُعدَّل
         unset($data['name']);
+
+        if (array_key_exists('working_hours', $data) && is_array($data['working_hours'])) {
+            $this->working_hours = $data['working_hours'];
+            $data['working_hours'] = $this->getNormalizedWorkingHours();
+        }
 
         $allowed = [
             'owner_name', 'email', 'phone', 'whatsapp',
@@ -219,7 +252,7 @@ class RestaurantInfo extends Model
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
             'about_text' => $this->about_text,
-            'working_hours' => $this->working_hours,
+            'working_hours' => $this->getNormalizedWorkingHours(),
             'is_open' => (bool) $this->is_open,
             // واجهة الزبون تعتمد على قرار المدير العام المباشر من restaurant_info.is_open.
             // تبقى ساعات العمل معلومات عرض فقط ولا تغلق الموقع تلقائياً.

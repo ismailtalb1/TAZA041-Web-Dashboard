@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Jobs\GenerateFinancialReport;
 use App\Models\Customer;
 use App\Models\Employee;
 use App\Models\LoyaltyAccount;
@@ -11,6 +12,7 @@ use App\Models\Order;
 use App\Models\PaymentAccount;
 use App\Models\PaymentRecord;
 use App\Models\Report;
+use App\Support\CustomerInputRules;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -524,55 +526,15 @@ class PaymentController extends BaseController
         }
 
         $employee = $request->user();
-        $month = now()->startOfMonth();
-        $completed = PaymentRecord::completed();
-
-        $content = '📊 التقرير المالي — '.now()->format('F Y')."\n";
-        $content .= "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n";
-
-        $totalRevenue = (clone $completed)->where('created_at', '>=', $month)->sum('amount');
-        $content .= 'إجمالي الإيرادات هذا الشهر: '.
-                    number_format($totalRevenue, 0)." ل.س\n\n";
-
-        $content .= "توزيع طرق الدفع:\n";
-        foreach (PaymentRecord::METHOD_LABELS as $method => $label) {
-            $count = (clone $completed)->byMethod($method)
-                ->where('created_at', '>=', $month)->count();
-            $amount = (clone $completed)->byMethod($method)
-                ->where('created_at', '>=', $month)->sum('amount');
-
-            if ($count > 0) {
-                $content .= "  {$label}: {$count} عملية — ".
-                            number_format($amount, 0)." ل.س\n";
-            }
-        }
-
-        $content .= "\nأرصدة الحسابات الحالية:\n";
-        foreach (PaymentAccount::active()->get() as $acc) {
-            $content .= "  {$acc->getTypeLabel()} — {$acc->account_name}: ".
-                        number_format($acc->current_balance, 0).' ل.س';
-            if ($acc->isNearCapacity()) {
-                $content .= ' ⚠️ قريب من الامتلاء';
-            }
-            $content .= "\n";
-        }
-
-        $result = Report::sendToGeneralManager(
-            sender: $employee,
-            type: Report::TYPE_FINANCIAL,
-            title: 'التقرير المالي — '.now()->format('m/Y'),
-            content: $content,
-            description: 'تقرير مالي شهري مُولَّد تلقائياً'
-        );
-
-        if (! $result['success']) {
-            return $this->error($result['message']);
-        }
+        $totalRevenue = PaymentRecord::completed()
+            ->where('created_at', '>=', now()->startOfMonth())
+            ->sum('amount');
+        GenerateFinancialReport::dispatch($employee->id)->onQueue('reports');
 
         return $this->success([
-            'report_id' => $result['report_id'],
+            'queued' => true,
             'total_revenue' => $totalRevenue,
-        ], 'تم توليد التقرير المالي وإرساله للمدير العام');
+        ], 'تمت جدولة التقرير المالي وسيصل للمدير العام بعد توليده');
     }
 
     // ═══════════════════════════════════════════════
@@ -627,8 +589,8 @@ class PaymentController extends BaseController
         $validator = Validator::make($request->all(), [
             'method' => 'required|in:cash,syriatel_cash,sham_cash,loyalty_points,test_payment',
             // للدفع الإلكتروني
-            'phone' => 'required_if:method,syriatel_cash|required_if:method,sham_cash|string',
-            'pin_code' => 'required_if:method,syriatel_cash|required_if:method,sham_cash|string|size:4',
+            'phone' => ['required_if:method,syriatel_cash', 'required_if:method,sham_cash', ...CustomerInputRules::phone()],
+            'pin_code' => 'required_if:method,syriatel_cash|required_if:method,sham_cash|string|size:4|regex:/^[0-9]{4}$/',
             // للدفع بالنقاط
             'points_required' => 'nullable|integer|min:1',
         ], [
@@ -637,6 +599,7 @@ class PaymentController extends BaseController
             'phone.required_if' => 'رقم الهاتف مطلوب لهذه الطريقة',
             'pin_code.required_if' => 'الرمز السري مطلوب',
             'pin_code.size' => 'الرمز السري يجب أن يكون 4 أرقام',
+            'phone.regex' => 'رقم الهاتف يجب أن يكون 10 أرقام ويبدأ بـ 09',
             'points_required.required_if' => 'عدد النقاط المطلوبة مطلوب',
         ]);
 

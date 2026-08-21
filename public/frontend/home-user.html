@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.bundle.css?v=20260714-privacy-trigger">
+  <link rel="stylesheet" href="assets/css/styles.bundle.css?v=20260820-sidebar-cookie">
 </head>
 <body data-page="user-home">
 
@@ -47,7 +47,7 @@
     <a class="sidebar-link" href="notifications.html"><span>🔔</span><span data-ar="الإشعارات" data-en="Notifications">الإشعارات</span></a>
     <a class="sidebar-link" href="profile.html"><span>👤</span><span data-ar="إعداد الحساب الشخصي" data-en="Profile settings">إعداد الحساب الشخصي</span></a>
     <a class="sidebar-link" href="orders.html"><span>🧾</span><span data-ar="الطلبات السابقة" data-en="Previous orders">الطلبات السابقة</span></a>
-    <a class="sidebar-link" href="ai-suggestion.html"><span>🤖</span><span data-ar="اقتراح وجبة بالذكاء الاصطناعي" data-en="AI meal suggestion">اقتراح وجبة بالذكاء الاصطناعي</span></a>
+    <a class="sidebar-link" href="ai-suggestion.html"><span>🍽</span><span data-ar="محادثات الوجبة" data-en="Meal conversations">محادثات الوجبة</span></a>
     <a class="sidebar-link" href="index.html" onclick="localStorage.setItem('taza_logged_in','false')"><span>🚪</span><span data-ar="تسجيل الخروج" data-en="Logout">تسجيل الخروج</span></a>
   </div>
 </div>
@@ -88,7 +88,7 @@
           <div class="user-home-preview">
             <a href="notifications.html"><span>01</span><strong data-ar="الإشعارات" data-en="Notifications">الإشعارات</strong><small data-ar="تحديثات الطلب والعروض" data-en="Order and offer updates">تحديثات الطلب والعروض</small></a>
             <a href="profile.html"><span>02</span><strong data-ar="الملف الشخصي" data-en="Profile">الملف الشخصي</strong><small data-ar="البيانات والصورة" data-en="Details and image">البيانات والصورة</small></a>
-            <a href="ai-suggestion.html"><span>03</span><strong data-ar="اقتراح وجبة" data-en="Meal suggestion">اقتراح وجبة</strong><small data-ar="اختيار أسرع بالذكاء الاصطناعي" data-en="Faster AI-assisted choice">اختيار أسرع بالذكاء الاصطناعي</small></a>
+            <a href="ai-suggestion.html"><span>03</span><strong data-ar="محادثات الوجبة" data-en="Meal conversations">محادثات الوجبة</strong><small data-ar="مستشار رقمي ومتابعة أفكارك" data-en="Digital advisor and idea tracking">مستشار رقمي ومتابعة أفكارك</small></a>
           </div>
         </div>
       </div>
@@ -133,22 +133,11 @@
     </section>
 
     <section class="section">
-      <div class="container">
-        <div class="page-title"><div><span class="section-tag" data-ar="مسارات الطلب" data-en="Order paths">مسارات الطلب</span><h1 data-ar="اختر طريقة الطلب" data-en="Choose how to order">اختر طريقة الطلب</h1></div></div>
-        <div class="order-types user-order-types">
-          <a class="type-card card" href="menu.html?type=ordinary"><div class="type-icon">01</div><h3 data-ar="طلب عادي" data-en="Ordinary order">طلب عادي</h3><p class="muted" data-ar="اختيار سريع من المنيو ثم متابعة الدفع بدون خطوات إضافية." data-en="A fast menu choice, then checkout without extra setup.">اختيار سريع من المنيو ثم متابعة الدفع بدون خطوات إضافية.</p></a>
-          <a class="type-card card" href="menu.html?type=delivery"><div class="type-icon">02</div><h3 data-ar="طلب توصيل" data-en="Delivery order">طلب توصيل</h3><p class="muted" data-ar="اختر المنتجات ثم حدد الموقع ليتم حساب أجور التوصيل بوضوح." data-en="Choose products, then set location so delivery fees are clear.">اختر المنتجات ثم حدد الموقع ليتم حساب أجور التوصيل بوضوح.</p></a>
-          <a class="type-card card" href="menu.html?type=reservation"><div class="type-icon">03</div><h3 data-ar="حجز طاولة" data-en="Table reservation">حجز طاولة</h3><p class="muted" data-ar="ابدأ من المنيو ثم اختر الطاولة وعدد المقاعد والوقت." data-en="Start from the menu, then choose table, seats, and time.">ابدأ من المنيو ثم اختر الطاولة وعدد المقاعد والوقت.</p></a>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
       <div class="container user-dashboard-grid">
         <a class="user-dashboard-card" href="orders.html"><span data-ar="طلباتي" data-en="Orders">طلباتي</span><strong data-ar="راجع السجل والحالة" data-en="Review history and status">راجع السجل والحالة</strong></a>
         <a class="user-dashboard-card" href="notifications.html"><span data-ar="الإشعارات" data-en="Notifications">الإشعارات</span><strong data-ar="لا تفوّت أي تحديث" data-en="Do not miss updates">لا تفوّت أي تحديث</strong></a>
         <a class="user-dashboard-card" href="profile.html"><span data-ar="الحساب" data-en="Account">الحساب</span><strong data-ar="حدّث بياناتك وصورتك" data-en="Update details and image">حدّث بياناتك وصورتك</strong></a>
-        <a class="user-dashboard-card" href="ai-suggestion.html"><span data-ar="اقتراح ذكي" data-en="Smart pick">اقتراح ذكي</span><strong data-ar="دعنا نقترح وجبة" data-en="Let us suggest a meal">دعنا نقترح وجبة</strong></a>
+        <a class="user-dashboard-card" href="ai-suggestion.html"><span data-ar="محادثات الوجبة" data-en="Meal conversations">محادثات الوجبة</span><strong data-ar="اختر وجبتك أو شاركنا فكرتك" data-en="Choose a meal or share your idea">اختر وجبتك أو شاركنا فكرتك</strong></a>
       </div>
     </section>
 
@@ -197,11 +186,11 @@
 <div class="overlay" data-overlay></div>
 <div class="toast" data-toast></div>
 
-<script src="assets/js/core/state.js?v=20260801-api-origin"></script>
-<script src="assets/js/core/cookies.js?v=20260714-privacy-trigger"></script>
+<script src="assets/js/core/state.js?v=20260820-restored"></script>
+<script src="assets/js/core/cookies.js?v=20260820-sidebar-cookie"></script>
 <script src="assets/js/core/ui.js?v=20260801-authenticated-notifications"></script>
-<script src="assets/js/core/catalog.js?v=20260801-restaurant-favicon"></script>
-<script src="assets/js/core/customer-cart.js"></script>
-<script src="assets/js/pages/router-auth.js?v=20260801-auth-direct-submit"></script>
+<script src="assets/js/core/catalog.js?v=20260820-restored"></script>
+<script src="assets/js/core/customer-cart.js?v=20260820-restored"></script>
+<script src="assets/js/pages/router-auth.js?v=20260820-restored"></script>
 <script src="assets/js/app.js?v=20260707-ready"></script>
 </body></html>

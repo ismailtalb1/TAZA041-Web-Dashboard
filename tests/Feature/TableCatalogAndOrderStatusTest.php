@@ -7,6 +7,7 @@ use App\Models\DeliveryOrder;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ReservationOrder;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -56,6 +57,28 @@ class TableCatalogAndOrderStatusTest extends TestCase
         $this->assertTrue($tables->firstWhere('number', 4)['is_available']);
     }
 
+    public function test_past_times_are_rejected_by_all_public_availability_endpoints(): void
+    {
+        $this->travelTo(Carbon::parse('2026-08-21 12:00:00', config('app.timezone')));
+        $pastTime = '2026-08-21 10:00:00';
+
+        $this->getJson('/api/public/reservations/tables?'.http_build_query([
+            'reservation_time' => $pastTime,
+            'duration_minutes' => 60,
+        ]))
+            ->assertUnprocessable()
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('message', 'وقت الحجز يجب أن يكون في المستقبل');
+
+        $this->getJson('/api/public/reservations/table/1/availability?'.http_build_query([
+            'reservation_time' => $pastTime,
+            'duration_minutes' => 60,
+        ]))
+            ->assertUnprocessable()
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('message', 'وقت الحجز يجب أن يكون في المستقبل');
+    }
+
     public function test_order_payload_exposes_full_status_flow_for_each_type(): void
     {
         $customer = $this->customer();
@@ -71,9 +94,9 @@ class TableCatalogAndOrderStatusTest extends TestCase
             'status' => DeliveryOrder::STATUS_ASSIGNED,
         ]);
         $delivery->load('deliveryOrder');
-        $this->assertSame('assigned', $delivery->getDetails()['customer_status']['key']);
+        $this->assertSame('in_delivery', $delivery->getDetails()['customer_status']['key']);
         $this->assertSame(5, $delivery->getDetails()['customer_status']['current_index']);
-        $this->assertCount(9, $delivery->getDetails()['customer_status']['steps']);
+        $this->assertCount(7, $delivery->getDetails()['customer_status']['steps']);
 
         $reservation = $this->order($customer, Order::TYPE_RESERVATION, Order::STATUS_COMPLETED);
         ReservationOrder::create([

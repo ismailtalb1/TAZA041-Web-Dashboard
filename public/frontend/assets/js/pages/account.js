@@ -522,7 +522,7 @@ function orderStatusLabel(order) {
     in_delivery: { ar: 'في الطريق', en: 'On the way' },
     delivered: { ar: 'تم التسليم', en: 'Delivered' },
     seated: { ar: 'الجلسة قائمة', en: 'Session active' },
-    completed: { ar: 'الطاولة شاغرة', en: 'Table vacant' },
+    completed: { ar: 'انتهت الجلسة', en: 'Session ended' },
     no_show: { ar: 'لم يحضر', en: 'No show' },
     cancelled: { ar: 'ملغى', en: 'Canceled' }
   }[subtype];
@@ -557,7 +557,7 @@ function orderTimelineDefinition(order = {}) {
   const type = order.type === 'ordinary' ? 'normal' : order.type;
   if (type === 'delivery') {
     return [...coreOrderTimelineSteps,
-      { key: 'in_delivery', label: { ar: 'في الطريق', en: 'On the way' } },
+      { key: 'in_delivery', label: { ar: 'في الطريق مع السائق', en: 'On the way' } },
       { key: 'delivered', label: { ar: 'تم التسليم', en: 'Delivered' } }
     ];
   }
@@ -899,7 +899,7 @@ function renderLoyaltyProgram(user) {
 function fillProfileForm(form, user) {
   form.full_name.value = user.name || '';
   form.email.value = user.email || '';
-  form.phone.value = user.phone || '';
+  form.phone.value = formatSyrianPhone(user.phone || '');
   form.birthday.value = user.birthday || '';
   if (typeof syncSmartDateTimeInput === 'function') syncSmartDateTimeInput(form.birthday);
   form.bio.value = user.bio || '';
@@ -924,8 +924,8 @@ function bindPasswordChangeForm() {
     const currentPassword = form.current_password.value;
     const newPassword = form.new_password.value;
     const confirmation = form.new_password_confirmation.value;
-    if (newPassword.length < 6) {
-      if (error) error.textContent = langText('كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل', 'The new password must be at least 6 characters');
+    if (!isStrongPassword(newPassword)) {
+      if (error) error.textContent = langText('استخدم 8 أحرف على الأقل تتضمن حروفاً وأرقاماً', 'Use at least 8 characters including letters and numbers');
       form.new_password.focus();
       return;
     }
@@ -1530,12 +1530,29 @@ function bindProfileControls(form) {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       if (form.dataset.editing !== 'true') return;
+      const name = normalizeFullName(form.full_name.value);
+      const phone = normalizePhone(form.phone.value);
+      const address = form.city.value.trim();
+      const bio = form.bio.value.trim();
+      if (!isFullName(name)) {
+        showToast(langText('اكتب اسماً صحيحاً من الأحرف فقط', 'Enter a valid name using letters only'));
+        form.full_name.focus();
+        return;
+      }
+      if (phone && !isPhone(phone)) {
+        showToast(langText('رقم الهاتف يجب أن يكون 10 أرقام ويبدأ بـ 09', 'Phone must be 10 digits and start with 09'));
+        form.phone.focus();
+        return;
+      }
+      if (!isSafeCustomerText(address, { max: 500, min: 3 }) || !isSafeCustomerText(bio, { max: 500, min: 2 })) {
+        showToast(langText('تحقق من العنوان والنبذة ومن أطوال النصوص', 'Check the address, bio, and text lengths'));
+        return;
+      }
       pendingProfilePayload = {
-        name: form.full_name.value.trim(),
-        email: form.email.value.trim(),
-        phone: form.phone.value.trim(),
-        address: form.city.value.trim(),
-        bio: form.bio.value.trim(),
+        name,
+        phone,
+        address,
+        bio,
         date_of_birth: form.birthday.value || null
       };
       openProfilePasswordDialog();
@@ -1555,7 +1572,7 @@ function setProfileEditMode(editing) {
   form.dataset.editing = String(editing);
   form.classList.toggle('profile-form-locked', !editing);
   $$('input, textarea', form).forEach(input => {
-    input.disabled = !editing;
+    input.disabled = input.name === 'email' || !editing;
     if (input.matches('input[type="date"], input[type="time"]') && typeof syncSmartDateTimeInput === 'function') {
       syncSmartDateTimeInput(input);
     }
@@ -2278,7 +2295,9 @@ async function initOrdersPage() {
     const ratingForm = $('[data-driver-rating-form]');
     if (ratingForm) {
       bindStarForm(ratingForm, async (form, ratingValue) => {
-        const data = await safeApi(`/customer/delivery/${ratingForm.dataset.deliveryId}/rate`, { method: 'POST', body: { rating: ratingValue, feedback: ratingForm.feedback.value.trim() } });
+        const feedback = ratingForm.feedback.value.trim();
+        if (!isSafeCustomerText(feedback, { min: 2, max: 500 })) return showToast(langText('تحقق من صيغة التعليق', 'Check the feedback format'), { kind: 'warning' });
+        const data = await safeApi(`/customer/delivery/${ratingForm.dataset.deliveryId}/rate`, { method: 'POST', body: { rating: ratingValue, feedback } });
         if (data) {
           delivery.driver_rating = ratingValue;
           delivery.driver_feedback = ratingForm.feedback.value.trim();
@@ -2290,6 +2309,7 @@ async function initOrdersPage() {
     $$('[data-meal-rating-form]').forEach(form => {
       bindStarForm(form, async (ratingForm, ratingValue) => {
         const comment = ratingForm.comment.value.trim();
+        if (!isSafeCustomerText(comment, { min: 2, max: 500 })) return showToast(langText('تحقق من صيغة التعليق', 'Check the comment format'), { kind: 'warning' });
         const data = await safeApi(`/customer/orders/${ratingForm.dataset.orderId}/products/${ratingForm.dataset.productId}/rate`, {
           method: 'POST',
           body: { rating: ratingValue, comment }

@@ -95,7 +95,7 @@ async function generateReport() {
   TAZA.Utils.disableBtn(btn, isAr ? 'جارٍ التوليد...' : 'Generating...');
   try {
     const res = await TAZA.Http.get(TAZA.API.FINANCE.REPORT);
-    TAZA.Toast.success(isAr ? 'تم توليد التقرير وإرساله للمدير العام ✓' : 'Report generated and sent to GM ✓');
+    TAZA.Toast.success(isAr ? 'تمت جدولة التقرير وسيصل للمدير العام ✓' : 'Report queued for the GM ✓');
     loadReports();
   } catch(e) { TAZA.Toast.apiError(e); }
   finally    { TAZA.Utils.enableBtn(btn); }

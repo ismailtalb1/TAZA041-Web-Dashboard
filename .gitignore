@@ -13,6 +13,9 @@
 /.zed
 /.codex-*/
 /.docx_qa/
+/.pptx_work_*/
+/*.pptx.inspect.ndjson
+/~$*.pptx
 /auth.json
 /node_modules
 /public/build

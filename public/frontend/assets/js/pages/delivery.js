@@ -272,7 +272,10 @@ async function initDeliveryPage() {
     const validation = validateDeliveryPoint(selected.lat, selected.lng);
     if (!validation.ok) return;
     selectedDistanceKm = validation.distanceKm;
-    const address = $('[data-delivery-address]')?.value.trim() || langText('موقع محدد على الخريطة', 'Map selected location');
+    const address = $('[data-delivery-address]')?.value.trim() || '';
+    if (!isSafeCustomerText(address, { required: true, min: 3, max: 500 })) {
+      return showToast(langText('اكتب وصف عنوان صحيحاً', 'Enter a valid address description'), { kind: 'warning' });
+    }
     const quote = await safeApi(`/public/delivery/quote?latitude=${encodeURIComponent(selected.lat)}&longitude=${encodeURIComponent(selected.lng)}`);
     if (!quote) {
       return showToast(langText(

@@ -6,6 +6,7 @@ let _suggestions    = [];
 let _reviews        = [];
 let _workingHours   = {};
 let _activeTab      = 'overview';
+let _suggestionView = 'direct';
 let _restaurantFormReady = false;
 
 const DAYS = [
@@ -64,10 +65,6 @@ const FOOTER_CONTENT_FIELDS = [
   ['footer_tagline_en','الشعار النصي — إنجليزي','Tagline — English','input'],
   ['footer_description_ar','وصف الفوتر — عربي','Footer description — Arabic','textarea'],
   ['footer_description_en','وصف الفوتر — إنجليزي','Footer description — English','textarea'],
-  ['hours_weekdays_ar','ساعات السبت–الخميس — عربي','Sat–Thu hours — Arabic','input'],
-  ['hours_weekdays_en','ساعات السبت–الخميس — إنجليزي','Sat–Thu hours — English','input'],
-  ['hours_friday_ar','ساعات الجمعة — عربي','Friday hours — Arabic','input'],
-  ['hours_friday_en','ساعات الجمعة — إنجليزي','Friday hours — English','input'],
 ];
 
 const WEBSITE_CONTENT_DEFAULTS = {
@@ -130,12 +127,12 @@ function refreshActiveTabLanguage() {
       if (state) state.textContent = isOpen ? (isAr ? 'مفتوح' : 'Open') : (isAr ? 'مغلق' : 'Closed');
       if (toggle) toggle.title = isOpen ? (isAr ? 'مفتوح' : 'Open') : (isAr ? 'مغلق' : 'Closed');
     });
-    const saveState = document.getElementById('restaurant-save-state');
+    const saveState = document.querySelector('[data-restaurant-save-state]');
     setRestaurantSaveState(saveState?.classList.contains('is-dirty') ? 'dirty' : saveState?.classList.contains('is-saving') ? 'saving' : 'saved');
     updateRestaurantEditorPreview();
     return;
   }
-  const refreshers = { overview:loadOverview, 'restaurant-info':loadRestaurantInfo, gallery:loadGallery, suggestions:loadSuggestions, reviews:loadReviews, notifications:loadNotificationsPage, profile:TAZA.loadEmployeeProfile };
+  const refreshers = { overview:loadOverview, 'restaurant-info':loadRestaurantInfo, gallery:loadGallery, suggestions:() => switchSuggestionView(_suggestionView), reviews:loadReviews, notifications:loadNotificationsPage, profile:TAZA.loadEmployeeProfile };
   refreshers[_activeTab]?.();
 }
 
@@ -172,7 +169,7 @@ function switchTab(tab) {
   const loaders = {
     'restaurant-info': loadRestaurantInfo,
     gallery:           () => { _galleryImages.length ? renderGallery(_galleryImages) : loadGallery(); },
-    suggestions:       () => { _suggestions.length ? renderSuggestionsGrid(_suggestions) : loadSuggestions(); },
+    suggestions:       () => switchSuggestionView(_suggestionView),
     reviews:           () => { if (_reviews.length) { renderReviewsSummary(_reviews); renderReviewsList(_reviews); } else loadReviews(); },
     notifications:     loadNotificationsPage,
     profile:           TAZA.loadEmployeeProfile,
@@ -186,8 +183,8 @@ function switchTab(tab) {
 // ── Events ────────────────────────────────────
 function initEventListeners() {
   // Restaurant Info
-  document.getElementById('save-info-btn')
-    ?.addEventListener('click', saveRestaurantInfo);
+  document.querySelectorAll('[data-save-restaurant-info]')
+    .forEach(button => button.addEventListener('click', saveRestaurantInfo));
   document.getElementById('logo-input')
     ?.addEventListener('change', uploadLogo);
   document.getElementById('add-footer-link-btn')
@@ -235,6 +232,11 @@ function initEventListeners() {
     ?.addEventListener('click', handleGalleryAction);
 
   // Suggestions filter
+  document.getElementById('suggestion-view-switch')
+    ?.addEventListener('click', (e) => {
+      const button = e.target.closest('[data-suggestion-view]');
+      if (button) switchSuggestionView(button.dataset.suggestionView);
+    });
   document.getElementById('suggestions-filter')
     ?.addEventListener('click', (e) => {
       const chip = e.target.closest('.filter-chip');

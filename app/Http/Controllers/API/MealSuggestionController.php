@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\Employee;
 use App\Models\MealSuggestion;
 use App\Models\Notification;
+use App\Support\CustomerInputRules;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -309,6 +310,26 @@ class MealSuggestionController extends BaseController
     }
 
     // ─────────────────────────────────────────────
+    // GET /api/customer/meal-suggestions
+    // سجل اقتراحات الزبون وحالتها
+    // ─────────────────────────────────────────────
+    public function customerIndex(Request $request)
+    {
+        $customer = $this->getCustomer($request);
+        if (! $customer) {
+            return $this->unauthorized('هذا المسار للزبائن فقط');
+        }
+
+        return $this->success([
+            'suggestions' => MealSuggestion::where('customer_id', $customer->id)
+                ->latest()
+                ->get()
+                ->map->getDetails()
+                ->values(),
+        ]);
+    }
+
+    // ─────────────────────────────────────────────
     // POST /api/customer/meal-suggestion
     // الزبون يرسل اقتراحاً
     // ─────────────────────────────────────────────
@@ -324,11 +345,24 @@ class MealSuggestionController extends BaseController
         }
 
         $validator = Validator::make($request->all(), [
-            'suggestion_text' => 'required|string|min:10|max:1000',
+            'suggestion_text' => CustomerInputRules::safeText(true, 1000, 10),
+            'image' => [
+                'nullable',
+                'image',
+                'max:5120',
+                'mimes:jpg,jpeg,png,webp',
+                'mimetypes:image/jpeg,image/png,image/webp',
+                'dimensions:min_width=1,min_height=1,max_width=10000,max_height=10000',
+            ],
         ], [
             'suggestion_text.required' => 'نص الاقتراح مطلوب',
             'suggestion_text.min' => 'الاقتراح قصير جداً — أضف تفاصيل أكثر',
             'suggestion_text.max' => 'الاقتراح طويل جداً (الحد 1000 حرف)',
+            'image.image' => 'الملف المرفوع ليس صورة صالحة',
+            'image.max' => 'حجم الصورة يجب ألا يتجاوز 5 ميغابايت',
+            'image.mimes' => 'صيغة الصورة يجب أن تكون JPG أو PNG أو WebP',
+            'image.mimetypes' => 'محتوى الملف يجب أن يكون صورة JPG أو PNG أو WebP',
+            'image.dimensions' => 'أبعاد الصورة غير صالحة أو كبيرة جداً',
         ]);
 
         if ($validator->fails()) {
@@ -348,6 +382,7 @@ class MealSuggestionController extends BaseController
         $suggestion = MealSuggestion::create([
             'customer_id' => $customer->id,
             'suggestion_text' => $request->suggestion_text,
+            'image_path' => $request->file('image')?->store('meal-suggestions', 'public'),
             'status' => MealSuggestion::STATUS_PENDING,
         ]);
 

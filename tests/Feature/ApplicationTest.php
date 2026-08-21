@@ -203,8 +203,8 @@ class ApplicationTest extends TestCase
         $registration = $this->postJson('/api/customer/auth/register', [
             'name' => 'Stock Message Customer',
             'email' => 'stock-message@example.test',
-            'password' => 'password',
-            'password_confirmation' => 'password',
+            'password' => 'Password123',
+            'password_confirmation' => 'Password123',
         ])->assertCreated();
         $token = $registration->json('data.token');
 
@@ -344,9 +344,9 @@ class ApplicationTest extends TestCase
         $registration = $this->postJson('/api/customer/auth/register', [
             'name' => 'Test Customer',
             'email' => 'customer@example.test',
-            'phone' => '+963900000000',
-            'password' => 'password',
-            'password_confirmation' => 'password',
+            'phone' => '0900000000',
+            'password' => 'Password123',
+            'password_confirmation' => 'Password123',
         ])->assertCreated()->assertJsonPath('success', true);
 
         $token = $registration->json('data.token');
@@ -392,7 +392,7 @@ class ApplicationTest extends TestCase
             ->putJson('/api/customer/profile', [
                 'bio' => 'Coffee lover and regular TAZA customer.',
                 'date_of_birth' => '2003-02-01',
-                'current_password' => 'password',
+                'current_password' => 'Password123',
             ])
             ->assertOk()
             ->assertJsonPath('data.customer.bio', 'Coffee lover and regular TAZA customer.')
@@ -485,7 +485,7 @@ class ApplicationTest extends TestCase
         }
     }
 
-    public function test_reservation_session_starts_only_after_preparation_and_ends_with_a_ready_table(): void
+    public function test_reservation_session_starts_only_after_preparation_and_ends_as_a_session(): void
     {
         $customer = Customer::create([
             'name' => 'Reservation Test Customer',
@@ -522,7 +522,7 @@ class ApplicationTest extends TestCase
         $this->assertTrue($reservation->changeStatus(ReservationOrder::STATUS_SEATED, 'order_manager'));
         $this->assertSame('الجلسة قائمة', $reservation->fresh()->getStatusLabel());
         $this->assertTrue($reservation->fresh()->changeStatus(ReservationOrder::STATUS_COMPLETED, 'order_manager'));
-        $this->assertSame('الطاولة جاهزة', $reservation->fresh()->getStatusLabel());
+        $this->assertSame('انتهت الجلسة', $reservation->fresh()->getStatusLabel());
     }
 
     public function test_delivery_uses_the_shared_default_restaurant_location_when_an_old_record_has_no_coordinates(): void
@@ -546,8 +546,8 @@ class ApplicationTest extends TestCase
         $registration = $this->postJson('/api/customer/auth/register', [
             'name' => 'Delivery Test Customer',
             'email' => 'delivery@example.test',
-            'password' => 'password',
-            'password_confirmation' => 'password',
+            'password' => 'Password123',
+            'password_confirmation' => 'Password123',
         ])->assertCreated();
         $token = $registration->json('data.token');
         $product = Product::where('name_en', 'Crispy Meal')->firstOrFail();

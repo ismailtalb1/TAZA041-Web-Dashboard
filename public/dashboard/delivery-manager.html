@@ -127,8 +127,6 @@
               <select class="form-control" id="live-map-status-filter" aria-label="فلتر حالة الخريطة">
                 <option value="" data-lang-ar="كل الحالات" data-lang-en="All statuses">كل الحالات</option>
                 <option value="pending" data-lang-ar="بانتظار سائق" data-lang-en="Pending">بانتظار سائق</option>
-                <option value="assigned" data-lang-ar="تم التعيين" data-lang-en="Assigned">تم التعيين</option>
-                <option value="picked_up" data-lang-ar="استلمها السائق" data-lang-en="Picked up">استلمها السائق</option>
                 <option value="in_delivery" data-lang-ar="في الطريق" data-lang-en="En route">في الطريق</option>
               </select>
               <select class="form-control" id="live-map-driver-filter" aria-label="فلتر سائق الخريطة">
@@ -144,8 +142,6 @@
             </div>
             <div class="map-legend">
               <span>🟠 <span data-lang-ar="معلق" data-lang-en="Pending">معلق</span></span>
-              <span>🔵 <span data-lang-ar="مُعيَّن" data-lang-en="Assigned">مُعيَّن</span></span>
-              <span>🟡 <span data-lang-ar="مع السائق" data-lang-en="Picked Up">مع السائق</span></span>
               <span>🟣 <span data-lang-ar="جاري التوصيل" data-lang-en="En Route">جاري التوصيل</span></span>
               <span>🟢 <span data-lang-ar="تم التسليم" data-lang-en="Delivered">تم التسليم</span></span>
             </div>
@@ -249,7 +245,6 @@
           <select class="form-control" id="del-status-filter" aria-label="حالة التوصيل">
             <option value="" data-lang-ar="كل الحالات" data-lang-en="All">كل الحالات</option>
             <option value="pending"     data-lang-ar="معلق"              data-lang-en="Pending">معلق</option>
-            <option value="assigned"    data-lang-ar="مُعيَّن"            data-lang-en="Assigned">مُعيَّن</option>
             <option value="in_delivery" data-lang-ar="في الطريق مع السائق"      data-lang-en="On the way">في الطريق مع السائق</option>
             <option value="delivered"   data-lang-ar="تم التسليم"        data-lang-en="Delivered">تم التسليم</option>
             <option value="cancelled"   data-lang-ar="ملغى"              data-lang-en="Cancelled">ملغى</option>
@@ -568,7 +563,7 @@
 <!-- Scripts -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="assets/js/config.js?v=20260810-live-sync"></script>
-<script src="assets/js/dashboard-components.js"></script>
+<script src="assets/js/dashboard-components.js?v=20260820-restored"></script>
 <script src="assets/js/employee-profile.js"></script>
 <script src="assets/js/charts.js"></script>
 <script src="assets/js/pages/delivery-manager/core.js"></script>

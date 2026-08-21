@@ -3,14 +3,22 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class CustomerResetPasswordNotification extends Notification
+class CustomerResetPasswordNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(private readonly string $token) {}
+    public int $tries = 3;
+
+    public int $timeout = 60;
+
+    public function __construct(private readonly string $token)
+    {
+        $this->onQueue('mail');
+    }
 
     public function via(object $notifiable): array
     {

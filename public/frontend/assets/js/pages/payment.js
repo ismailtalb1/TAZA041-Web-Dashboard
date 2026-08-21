@@ -70,6 +70,14 @@ function initPaymentPage() {
     e.preventDefault();
     if (!cartCount()) return showToast(langText('السلة فارغة', 'Cart is empty'), { kind: 'warning' });
     if (!restaurantIsOpen()) return showToast(langText('المطعم مغلق الآن، لا يمكن إنشاء طلب جديد حالياً', 'The restaurant is closed now; new orders are not available'), { kind: 'warning' });
+    if (activeMethod === 'seriatel' || activeMethod === 'sham') {
+      const form = $(`[data-payment-form="${activeMethod}"]`);
+      const inputs = $$('input', form);
+      const phone = normalizePhone(inputs[0]?.value || '');
+      const pin = String(inputs[1]?.value || '').trim();
+      if (!isPhone(phone)) return showToast(langText('رقم الدفع يجب أن يكون 10 أرقام ويبدأ بـ 09', 'Payment phone must be 10 digits and start with 09'), { kind: 'warning' });
+      if (!/^\d{4}$/.test(pin)) return showToast(langText('الرمز السري يجب أن يكون 4 أرقام', 'PIN must contain exactly 4 digits'), { kind: 'warning' });
+    }
     total = renderPaymentSummary(summary);
     if (activeMethod === 'loyalty') {
       const balance = normalizeNumber(AppState.user?.loyaltyPoints ?? 0);

@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="assets/css/styles.bundle.css?v=20260801-live-delivery-route">
+  <link rel="stylesheet" href="assets/css/styles.bundle.css?v=20260820-sidebar-cookie">
 </head>
 <body data-page="orders">
 
@@ -48,7 +48,7 @@
     <a class="sidebar-link" href="notifications.html"><span>🔔</span><span data-ar="الإشعارات" data-en="Notifications">الإشعارات</span></a>
     <a class="sidebar-link" href="profile.html"><span>👤</span><span data-ar="إعداد الحساب الشخصي" data-en="Profile settings">إعداد الحساب الشخصي</span></a>
     <a class="sidebar-link" href="orders.html"><span>🧾</span><span data-ar="الطلبات السابقة" data-en="Previous orders">الطلبات السابقة</span></a>
-    <a class="sidebar-link" href="ai-suggestion.html"><span>🤖</span><span data-ar="اقتراح وجبة بالذكاء الاصطناعي" data-en="AI meal suggestion">اقتراح وجبة بالذكاء الاصطناعي</span></a>
+    <a class="sidebar-link" href="ai-suggestion.html"><span>🍽</span><span data-ar="محادثات الوجبة" data-en="Meal conversations">محادثات الوجبة</span></a>
     <a class="sidebar-link" href="index.html" onclick="localStorage.setItem('taza_logged_in','false')"><span>🚪</span><span data-ar="تسجيل الخروج" data-en="Logout">تسجيل الخروج</span></a>
   </div>
 </div>
@@ -100,12 +100,12 @@
 <div class="toast" data-toast></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="assets/js/core/state.js?v=20260801-live-delivery-route"></script>
-<script src="assets/js/core/cookies.js?v=20260714-privacy-trigger"></script>
+<script src="assets/js/core/state.js?v=20260820-restored"></script>
+<script src="assets/js/core/cookies.js?v=20260820-sidebar-cookie"></script>
 <script src="assets/js/core/ui.js?v=20260801-authenticated-notifications"></script>
-<script src="assets/js/core/catalog.js?v=20260801-restaurant-favicon"></script>
-<script src="assets/js/core/customer-cart.js"></script>
-<script src="assets/js/pages/account.js?v=20260810-live-sync"></script>
-<script src="assets/js/pages/router-auth.js?v=20260801-live-delivery-route"></script>
+<script src="assets/js/core/catalog.js?v=20260820-restored"></script>
+<script src="assets/js/core/customer-cart.js?v=20260820-restored"></script>
+<script src="assets/js/pages/account.js?v=20260817-customer-status"></script>
+<script src="assets/js/pages/router-auth.js?v=20260820-restored"></script>
 <script src="assets/js/app.js?v=20260708-reorder"></script>
 </body></html>

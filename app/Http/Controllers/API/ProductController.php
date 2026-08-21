@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Jobs\BroadcastNewProduct;
 use App\Models\Customer;
 use App\Models\Employee;
 use App\Models\Notification;
 use App\Models\Product;
+use App\Services\ProductSearchService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -58,7 +60,7 @@ class ProductController extends BaseController
     // GET /api/public/products
     // للزبون — كل المنتجات النشطة، بما فيها النافدة من المخزون
     // ─────────────────────────────────────────────
-    public function publicIndex(Request $request)
+    public function publicIndex(Request $request, ProductSearchService $searchService)
     {
         // تُعرض المنتجات النافدة بحالة "غير متاح" بدلاً من إخفائها كلياً.
         // الواجهة تملك مرشحاً مستقلاً لإظهار المتاح فقط عند رغبة العميل.
@@ -67,11 +69,6 @@ class ProductController extends BaseController
         // فلترة حسب الفئة
         if ($request->filled('category')) {
             $query->byCategory($request->category);
-        }
-
-        // بحث بالاسم
-        if ($request->filled('search')) {
-            $query->where('name', 'like', '%'.$request->search.'%');
         }
 
         // ترتيب
@@ -84,6 +81,12 @@ class ProductController extends BaseController
         };
 
         $products = $query->get();
+        $searchQuery = trim((string) $request->get('search', ''));
+        $correction = null;
+        if ($searchQuery !== '') {
+            $products = $searchService->rank($products, $searchQuery);
+            $correction = $searchService->bestCorrection($products, $searchQuery);
+        }
 
         // تجميع حسب الفئة
         $grouped = $products->groupBy('category')->map(function ($items, $category) {
@@ -98,6 +101,11 @@ class ProductController extends BaseController
             'total' => $products->count(),
             'categories' => Product::CATEGORY_LABELS,
             'grouped' => $grouped,
+            'search' => [
+                'query' => $searchQuery,
+                'fuzzy' => $searchQuery !== '',
+                'corrected_to' => $correction,
+            ],
         ]);
     }
 
@@ -316,7 +324,8 @@ class ProductController extends BaseController
         ]);
         $product->syncStockAlert();
 
-        Notification::broadcastNewProduct($product, $request->user());
+        BroadcastNewProduct::dispatch($product->id, $request->user()->id)
+            ->onQueue('notifications');
 
         return $this->success([
             'product' => $product->getDetails(),

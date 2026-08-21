@@ -36,12 +36,11 @@ function itemProductNoteHtml(item = {}, notesMap = {}) {
   const note = itemProductNote(item, notesMap);
   if (!note) return '';
   const isAr = TAZA.Lang.current === 'ar';
-  return `
-    <div class="order-item-note" style="flex:1 0 100%;margin-top:4px;color:var(--warning);font-size:.72rem">
-      <i class="fa-solid fa-note-sticky"></i>
-      <span>${isAr ? 'تعليق المنتج:' : 'Item note:'}</span>
-      ${escapeHtml(note)}
-    </div>`;
+  return TAZA.OrderComment.render(note, {
+    isAr,
+    compact: true,
+    label: isAr ? 'تعليق المنتج' : 'Item note',
+  });
 }
 
 function buildOrderCard(order, urgent = false) {
@@ -103,10 +102,7 @@ function buildOrderCard(order, urgent = false) {
         }
       </div>
 
-      ${order.notes ? `
-        <div class="order-note">
-          <i class="fa-solid fa-note-sticky"></i> ${escapeHtml(order.notes)}
-        </div>` : ''}
+      ${TAZA.OrderComment.render(order.notes, { isAr })}
 
       <div class="order-actions">
         ${!order.is_archived && nextStatus ? `
@@ -368,11 +364,7 @@ async function openOrderDetail(id) {
           <span style="color:var(--text-muted)">${isAr?'طريقة الدفع':'Payment'}</span>
           <span class="badge badge-${pay.status==='completed'?'success':'warning'}">${escapeHtml(pay.method_label ?? pay.method)}</span>
         </div>` : ''}
-      ${order.notes ? `
-        <div class="divider"></div>
-        <div style="font-size:.8rem;color:var(--text-secondary)">
-          <i class="fa-solid fa-note-sticky" style="color:var(--warning)"></i> ${escapeHtml(order.notes)}
-        </div>` : ''}
+      ${order.notes ? `<div class="divider"></div>${TAZA.OrderComment.render(order.notes, { isAr })}` : ''}
     `;
   } catch(err) {
     content.innerHTML = `<div class="empty-state">

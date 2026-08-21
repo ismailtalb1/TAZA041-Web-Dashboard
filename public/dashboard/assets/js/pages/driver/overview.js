@@ -65,12 +65,8 @@ function renderDriverPriority() {
     return;
   }
   const status = current.status ?? 'assigned';
-  const enroute = ['picked_up','in_delivery'].includes(status);
-  const label = status === 'assigned'
-    ? (isAr?'ابدأ باستلام الطلب الحالي':'Pick up the current order')
-    : status === 'picked_up'
-      ? (isAr?'حدّث الحالة قبل الانطلاق':'Update status before leaving')
-      : (isAr?'الطلب في الطريق إلى الزبون':'Order is on the way to the customer');
+  const enroute = ['assigned','picked_up','in_delivery'].includes(status);
+  const label = isAr?'الطلب في الطريق إلى الزبون':'Order is on the way to the customer';
   panel.className = `driver-priority ${enroute?'is-enroute':'has-job'}`;
   panel.innerHTML = `<div class="driver-priority-icon"><i class="fa-solid ${enroute?'fa-route':'fa-box'}"></i></div><div class="driver-priority-copy"><strong>${label}</strong><span>${isAr?`المهمة #${current.id} هي أولويتك الحالية.`:`Job #${current.id} is your current priority.`}</span></div><button class="btn btn-primary btn-sm" onclick="switchTab('active')"><i class="fa-solid fa-arrow-left-long"></i>${isAr?'فتح المهمة':'Open job'}</button>`;
 }

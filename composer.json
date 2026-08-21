@@ -43,6 +43,8 @@
             "Composer\\Config::disableProcessTimeout",
             "@php artisan serve"
         ],
+        "queue": "@php artisan queue:work database --queue=mail,notifications,reports,default --sleep=2 --tries=3 --timeout=180",
+        "scheduler": "@php artisan schedule:work",
         "test": [
             "@php artisan config:clear --ansi",
             "@php artisan test"

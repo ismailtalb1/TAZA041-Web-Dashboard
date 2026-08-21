@@ -36,7 +36,7 @@ function renderCustomersTable(customers) {
   const isAr  = TAZA.Lang.current === 'ar';
 
   if (!customers.length) {
-    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state">
       <div class="empty-icon">👤</div>
       <div class="empty-title">${isAr ? 'لا يوجد زبائن' : 'No customers'}</div>
     </div></td></tr>`;
@@ -44,8 +44,16 @@ function renderCustomersTable(customers) {
   }
 
   tbody.innerHTML = customers.map(c => {
-    const risk = c.cancellation_risk === 'high'   ? `<span class="badge badge-danger">⚠️ ${isAr?'خطر':'High'}</span>` :
-                 c.cancellation_risk === 'medium' ? `<span class="badge badge-warning">⚠️ ${isAr?'تحذير':'Med'}</span>` : '';
+    const securityLabels = {
+      safe:      { ar:'آمن', en:'Safe', css:'badge-success', icon:'fa-shield-halved' },
+      watch:     { ar:'تحت المراقبة', en:'Watch', css:'badge-warning', icon:'fa-eye' },
+      high_risk: { ar:'خطورة عالية', en:'High risk', css:'badge-danger', icon:'fa-triangle-exclamation' },
+      blocked:   { ar:'محظور', en:'Blocked', css:'badge-danger', icon:'fa-ban' },
+    };
+    const security = securityLabels[c.security_status] || securityLabels.safe;
+    const ipInfo = c.last_ip_address
+      ? `<small style="display:block;margin-top:4px;color:var(--text-muted);direction:ltr">IP: ${escapeHtml(c.last_ip_address)}${c.is_ip_blocked ? ' · blocked' : ''}</small>`
+      : '';
 
     const statusBadge = c.is_banned
       ? `<span class="badge badge-danger">${isAr?'محظور':'Banned'}</span>`
@@ -69,9 +77,13 @@ function renderCustomersTable(customers) {
       <td style="font-size:.82rem">${TAZA.Utils.formatMoney(c.total_spent ?? 0)}</td>
       <td><span style="font-weight:700;color:var(--primary)">${c.loyalty_points ?? 0} ${isAr?'نقطة':'pts'}</span></td>
       <td><span style="color:${tierColor};font-weight:700;font-size:.8rem">${c.loyalty_tier?.toUpperCase() ?? '—'}</span></td>
-      <td>${statusBadge} ${risk}</td>
+      <td><span class="badge ${security.css}"><i class="fa-solid ${security.icon}"></i> ${isAr ? security.ar : security.en}</span>${ipInfo}</td>
+      <td>${statusBadge}</td>
       <td>
         <div class="tbl-actions">
+          <button class="btn btn-warning btn-sm" onclick="openCustomerWarningModal(${c.id})" title="${isAr?'إرسال تحذير مناسب للحالة':'Send status-aware warning'}">
+            <i class="fa-solid fa-triangle-exclamation"></i> ${isAr?'تحذير':'Warn'}
+          </button>
           ${c.is_banned
             ? `<button class="btn btn-success btn-sm" onclick="unbanCustomer(${c.id})">
                 <i class="fa-solid fa-unlock"></i> ${isAr?'رفع':'Unban'}
@@ -151,6 +163,41 @@ async function sendBroadcast() {
     TAZA.Toast.success(`${isAr?'تم الإرسال لـ':'Sent to'} ${res?.data?.sent_to ?? 0} ${isAr?'زبون':'customers'}`);
     closeModal('broadcast-modal');
   } catch(e) {
+    TAZA.Toast.apiError(e);
+  }
+}
+
+function openCustomerWarningModal(id) {
+  const customer = _customers.find(item => Number(item.id) === Number(id));
+  if (!customer) return;
+  const isAr = TAZA.Lang.current === 'ar';
+  const labels = {
+    safe: isAr ? 'آمن' : 'Safe',
+    watch: isAr ? 'تحت المراقبة' : 'Watch',
+    high_risk: isAr ? 'خطورة عالية' : 'High risk',
+    blocked: isAr ? 'محظور' : 'Blocked',
+  };
+  document.getElementById('warning-cust-id').value = customer.id;
+  document.getElementById('warning-title').value = customer.security_warning?.title || '';
+  document.getElementById('warning-message').value = customer.security_warning?.message || '';
+  document.getElementById('warning-security-status').textContent = labels[customer.security_status] || labels.safe;
+  openModal('customer-warning-modal');
+}
+
+async function sendCustomerWarning() {
+  const id = document.getElementById('warning-cust-id').value;
+  const title = document.getElementById('warning-title').value.trim();
+  const message = document.getElementById('warning-message').value.trim();
+  const isAr = TAZA.Lang.current === 'ar';
+  if (!title || message.length < 10) {
+    TAZA.Toast.warning(isAr ? 'أكمل عنوان التحذير ونصه' : 'Complete the warning title and message');
+    return;
+  }
+  try {
+    await TAZA.Http.post(TAZA.API.CUSTOMERS.WARNING(id), { title, message });
+    TAZA.Toast.success(isAr ? 'تم إرسال التحذير للزبون' : 'Warning sent to customer');
+    closeModal('customer-warning-modal');
+  } catch (e) {
     TAZA.Toast.apiError(e);
   }
 }

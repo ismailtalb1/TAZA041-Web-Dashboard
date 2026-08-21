@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Models\Customer;
 use App\Models\CustomerSavedAddress;
+use App\Support\CustomerInputRules;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -32,11 +33,11 @@ class CustomerSavedAddressController extends BaseController
         }
 
         $validator = Validator::make($request->all(), [
-            'current_password' => 'required|string',
+            'current_password' => 'required|string|max:128',
             'addresses' => 'present|array|max:3',
             'addresses.*.type' => ['required', 'string', Rule::in(CustomerSavedAddress::TYPES), 'distinct'],
-            'addresses.*.address' => 'required|string|max:500',
-            'addresses.*.details' => 'sometimes|nullable|string|max:500',
+            'addresses.*.address' => CustomerInputRules::safeText(true, 500, 3),
+            'addresses.*.details' => CustomerInputRules::safeText(false, 500, 2, true),
             'addresses.*.latitude' => 'required|numeric|between:-90,90',
             'addresses.*.longitude' => 'required|numeric|between:-180,180',
         ], $this->messages());
@@ -73,9 +74,9 @@ class CustomerSavedAddressController extends BaseController
         }
 
         $validator = Validator::make($request->all(), [
-            'current_password' => 'required|string',
-            'address' => 'required|string|max:500',
-            'details' => 'sometimes|nullable|string|max:500',
+            'current_password' => 'required|string|max:128',
+            'address' => CustomerInputRules::safeText(true, 500, 3),
+            'details' => CustomerInputRules::safeText(false, 500, 2, true),
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
         ], $this->messages());
@@ -106,7 +107,7 @@ class CustomerSavedAddressController extends BaseController
         }
 
         $validator = Validator::make($request->all(), [
-            'current_password' => 'required|string',
+            'current_password' => 'required|string|max:128',
         ], $this->messages());
         if ($validator->fails()) {
             return $this->validationError($validator->errors()->toArray());

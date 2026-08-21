@@ -10,6 +10,7 @@ async function refreshCustomerContext() {
       AppState.user = { ...defaultUser };
       persist();
       renderUserHeader();
+      if (typeof TazaCookies !== 'undefined') TazaCookies.refresh?.();
     }
     return false;
   }
@@ -24,6 +25,7 @@ async function refreshCustomerContext() {
   await refreshSavedAddressesContext(embeddedAddresses);
   persist();
   renderUserHeader();
+  if (typeof TazaCookies !== 'undefined') TazaCookies.refresh?.();
   return true;
 }
 

@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.bundle.css?v=20260714-privacy-trigger">
+  <link rel="stylesheet" href="assets/css/styles.bundle.css?v=20260820-sidebar-cookie">
 </head>
 <body data-page="menu">
 
@@ -47,7 +47,7 @@
     <a class="sidebar-link" href="notifications.html"><span>🔔</span><span data-ar="الإشعارات" data-en="Notifications">الإشعارات</span></a>
     <a class="sidebar-link" href="profile.html"><span>👤</span><span data-ar="إعداد الحساب الشخصي" data-en="Profile settings">إعداد الحساب الشخصي</span></a>
     <a class="sidebar-link" href="orders.html"><span>🧾</span><span data-ar="الطلبات السابقة" data-en="Previous orders">الطلبات السابقة</span></a>
-    <a class="sidebar-link" href="ai-suggestion.html"><span>🤖</span><span data-ar="اقتراح وجبة بالذكاء الاصطناعي" data-en="AI meal suggestion">اقتراح وجبة بالذكاء الاصطناعي</span></a>
+    <a class="sidebar-link" href="ai-suggestion.html"><span>🍽</span><span data-ar="محادثات الوجبة" data-en="Meal conversations">محادثات الوجبة</span></a>
     <a class="sidebar-link" href="index.html" onclick="localStorage.setItem('taza_logged_in','false')"><span>🚪</span><span data-ar="تسجيل الخروج" data-en="Logout">تسجيل الخروج</span></a>
   </div>
 </div>
@@ -105,9 +105,7 @@
             <input type="range" min="50" max="1000" step="10" value="1000" data-max-price>
           </div>
           <div class="filter-grid">
-            <label class="filter-chip"><input type="checkbox" data-filter-flag="featured"> <span data-ar="الأكثر تميزًا" data-en="Featured only">الأكثر تميزًا</span></label>
             <label class="filter-chip"><input type="checkbox" data-filter-flag="topRated"> <span data-ar="الأعلى تقييمًا" data-en="Top rated">الأعلى تقييمًا</span></label>
-            <label class="filter-chip"><input type="checkbox" data-filter-flag="popular"> <span data-ar="الأكثر شهرة" data-en="Most popular">الأكثر شهرة</span></label>
             <label class="filter-chip"><input type="checkbox" data-filter-flag="available"> <span data-ar="الأكثر توفرًا" data-en="Most available">الأكثر توفرًا</span></label>
             <label class="filter-chip"><input type="checkbox" data-filter-flag="offersOnly"> <span data-ar="العروض فقط" data-en="Offers only">العروض فقط</span></label>
           </div>
@@ -137,11 +135,11 @@
 <div class="overlay" data-overlay></div>
 <div class="toast" data-toast></div>
 
-<script src="assets/js/core/state.js?v=20260801-api-origin"></script>
-<script src="assets/js/core/cookies.js?v=20260714-privacy-trigger"></script>
+<script src="assets/js/core/state.js?v=20260820-smart-search"></script>
+<script src="assets/js/core/cookies.js?v=20260820-sidebar-cookie"></script>
 <script src="assets/js/core/ui.js?v=20260801-authenticated-notifications"></script>
-<script src="assets/js/core/catalog.js?v=20260801-restaurant-favicon"></script>
-<script src="assets/js/core/customer-cart.js"></script>
-<script src="assets/js/pages/router-auth.js?v=20260801-auth-direct-submit"></script>
+<script src="assets/js/core/catalog.js?v=20260820-working-hours"></script>
+<script src="assets/js/core/customer-cart.js?v=20260820-restored"></script>
+<script src="assets/js/pages/router-auth.js?v=20260820-filters-without-popular-featured"></script>
 <script src="assets/js/app.js?v=20260707-ready"></script>
 </body></html>

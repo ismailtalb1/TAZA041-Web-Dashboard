@@ -1,13 +1,16 @@
 <?php
 
-use App\Models\AiConversation;
+use App\Jobs\GenerateDailyAiReport;
 use Illuminate\Support\Facades\Schedule;
 
-// ─────────────────────────────────────────────
-// التقرير اليومي للـ AI — يُرسَل كل 24 ساعة
-// ─────────────────────────────────────────────
-Schedule::call(function () {
-    AiConversation::generateDailyReport();
-})->dailyAt('23:30')
+Schedule::command('backup:run --verify')
+    ->dailyAt((string) config('backup.daily_at'))
+    ->name('daily-verified-backup')
+    ->withoutOverlapping();
+
+Schedule::job(new GenerateDailyAiReport, 'reports')
+    ->dailyAt('23:30')
     ->name('ai-daily-report')
     ->withoutOverlapping();
+
+Schedule::command('queue:prune-failed --hours=168')->daily();

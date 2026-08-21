@@ -308,18 +308,26 @@ const TazaCookies = (function () {
 
   function renderTrigger() {
     trigger?.remove();
+    trigger = null;
+
+    const sidebarLinks = document.querySelector('.sidebar-links');
+    const chatLink = sidebarLinks?.querySelector('a[href="ai-suggestion.html"]');
+    const logoutLink = sidebarLinks?.querySelector('[onclick*="taza_logged_in"], [data-customer-logout]');
+    const customerSidebarMenu = Boolean(sidebarLinks && logoutLink);
+
+    if (!customerSidebarMenu) return;
 
     trigger = document.createElement('button');
-    trigger.className = 'cookie-preferences-btn';
+    trigger.className = 'sidebar-link cookie-preferences-btn cookie-preferences-menu-item';
     trigger.type = 'button';
     trigger.setAttribute('aria-label', text('إدارة تفضيلات الكوكيز', 'Manage cookie preferences'));
-    trigger.setAttribute('data-label', text('إعدادات الخصوصية', 'Privacy settings'));
+    trigger.setAttribute('data-label', text('إعدادات الكوكيز', 'Cookie settings'));
     trigger.setAttribute('aria-haspopup', 'dialog');
     trigger.setAttribute('aria-expanded', 'false');
-    trigger.innerHTML = `
-      <span class="cookie-preferences-btn__icon" aria-hidden="true">i</span>
-    `;
-    document.body.appendChild(trigger);
+    trigger.innerHTML = `<span class="cookie-preferences-btn__icon" aria-hidden="true">🍪</span><span>${text('إعدادات الكوكيز', 'Cookie settings')}</span>`;
+
+    if (chatLink) chatLink.insertAdjacentElement('afterend', trigger);
+    else sidebarLinks.insertBefore(trigger, logoutLink);
     syncTriggerState(panelIsVisible());
   }
 
@@ -335,7 +343,7 @@ const TazaCookies = (function () {
       renderPanel();
       if (wasExpanded) panel.querySelector('[data-cookie-customize]')?.click();
     }
-    if (trigger) renderTrigger();
+    renderTrigger();
   }
 
   function init() {

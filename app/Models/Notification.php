@@ -22,6 +22,7 @@ class Notification extends Model
         'title',
         'message',
         'data',
+        'deduplication_key',
         'status',
         'read_at',
     ];
@@ -270,8 +271,8 @@ class Notification extends Model
         }
 
         $labels = [
-            'assigned' => ['title' => 'تم تعيين السائق 🚗',      'msg' => "السائق {$delivery->driver?->name} في طريقه لاستلام طلبك"],
-            'picked_up' => ['title' => 'طلبك مع السائق 📦',       'msg' => 'السائق استلم طلبك وفي طريقه إليك'],
+            'assigned' => ['title' => 'طلبك في الطريق إليك 🚀',  'msg' => 'طلبك الآن في الطريق مع السائق'],
+            'picked_up' => ['title' => 'طلبك في الطريق إليك 🚀',  'msg' => 'طلبك الآن في الطريق مع السائق'],
             'in_delivery' => ['title' => 'طلبك في الطريق إليك 🚀',  'msg' => "الوقت المتوقع للوصول: {$delivery->estimated_delivery_time?->format('H:i')}"],
             'delivered' => ['title' => 'وصل طلبك! 🎉',            'msg' => 'تم توصيل طلبك بنجاح. نتمنى أن ينال إعجابك ⭐'],
             'cancelled' => ['title' => 'تم إلغاء التوصيل ❌',      'msg' => "تم إلغاء توصيل طلب #{$delivery->order_id}"],
@@ -325,8 +326,8 @@ class Notification extends Model
                 'msg' => 'تم تسجيل وصولك. استمتع بتجربتك في TAZA 041',
             ],
             'completed' => [
-                'title' => 'شكراً لزيارتك 💚',
-                'msg' => 'نتمنى أن تكون تجربتك ممتازة. نراك قريباً!',
+                'title' => 'انتهت الجلسة 💚',
+                'msg' => 'شكراً لزيارتك، ونتمنى أن تكون تجربتك ممتازة. نراك قريباً!',
             ],
             'cancelled' => [
                 'title' => 'تم إلغاء حجزك ❌',
@@ -473,6 +474,7 @@ class Notification extends Model
                                                 : null,
                     'end_date' => $offer->end_date?->format('Y-m-d'),
                 ]),
+                'deduplication_key' => "offer:{$offer->id}:customer:{$c->id}",
                 'status' => self::STATUS_SENT,
                 'read_at' => null,
                 'created_at' => now(),
@@ -480,7 +482,7 @@ class Notification extends Model
             ])->toArray();
 
             // Bulk insert لأداء أفضل
-            self::insert($rows);
+            self::query()->insertOrIgnore($rows);
         }
 
         return $customers->count();
@@ -488,7 +490,7 @@ class Notification extends Model
 
     // ── 6. إشعار المدير العام ← موظف ────────────
 
-    public static function broadcastNewProduct(Product $product, Employee $addedBy): void
+    public static function broadcastNewProduct(Product $product, Employee $addedBy): int
     {
         $customers = Customer::registered()->active()->get(['id']);
         $itemLabel = match ($product->category) {
@@ -516,14 +518,17 @@ class Notification extends Model
                         ? asset('storage/'.$product->image_path)
                         : null,
                 ]),
+                'deduplication_key' => "product:{$product->id}:customer:{$customer->id}",
                 'status' => self::STATUS_SENT,
                 'read_at' => null,
                 'created_at' => now(),
                 'updated_at' => now(),
             ])->toArray();
 
-            self::insert($rows);
+            self::query()->insertOrIgnore($rows);
         }
+
+        return $customers->count();
     }
 
     public static function managerToEmployee(

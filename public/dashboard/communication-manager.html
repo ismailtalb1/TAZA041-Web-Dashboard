@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="assets/css/dashboard.css">
 
 
-  <link rel="stylesheet" href="assets/css/communication-manager.css">
+  <link rel="stylesheet" href="assets/css/communication-manager.css?v=20260820-side-save-actions">
   <link rel="stylesheet" href="assets/css/dashboard-readable.css">
 </head>
 <body class="communication-workspace" data-dashboard="communication-manager">
@@ -157,11 +157,11 @@
           </p>
         </div>
         <div class="restaurant-save-wrap">
-          <div class="restaurant-save-state is-saved" id="restaurant-save-state" role="status" aria-live="polite">
+          <div class="restaurant-save-state is-saved" id="restaurant-save-state" data-restaurant-save-state role="status" aria-live="polite">
             <i class="fa-solid fa-circle-check"></i>
             <span data-lang-ar="كل التغييرات محفوظة" data-lang-en="All changes saved">كل التغييرات محفوظة</span>
           </div>
-          <button class="btn btn-primary" id="save-info-btn">
+          <button class="btn btn-primary" id="save-info-btn" data-save-restaurant-info>
             <i class="fa-solid fa-floppy-disk"></i>
             <span data-lang-ar="حفظ التغييرات" data-lang-en="Save Changes">حفظ التغييرات</span>
           </button>
@@ -207,6 +207,16 @@
             <a href="#restaurant-section-footer"><i class="fa-solid fa-link"></i><span data-lang-ar="محتوى الفوتر" data-lang-en="Footer content">محتوى الفوتر</span></a>
             <a href="#restaurant-section-location"><i class="fa-solid fa-map-location-dot"></i><span data-lang-ar="الموقع الجغرافي" data-lang-en="Location">الموقع الجغرافي</span></a>
             <a href="#restaurant-section-hours"><i class="fa-solid fa-clock"></i><span data-lang-ar="ساعات العمل" data-lang-en="Working hours">ساعات العمل</span></a>
+            <div class="restaurant-section-actions">
+              <div class="restaurant-save-state is-saved" data-restaurant-save-state role="status" aria-live="polite">
+                <i class="fa-solid fa-circle-check"></i>
+                <span data-lang-ar="كل التغييرات محفوظة" data-lang-en="All changes saved">كل التغييرات محفوظة</span>
+              </div>
+              <button class="btn btn-primary" type="button" data-save-restaurant-info>
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span data-lang-ar="حفظ التغييرات" data-lang-en="Save Changes">حفظ التغييرات</span>
+              </button>
+            </div>
           </nav>
         </aside>
 
@@ -325,35 +335,70 @@
          [4] Meal Suggestions
          ═══════════════════ -->
     <div id="tab-suggestions" class="section-content readable-section">
-      <div class="page-header">
+      <div class="page-header suggestions-page-header">
         <div class="page-header-left">
+          <span class="section-kicker" data-lang-ar="صندوق الأفكار" data-lang-en="IDEA INBOX">صندوق الأفكار</span>
           <h1 data-lang-ar="اقتراحات الوجبات" data-lang-en="Meal Suggestions">اقتراحات الوجبات</h1>
-          <p data-lang-ar="اقتراحات الزبائن لإضافة وجبات جديدة للقائمة"
-             data-lang-en="Customer suggestions for adding new meals to the menu">اقتراحات الزبائن لإضافة وجبات جديدة للقائمة</p>
+          <p data-lang-ar="راجع أفكار الزبائن ومحادثات المستشار الرقمي من مساحة واحدة"
+             data-lang-en="Review customer ideas and digital advisor conversations in one place">راجع أفكار الزبائن ومحادثات المستشار الرقمي من مساحة واحدة</p>
+        </div>
+        <div class="suggestion-view-switch" id="suggestion-view-switch" role="tablist" aria-label="تبديل مصدر اقتراحات الوجبات">
+          <button type="button" class="suggestion-view-btn active" data-suggestion-view="direct" role="tab" aria-selected="true">
+            <i class="fa-solid fa-bowl-food"></i>
+            <span data-lang-ar="فكرة وجبة جديدة" data-lang-en="New Meal Idea">فكرة وجبة جديدة</span>
+          </button>
+          <button type="button" class="suggestion-view-btn" data-suggestion-view="advisor" role="tab" aria-selected="false">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span data-lang-ar="المستشار الرقمي" data-lang-en="Digital Advisor">المستشار الرقمي</span>
+          </button>
         </div>
       </div>
 
-      <div class="filter-bar suggestion-filters" id="suggestions-filter">
-        <button class="filter-chip active" data-filter="">
-          <span data-lang-ar="الكل" data-lang-en="All">الكل</span>
-        </button>
-        <button class="filter-chip" data-filter="pending">
-          <span data-lang-ar="🟡 قيد المراجعة" data-lang-en="🟡 Pending">🟡 قيد المراجعة</span>
-        </button>
-        <button class="filter-chip" data-filter="reviewed">
-          <span data-lang-ar="🔵 تمت المراجعة" data-lang-en="🔵 Reviewed">🔵 تمت المراجعة</span>
-        </button>
-        <button class="filter-chip" data-filter="implemented">
-          <span data-lang-ar="🟢 تم التطبيق" data-lang-en="🟢 Implemented">🟢 تم التطبيق</span>
-        </button>
-        <button class="filter-chip" data-filter="rejected">
-          <span data-lang-ar="🔴 مرفوضة" data-lang-en="🔴 Rejected">🔴 مرفوضة</span>
-        </button>
+      <div class="suggestion-view-panel active" id="suggestion-view-direct" data-suggestion-panel="direct" role="tabpanel">
+        <div class="suggestion-panel-intro">
+          <span class="suggestion-panel-icon"><i class="fa-solid fa-lightbulb"></i></span>
+          <div>
+            <strong data-lang-ar="أفكار وصلت مباشرة من الزبائن" data-lang-en="Ideas sent directly by customers">أفكار وصلت مباشرة من الزبائن</strong>
+            <span data-lang-ar="رتّبها حسب الحالة واتخذ الإجراء المناسب لكل فكرة." data-lang-en="Sort by status and take the right action for each idea.">رتّبها حسب الحالة واتخذ الإجراء المناسب لكل فكرة.</span>
+          </div>
+        </div>
+
+        <div class="filter-bar suggestion-filters" id="suggestions-filter">
+          <button class="filter-chip active" data-filter="">
+            <span data-lang-ar="الكل" data-lang-en="All">الكل</span>
+          </button>
+          <button class="filter-chip" data-filter="pending">
+            <span data-lang-ar="🟡 قيد المراجعة" data-lang-en="🟡 Pending">🟡 قيد المراجعة</span>
+          </button>
+          <button class="filter-chip" data-filter="reviewed">
+            <span data-lang-ar="🔵 تمت المراجعة" data-lang-en="🔵 Reviewed">🔵 تمت المراجعة</span>
+          </button>
+          <button class="filter-chip" data-filter="implemented">
+            <span data-lang-ar="🟢 تم التطبيق" data-lang-en="🟢 Implemented">🟢 تم التطبيق</span>
+          </button>
+          <button class="filter-chip" data-filter="rejected">
+            <span data-lang-ar="🔴 مرفوضة" data-lang-en="🔴 Rejected">🔴 مرفوضة</span>
+          </button>
+        </div>
+
+        <div id="suggestions-grid" class="suggestions-grid">
+          <div class="stat-card skeleton" style="height:180px"></div>
+          <div class="stat-card skeleton" style="height:180px"></div>
+        </div>
       </div>
 
-      <div id="suggestions-grid" class="suggestions-grid">
-        <div class="stat-card skeleton" style="height:180px"></div>
-        <div class="stat-card skeleton" style="height:180px"></div>
+      <div class="suggestion-view-panel" id="suggestion-view-advisor" data-suggestion-panel="advisor" role="tabpanel" hidden>
+        <div class="suggestion-panel-intro advisor">
+          <span class="suggestion-panel-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+          <div>
+            <strong data-lang-ar="محادثات المستشار الرقمي حول الوجبات" data-lang-en="Digital advisor meal conversations">محادثات المستشار الرقمي حول الوجبات</strong>
+            <span data-lang-ar="اطّلع على ما طلبه الزبون وما اقترحه المستشار له." data-lang-en="See what customers asked and what the advisor suggested.">اطّلع على ما طلبه الزبون وما اقترحه المستشار له.</span>
+          </div>
+        </div>
+        <div id="advisor-conversations" class="advisor-conversations" aria-live="polite">
+          <div class="stat-card skeleton" style="height:210px"></div>
+          <div class="stat-card skeleton" style="height:210px"></div>
+        </div>
       </div>
     </div>
 
@@ -497,14 +542,14 @@
 <!-- Scripts -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="assets/js/config.js?v=20260810-live-sync"></script>
-<script src="assets/js/dashboard-components.js"></script>
+<script src="assets/js/dashboard-components.js?v=20260820-restored"></script>
 <script src="assets/js/employee-profile.js"></script>
 <script src="assets/js/charts.js"></script>
-<script src="assets/js/pages/communication-manager/core.js"></script>
+<script src="assets/js/pages/communication-manager/core.js?v=20260820-side-save-actions"></script>
 <script src="assets/js/pages/communication-manager/overview.js"></script>
-<script src="assets/js/pages/communication-manager/restaurant-info.js"></script>
+<script src="assets/js/pages/communication-manager/restaurant-info.js?v=20260820-side-save-actions"></script>
 <script src="assets/js/pages/communication-manager/gallery.js"></script>
-<script src="assets/js/pages/communication-manager/suggestions.js"></script>
+<script src="assets/js/pages/communication-manager/suggestions.js?v=20260820-live-suggestion-status"></script>
 <script src="assets/js/pages/communication-manager/reviews.js"></script>
 <script src="assets/js/pages/communication-manager/notifications.js"></script>
 </body>

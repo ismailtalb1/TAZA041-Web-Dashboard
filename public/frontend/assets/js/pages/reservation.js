@@ -19,6 +19,7 @@ async function initReservationPage() {
   const roomOrbit = $('[data-room-orbit]');
   const roomChairs = $('[data-room-chairs]');
   let selectedTable = null;
+  let availabilityRequestId = 0;
 
   const pad = n => String(n).padStart(2, '0');
   const toDateValue = date => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
@@ -36,10 +37,8 @@ async function initReservationPage() {
     const period = periodInput?.value;
     if (!hour12 || !Number.isInteger(minute) || !['am', 'pm'].includes(period)) return null;
     const hour24 = (hour12 % 12) + (period === 'pm' ? 12 : 0);
-    const { min } = reservationWindow();
-    const selected = new Date(min);
+    const selected = new Date();
     selected.setHours(hour24, minute, 0, 0);
-    if (selected < min) selected.setDate(selected.getDate() + 1);
     return selected;
   };
   const getReservationDateTime = () => {
@@ -75,8 +74,17 @@ async function initReservationPage() {
   };
   const selectedMaxSeats = () => Number(selectedTable?.maxSeats || 10);
   const clampSeats = value => Math.min(selectedMaxSeats(), Math.max(1, Number(value) || 1));
+  const clearConfirmedReservation = () => {
+    if (!AppState.reservationMeta) return;
+    AppState.reservationMeta = null;
+    persist();
+    const fee = $('[data-reserve-fee]');
+    if (fee) fee.textContent = formatCurrency(0);
+    renderPaymentSummary($('[data-reservation-summary]'));
+  };
   const setSeats = value => {
     if (!seatsInput) return;
+    clearConfirmedReservation();
     seatsInput.value = String(clampSeats(value));
     updateReservationPreview();
   };
@@ -111,12 +119,12 @@ async function initReservationPage() {
     const label = card.querySelector('.table-card-status');
     if (label) label.textContent = text;
   };
-  const markTablesWaitingForTime = () => {
+  const markTablesWaitingForTime = (message = langText('حدد الوقت أولاً', 'Select time first')) => {
     selectedTable = null;
     if (!wrap) return;
     $$('[data-table]', wrap).forEach(card => {
-      setTableStatus(card, 'time-required', langText('حدد الوقت أولاً', 'Select time first'));
-      card.disabled = false;
+      setTableStatus(card, 'time-required', message);
+      card.disabled = true;
       card.setAttribute('aria-pressed', 'false');
     });
     updateReservationPreview();
@@ -144,11 +152,12 @@ async function initReservationPage() {
     updateReservationPreview();
   };
 
-  const loadTableCatalog = async reservationTime => {
+  const loadTableCatalog = async (reservationTime, requestId = null) => {
     const query = reservationTime
       ? `?reservation_time=${encodeURIComponent(reservationTime)}&duration_minutes=60`
       : '';
     const payload = await safeApi(`/public/reservations/tables${query}`);
+    if (requestId !== null && requestId !== availabilityRequestId) return false;
     if (!payload?.tables?.length) {
       if (wrap) wrap.innerHTML = `<div class="empty-state"><strong>${esc(langText('تعذر تحميل الطاولات', 'Unable to load tables'))}</strong><p class="muted">${esc(langText('تحقق من الاتصال ثم أعد المحاولة.', 'Check your connection and try again.'))}</p></div>`;
       return false;
@@ -158,10 +167,15 @@ async function initReservationPage() {
   };
 
   const refreshTableAvailability = async () => {
+    const requestId = ++availabilityRequestId;
     const reservationTime = getReservationDateTime();
     if (!wrap) return;
-    if (!reservationTime || !validateReservationWindow({ silent: true })) {
+    if (!reservationTime) {
       markTablesWaitingForTime();
+      return;
+    }
+    if (!validateReservationWindow({ silent: true })) {
+      markTablesWaitingForTime(langText('الوقت المحدد مضى', 'Selected time has passed'));
       return;
     }
 
@@ -170,7 +184,7 @@ async function initReservationPage() {
       const label = card.querySelector('.table-card-status');
       if (label) label.textContent = langText('يتم الفحص...', 'Checking...');
     });
-    const loaded = await loadTableCatalog(reservationTime);
+    const loaded = await loadTableCatalog(reservationTime, requestId);
     if (!loaded) return;
     if (selectedTable && !tables.find(table => table.id === selectedTable.id)?.available) {
       selectedTable = null;
@@ -188,6 +202,7 @@ async function initReservationPage() {
     if (btn.disabled || btn.classList.contains('unavailable')) {
       return showToast(langText('هذه الطاولة محجوزة في الوقت المحدد', 'This table is reserved at the selected time'), { kind: 'warning' });
     }
+    clearConfirmedReservation();
     selectedTable = tables.find(t => String(t.id) === btn.dataset.table);
     if (Number(seatsInput?.value || 1) > selectedMaxSeats()) setSeats(selectedMaxSeats());
     updateReservationPreview();
@@ -196,6 +211,7 @@ async function initReservationPage() {
   setInitialTime();
   await loadTableCatalog(getReservationDateTime());
   const handleTimeChange = () => {
+    clearConfirmedReservation();
     selectedTable = null;
     refreshTableAvailability();
   };
@@ -204,6 +220,7 @@ async function initReservationPage() {
     setSeats(Number(seatsInput?.value || 2) + Number(btn.dataset.seatStep || 0));
   }));
   seatsInput?.addEventListener('input', () => {
+    clearConfirmedReservation();
     if (Number(seatsInput.value) > 10) seatsInput.value = '10';
     if (seatsInput.value && Number(seatsInput.value) < 1) seatsInput.value = '1';
     updateReservationPreview();

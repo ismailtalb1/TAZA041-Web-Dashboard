@@ -16,6 +16,7 @@ class MealSuggestion extends Model
     protected $fillable = [
         'customer_id',
         'suggestion_text',
+        'image_path',
         'status',
         'admin_note',
     ];
@@ -135,6 +136,7 @@ class MealSuggestion extends Model
         return [
             'id' => $this->id,
             'suggestion_text' => $this->suggestion_text,
+            'image_url' => $this->image_path ? asset('storage/'.$this->image_path) : null,
             'status' => $this->status,
             'status_label' => self::STATUS_LABELS[$this->status] ?? $this->status,
             'admin_note' => $this->admin_note,

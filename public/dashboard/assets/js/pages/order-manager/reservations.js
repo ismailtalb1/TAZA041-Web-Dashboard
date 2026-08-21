@@ -129,8 +129,8 @@ async function loadAllReservations() {
             ${r.status === 'seated' ? `
               <button class="btn btn-success btn-sm"
                       data-action="complete-reservation" data-id="${r.id}"
-                      title="${isAr?'تعليم الطاولة كجاهزة':'Mark table as ready'}">
-                <i class="fa-solid fa-check-double"></i> ${isAr?'الطاولة جاهزة':'Table ready'}
+                      title="${isAr?'إنهاء الجلسة':'End session'}">
+                <i class="fa-solid fa-check-double"></i> ${isAr?'انتهت الجلسة':'Session ended'}
               </button>` : ''
             }
           </div>
@@ -198,7 +198,7 @@ function buildReservationItem(r) {
           ${r.status === 'seated' ? `
             <button class="btn btn-success btn-sm"
                     data-action="complete-reservation" data-id="${r.id}">
-              <i class="fa-solid fa-check-double"></i> ${isAr?'الطاولة جاهزة':'Table ready'}
+              <i class="fa-solid fa-check-double"></i> ${isAr?'انتهت الجلسة':'Session ended'}
             </button>` : ''
           }
         </div>
@@ -229,7 +229,7 @@ function handleReservationAction(e) {
   const labels = {
     confirmed: isAr ? 'تأكيد الحجز' : 'Confirm',
     seated:    isAr ? 'الجلسة قائمة' : 'Session active',
-    completed: isAr ? 'الطاولة جاهزة' : 'Table ready',
+    completed: isAr ? 'انتهت الجلسة' : 'Session ended',
     cancelled: isAr ? 'إلغاء الحجز'  : 'Cancel',
   };
 

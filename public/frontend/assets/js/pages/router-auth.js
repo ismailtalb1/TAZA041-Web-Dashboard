@@ -13,7 +13,7 @@ function loadPageScript(src) {
 
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
-    script.src = `${src}?v=20260801-live-delivery-route`;
+    script.src = `${src}?v=20260821-reservation-time`;
     script.async = false;
     script.dataset.dynamicPageScript = 'true';
     script.onload = () => {
@@ -37,7 +37,7 @@ async function ensurePageScripts(page) {
     notifications: ['assets/js/pages/account.js?v=20260810-live-sync'],
     profile: ['assets/js/pages/account.js?v=20260812-loyalty-tiers'],
     orders: ['assets/js/pages/account.js?v=20260810-live-sync'],
-    ai: ['assets/js/pages/ai.js']
+    ai: ['assets/js/pages/ai.js?v=20260820-generative-advisor-v2']
   }[page] || [];
 
   for (const src of scripts) await loadPageScript(src);
@@ -255,6 +255,7 @@ async function logoutCustomer() {
   localStorage.removeItem(STORAGE_KEYS.savedAddresses);
   try { sessionStorage.removeItem('taza_profile_avatar_preview'); } catch (_) {}
   persist();
+  if (typeof TazaCookies !== 'undefined') TazaCookies.refresh?.();
 }
 
 function initLoginPage() {
@@ -267,9 +268,12 @@ function initLoginPage() {
     if (form.dataset.submitting === 'true') return;
     const identifier = authFormField(form, 'identifier')?.value.trim() || '';
     const password = authFormField(form, 'password')?.value || '';
-    $('.error.identifier', form).textContent = identifier ? '' : langText('يرجى إدخال البريد الإلكتروني أو رقم الهاتف', 'Please enter your email or phone');
-    $('.error.password', form).textContent = password ? '' : langText('يرجى إدخال كلمة المرور', 'Please enter your password');
-    if (!identifier || !password) return;
+    const identifierValid = isEmail(identifier) || isPhone(identifier);
+    $('.error.identifier', form).textContent = identifierValid ? '' : langText('أدخل بريداً صحيحاً أو رقماً من 10 أرقام يبدأ بـ 09', 'Enter a valid email or a 10-digit phone starting with 09');
+    $('.error.password', form).textContent = !password
+      ? langText('يرجى إدخال كلمة المرور', 'Please enter your password')
+      : (password.length > 128 ? langText('كلمة المرور أطول من الحد المسموح', 'Password exceeds the allowed length') : '');
+    if (!identifierValid || !password || password.length > 128) return;
     const phone = normalizePhone(identifier);
     const body = isEmail(identifier)
       ? { email: identifier, identifier, login: identifier, password }
@@ -340,7 +344,7 @@ function initRegisterPage() {
     e.preventDefault();
     if (form.dataset.submitting === 'true') return;
     const currentForm = form;
-    const name = authFormField(currentForm, 'full_name')?.value.trim() || '';
+    const name = normalizeFullName(authFormField(currentForm, 'full_name')?.value || '');
     const email = authFormField(currentForm, 'register_email')?.value.trim() || '';
     const phone = normalizePhone(authFormField(currentForm, 'register_phone')?.value || '');
     const address = authFormField(currentForm, 'address')?.value.trim() || '';
@@ -348,20 +352,26 @@ function initRegisterPage() {
     const password = authFormField(currentForm, 'register_password')?.value || '';
     const confirm = authFormField(currentForm, 'register_confirm')?.value || '';
     const today = new Date().toISOString().slice(0, 10);
+    const nameValid = isFullName(name);
     const emailValid = !email || isEmail(email);
+    const phoneValid = !phone || isPhone(phone);
+    const addressValid = isSafeCustomerText(address, { max: 500, min: 3 });
     const birthdayValid = !dateOfBirth || dateOfBirth < today;
     const avatar = pendingRegisterAvatar;
     const imageValid = !avatar || Boolean(avatar.blob);
 
-    $('.error.name', currentForm).textContent = name ? '' : langText('يرجى إدخال الاسم الكامل', 'Please enter your full name');
+    $('.error.name', currentForm).textContent = nameValid ? '' : langText('اكتب اسماً صحيحاً من الأحرف فقط (حرفان على الأقل)', 'Enter a valid name using letters only (at least 2 letters)');
     $('.error.contact', currentForm).textContent = !emailValid
       ? langText('البريد الإلكتروني غير صحيح', 'Enter a valid email address')
       : ((email || phone) ? '' : langText('أدخل البريد الإلكتروني أو رقم الهاتف على الأقل', 'Enter at least an email or a phone number'));
+    $('.error.phone', currentForm).textContent = phoneValid
+      ? ''
+      : langText('رقم الهاتف يجب أن يكون 10 أرقام ويبدأ بـ 09', 'Phone must be 10 digits and start with 09');
     $('.error.birthday', currentForm).textContent = birthdayValid ? '' : langText('تاريخ الميلاد يجب أن يكون قبل اليوم', 'Date of birth must be before today');
-    $('.error.password', currentForm).textContent = password.length >= 6 ? '' : langText('كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'Password must be at least 6 characters');
+    $('.error.password', currentForm).textContent = isStrongPassword(password) ? '' : langText('استخدم 8 أحرف على الأقل تتضمن حروفاً وأرقاماً', 'Use at least 8 characters including letters and numbers');
     $('.error.confirm', currentForm).textContent = confirm === password ? '' : langText('كلمتا المرور غير متطابقتين', 'Passwords do not match');
     if (!imageValid && preview) preview.textContent = langText('اختر صورة JPG أو PNG أو WebP بحجم لا يتجاوز 5MB', 'Choose a JPG, PNG, or WebP image up to 5MB');
-    if (!name || !emailValid || (!email && !phone) || !birthdayValid || !imageValid || password.length < 6 || confirm !== password) return;
+    if (!nameValid || !emailValid || !phoneValid || !addressValid || (!email && !phone) || !birthdayValid || !imageValid || !isStrongPassword(password) || confirm !== password) return;
 
     const body = { name, password, password_confirmation: confirm };
     if (email) body.email = email;
@@ -506,7 +516,7 @@ function initResetPage() {
     const token = authFormField(form, 'token')?.value || '';
     const password = authFormField(form, 'new_password')?.value || '';
     const confirm = authFormField(form, 'confirm_password')?.value || '';
-    const passwordIsStrong = password.length >= 8 && /\p{L}/u.test(password) && /\p{N}/u.test(password);
+    const passwordIsStrong = isStrongPassword(password);
 
     $('.error.email', form).textContent = token && isEmail(email) ? '' : langText('رابط الاستعادة غير صالح أو غير مكتمل', 'The recovery link is invalid or incomplete');
     $('.error.password', form).textContent = passwordIsStrong ? '' : langText('استخدم 8 أحرف على الأقل تتضمن حروفاً وأرقاماً', 'Use at least 8 characters including letters and numbers');

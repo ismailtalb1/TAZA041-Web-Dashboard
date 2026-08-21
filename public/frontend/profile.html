@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.bundle.css?v=20260812-loyalty-tiers">
+  <link rel="stylesheet" href="assets/css/styles.bundle.css?v=20260820-sidebar-cookie">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 <body data-page="profile">
@@ -48,7 +48,7 @@
     <a class="sidebar-link" href="notifications.html"><span>🔔</span><span data-ar="الإشعارات" data-en="Notifications">الإشعارات</span></a>
     <a class="sidebar-link" href="profile.html"><span>👤</span><span data-ar="إعداد الحساب الشخصي" data-en="Profile settings">إعداد الحساب الشخصي</span></a>
     <a class="sidebar-link" href="orders.html"><span>🧾</span><span data-ar="الطلبات السابقة" data-en="Previous orders">الطلبات السابقة</span></a>
-    <a class="sidebar-link" href="ai-suggestion.html"><span>🤖</span><span data-ar="اقتراح وجبة بالذكاء الاصطناعي" data-en="AI meal suggestion">اقتراح وجبة بالذكاء الاصطناعي</span></a>
+    <a class="sidebar-link" href="ai-suggestion.html"><span>🍽</span><span data-ar="محادثات الوجبة" data-en="Meal conversations">محادثات الوجبة</span></a>
     <a class="sidebar-link" href="index.html" onclick="localStorage.setItem('taza_logged_in','false')"><span>🚪</span><span data-ar="تسجيل الخروج" data-en="Logout">تسجيل الخروج</span></a>
   </div>
 </div>
@@ -112,7 +112,7 @@
         </div>
         <form data-profile-form>
           <div class="field-row"><div class="form-group" style="flex:1;"><label class="label" data-ar="الاسم الكامل" data-en="Full name">الاسم الكامل</label><input class="input" name="full_name"></div><div class="form-group" style="flex:1;"><label class="label" data-ar="البريد الإلكتروني" data-en="Email">البريد الإلكتروني</label><input class="input" type="email" name="email"></div></div>
-          <div class="field-row"><div class="form-group" style="flex:1;"><label class="label" data-ar="رقم الهاتف" data-en="Phone">رقم الهاتف</label><input class="input" name="phone"></div><div class="form-group" style="flex:1;"><label class="label" data-ar="تاريخ الميلاد" data-en="Birthday">تاريخ الميلاد</label><input class="input" type="date" name="birthday"></div></div>
+          <div class="field-row"><div class="form-group" style="flex:1;"><label class="label" data-ar="رقم الهاتف" data-en="Phone">رقم الهاتف</label><input class="input" name="phone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="13" placeholder="09 12 345 678"></div><div class="form-group" style="flex:1;"><label class="label" data-ar="تاريخ الميلاد" data-en="Birthday">تاريخ الميلاد</label><input class="input" type="date" name="birthday"></div></div>
           <div class="form-group"><label class="label" data-ar="المدينة" data-en="City">المدينة</label><input class="input" name="city"></div>
           <div class="form-group"><label class="label" data-ar="نبذة شخصية" data-en="About me">نبذة شخصية</label><textarea class="textarea" rows="5" name="bio"></textarea></div>
           <div class="help profile-lock-note" data-profile-lock-note data-ar="اضغط تعديل البيانات قبل تغيير معلوماتك. سيُطلب منك إدخال كلمة المرور عند الحفظ." data-en="Press Edit details before changing your information. Your password will be required when saving.">اضغط تعديل البيانات قبل تغيير معلوماتك. سيُطلب منك إدخال كلمة المرور عند الحفظ.</div>
@@ -127,7 +127,7 @@
           </div>
           <span class="password-security-badge" data-ar="حفظ آمن" data-en="Secure save">حفظ آمن</span>
         </div>
-        <p class="muted password-security-intro" data-ar="أدخل كلمة المرور الحالية، ثم اختر كلمة مرور جديدة من 6 أحرف على الأقل. سيتم تسجيل خروج الأجهزة الأخرى لحماية حسابك." data-en="Enter your current password, then choose a new password of at least 6 characters. Other devices will be signed out to protect your account.">أدخل كلمة المرور الحالية، ثم اختر كلمة مرور جديدة من 6 أحرف على الأقل. سيتم تسجيل خروج الأجهزة الأخرى لحماية حسابك.</p>
+        <p class="muted password-security-intro" data-ar="أدخل كلمة المرور الحالية، ثم اختر كلمة مرور جديدة من 8 أحرف على الأقل تتضمن حروفاً وأرقاماً. سيتم تسجيل خروج الأجهزة الأخرى لحماية حسابك." data-en="Enter your current password, then choose a new password of at least 8 characters with letters and numbers. Other devices will be signed out to protect your account.">أدخل كلمة المرور الحالية، ثم اختر كلمة مرور جديدة من 8 أحرف على الأقل تتضمن حروفاً وأرقاماً. سيتم تسجيل خروج الأجهزة الأخرى لحماية حسابك.</p>
         <form data-password-change-form>
           <div class="form-group">
             <label class="label" for="profileCurrentPassword" data-ar="كلمة المرور الحالية" data-en="Current password">كلمة المرور الحالية</label>
@@ -136,11 +136,11 @@
           <div class="field-row password-security-fields">
             <div class="form-group">
               <label class="label" for="profileNewPassword" data-ar="كلمة المرور الجديدة" data-en="New password">كلمة المرور الجديدة</label>
-              <div class="field-row password-field"><input class="input" id="profileNewPassword" name="new_password" type="password" autocomplete="new-password" minlength="6" required><button type="button" class="btn btn-secondary password-toggle" data-password-toggle="#profileNewPassword" aria-label="إظهار كلمة المرور" title="إظهار كلمة المرور">👁</button></div>
+              <div class="field-row password-field"><input class="input" id="profileNewPassword" name="new_password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required><button type="button" class="btn btn-secondary password-toggle" data-password-toggle="#profileNewPassword" aria-label="إظهار كلمة المرور" title="إظهار كلمة المرور">👁</button></div>
             </div>
             <div class="form-group">
               <label class="label" for="profileNewPasswordConfirmation" data-ar="تأكيد كلمة المرور الجديدة" data-en="Confirm new password">تأكيد كلمة المرور الجديدة</label>
-              <div class="field-row password-field"><input class="input" id="profileNewPasswordConfirmation" name="new_password_confirmation" type="password" autocomplete="new-password" minlength="6" required><button type="button" class="btn btn-secondary password-toggle" data-password-toggle="#profileNewPasswordConfirmation" aria-label="إظهار كلمة المرور" title="إظهار كلمة المرور">👁</button></div>
+              <div class="field-row password-field"><input class="input" id="profileNewPasswordConfirmation" name="new_password_confirmation" type="password" autocomplete="new-password" minlength="8" maxlength="128" required><button type="button" class="btn btn-secondary password-toggle" data-password-toggle="#profileNewPasswordConfirmation" aria-label="إظهار كلمة المرور" title="إظهار كلمة المرور">👁</button></div>
             </div>
           </div>
           <div class="error password-security-error" data-password-change-error role="alert"></div>
@@ -243,13 +243,13 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js"></script>
-<script src="assets/js/core/state.js?v=20260812-loyalty-tiers"></script>
+<script src="assets/js/core/state.js?v=20260820-restored"></script>
 <script src="assets/js/core/delivery-geo.js?v=20260714-shared-map"></script>
 <script src="assets/js/core/map-markers.js?v=20260714-map-markers"></script>
-<script src="assets/js/core/cookies.js?v=20260714-privacy-trigger"></script>
+<script src="assets/js/core/cookies.js?v=20260820-sidebar-cookie"></script>
 <script src="assets/js/core/ui.js?v=20260801-authenticated-notifications"></script>
-<script src="assets/js/core/catalog.js?v=20260801-restaurant-favicon"></script>
-<script src="assets/js/core/customer-cart.js?v=20260808-address-sync"></script>
-<script src="assets/js/pages/router-auth.js?v=20260812-loyalty-tiers"></script>
+<script src="assets/js/core/catalog.js?v=20260820-restored"></script>
+<script src="assets/js/core/customer-cart.js?v=20260820-restored"></script>
+<script src="assets/js/pages/router-auth.js?v=20260820-restored"></script>
 <script src="assets/js/app.js?v=20260707-ready"></script>
 </body></html>

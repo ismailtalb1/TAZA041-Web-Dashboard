@@ -81,7 +81,7 @@ class DashboardChartDataTest extends TestCase
             ->assertJsonCount(7, 'data.weekly_trend')
             ->assertJsonStructure([
                 'data' => [
-                    'status_counts' => ['pending', 'assigned', 'picked_up', 'in_delivery', 'delivered'],
+                    'status_counts' => ['pending', 'in_delivery', 'delivered'],
                     'weekly_trend' => [['date', 'label', 'total', 'delivered']],
                 ],
             ]);

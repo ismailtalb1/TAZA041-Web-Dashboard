@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Jobs\BroadcastNewOffer;
+use App\Models\Customer;
 use App\Models\Employee;
-use App\Models\Notification;
 use App\Models\Offer;
 use App\Models\OfferProduct;
 use App\Models\Product;
@@ -265,7 +266,8 @@ class OfferController extends BaseController
 
             DB::commit();
 
-            Notification::broadcastNewOffer($offer, $request->user());
+            BroadcastNewOffer::dispatch($offer->id, $request->user()->id)
+                ->onQueue('notifications');
 
             return $this->success([
                 'offer' => $offer->getDetails(),
@@ -514,12 +516,15 @@ class OfferController extends BaseController
 
         $employee = $request->user();
 
-        $customerCount = Notification::broadcastNewOffer($offer, $employee);
+        $customerCount = Customer::registered()->active()->count();
+        BroadcastNewOffer::dispatch($offer->id, $employee->id)
+            ->onQueue('notifications');
 
         return $this->success([
             'offer_name' => $offer->name,
             'sent_to' => $customerCount,
-        ], "تم إرسال إشعار العرض لـ {$customerCount} زبون");
+            'queued' => true,
+        ], "تمت جدولة إشعار العرض لـ {$customerCount} زبون");
     }
 
     // ─────────────────────────────────────────────

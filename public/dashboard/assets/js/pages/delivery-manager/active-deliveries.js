@@ -34,18 +34,8 @@ function buildDeliveryCard(d) {
   const status  = d.status ?? 'pending';
   const hasDriver = !!(d.driver_id || d.driver?.id);
 
-  const nextStatus = {
-    pending:    null,
-    assigned:   'in_delivery',
-    picked_up:  'in_delivery',
-    in_delivery:'delivered',
-  }[status];
-
-  const nextLabel = {
-    picked_up:  isAr?'مع السائق':'Picked Up',
-    in_delivery:isAr?'في الطريق مع السائق':'On the way',
-    delivered:  isAr?'تم التسليم':'Delivered',
-  }[nextStatus];
+  const nextStatus = null;
+  const nextLabel = null;
 
   return `
     <div class="delivery-card">
@@ -113,6 +103,8 @@ function buildDeliveryCard(d) {
         }
       </div>
 
+      ${TAZA.OrderComment.render(d.order?.notes, { isAr, compact: true })}
+
       <!-- Actions -->
       <div class="delivery-actions ${!hasDriver && nextStatus ? 'has-two-primary' : ''}">
         ${!hasDriver ? `
@@ -162,7 +154,8 @@ async function handleDeliveryAction(e) {
 
   if (action === 'change-status' && id && status) {
     const labels = {
-      picked_up:  isAr?'مع السائق':'Picked Up',
+      assigned:   isAr?'في الطريق مع السائق':'On the way',
+      picked_up:  isAr?'في الطريق مع السائق':'On the way',
       in_delivery:isAr?'في الطريق مع السائق':'On the way',
       delivered:  isAr?'تم التسليم':'Delivered',
       cancelled:  isAr?'إلغاء التوصيل واسترجاع الدفع':'Cancel and refund',

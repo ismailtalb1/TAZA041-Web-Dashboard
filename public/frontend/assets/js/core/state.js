@@ -38,16 +38,10 @@ function safeStorageJson(key, fallback) {
 }
 
 function resolveApiBase() {
-  const recoveryPage = ['forgot', 'reset'].includes(document.body?.dataset.page || '');
   const { hostname, port, protocol } = window.location;
   if (window.TAZA_API_BASE) return String(window.TAZA_API_BASE);
 
   const frontendDevPorts = ['5500', '5173', '3000', '8080'];
-  const storedDevelopmentBase = (!recoveryPage && (protocol === 'file:' || frontendDevPorts.includes(port)))
-    ? localStorage.getItem('taza_api_base')
-    : '';
-  if (storedDevelopmentBase) return String(storedDevelopmentBase);
-
   if (protocol === 'file:') {
     return 'http://localhost:8000/api';
   }
@@ -519,7 +513,7 @@ function catalogItemDescription(item) {
 }
 
 function catalogItemSearchText(item) {
-  return [
+  return normalizeCatalogSearch([
     item?.name,
     item?.nameAr,
     item?.nameEn,
@@ -527,7 +521,87 @@ function catalogItemSearchText(item) {
     item?.descriptionAr,
     item?.descriptionEn,
     ...(item?.keywords || [])
-  ].filter(Boolean).join(' ').toLowerCase();
+  ].filter(Boolean).join(' '));
+}
+
+function normalizeCatalogSearch(value = '') {
+  return String(value || '')
+    .toLocaleLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ى/g, 'ي')
+    .replace(/ة/g, 'ه')
+    .replace(/ؤ/g, 'و')
+    .replace(/ئ/g, 'ي')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+
+function catalogSearchDistance(left = '', right = '') {
+  const a = Array.from(left);
+  const b = Array.from(right);
+  const row = Array.from({ length: b.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= a.length; i += 1) {
+    let previous = row[0];
+    row[0] = i;
+    for (let j = 1; j <= b.length; j += 1) {
+      const saved = row[j];
+      row[j] = Math.min(
+        row[j] + 1,
+        row[j - 1] + 1,
+        previous + (a[i - 1] === b[j - 1] ? 0 : 1)
+      );
+      previous = saved;
+    }
+  }
+  return row[b.length];
+}
+
+function catalogSearchScore(item, rawQuery) {
+  const query = normalizeCatalogSearch(rawQuery);
+  const names = normalizeCatalogSearch([
+    item?.name, item?.nameAr, item?.nameEn, item?.name_ar, item?.name_en
+  ].filter(Boolean).join(' '));
+  const descriptions = normalizeCatalogSearch([
+    item?.description, item?.descriptionAr, item?.descriptionEn,
+    item?.description_ar, item?.description_en, ...(item?.keywords || [])
+  ].filter(Boolean).join(' '));
+  return Math.max(
+    catalogSearchTextScore(names, query),
+    catalogSearchTextScore(descriptions, query) * .6
+  );
+}
+
+function catalogSearchTextScore(text, query) {
+  if (!query || !text) return 0;
+  if (text === query) return 1;
+  if (text.includes(query)) return .96;
+
+  const queryTokens = query.split(' ');
+  const candidateTokens = text.split(' ');
+  const scores = queryTokens.map(needle => candidateTokens.reduce((best, candidate) => {
+    if (candidate === needle) return 1;
+    if (Math.min(Array.from(candidate).length, Array.from(needle).length) >= 3
+      && (candidate.includes(needle) || needle.includes(candidate))) return Math.max(best, .88);
+    const maxLength = Math.max(Array.from(needle).length, Array.from(candidate).length);
+    if (maxLength < 3) return best;
+    return Math.max(best, 1 - (catalogSearchDistance(needle, candidate) / maxLength));
+  }, 0));
+  return scores.reduce((sum, score) => sum + score, 0) / scores.length;
+}
+
+function smartCatalogSearch(items = [], rawQuery = '') {
+  const query = normalizeCatalogSearch(rawQuery);
+  if (!query) return items.map(item => ({ item, score: 1, fuzzy: false }));
+  return items
+    .map(item => {
+      const score = catalogSearchScore(item, query);
+      return { item, score, fuzzy: !catalogItemSearchText(item).includes(query) };
+    })
+    .filter(match => match.score >= .54)
+    .sort((a, b) => b.score - a.score);
 }
 
 function baseAssetOrigin() {
@@ -558,11 +632,93 @@ function assetUrl(url) {
 }
 
 function isEmail(value) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
+  const email = String(value || '').trim();
+  return email.length <= 254
+    && /^[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?(?:\.[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)+$/i.test(email);
 }
 
 function normalizePhone(value) {
-  return String(value || '').replace(/[\s\-()]/g, '').trim();
+  return String(value || '').replace(/\D/g, '');
+}
+
+function formatSyrianPhone(value) {
+  const digits = normalizePhone(value);
+  if (!digits) return '';
+  const subscriber = (digits.startsWith('09') ? digits.slice(2) : digits).slice(0, 8);
+  const groups = ['09'];
+  if (subscriber.length) groups.push(subscriber.slice(0, 2));
+  if (subscriber.length > 2) groups.push(subscriber.slice(2, 5));
+  if (subscriber.length > 5) groups.push(subscriber.slice(5, 8));
+  return groups.join(' ');
+}
+
+function isPhone(value) {
+  const phone = String(value || '').trim();
+  return /^09\d{8}$/.test(phone) || /^09 \d{2} \d{3} \d{3}$/.test(phone);
+}
+
+function normalizeFullName(value) {
+  return String(value || '').trim().replace(/\s+/g, ' ');
+}
+
+function isFullName(value) {
+  const name = normalizeFullName(value);
+  return name.length >= 2
+    && name.length <= 100
+    && /^[\p{L}\p{M}]+(?:[ '’.-][\p{L}\p{M}]+)*$/u.test(name);
+}
+
+function isStrongPassword(value) {
+  const password = String(value || '');
+  return password.length >= 8 && password.length <= 128 && /\p{L}/u.test(password) && /\p{N}/u.test(password);
+}
+
+function isSafeCustomerText(value, { required = false, min = 1, max = 500 } = {}) {
+  const text = String(value || '').trim();
+  if (!text) return !required;
+  return text.length >= min
+    && text.length <= max
+    && !/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(text)
+    && /[\p{L}\p{N}]/u.test(text);
+}
+
+function hardenCustomerInputs(root = document) {
+  const limits = {
+    full_name: 100, name: 100, identifier: 254,
+    email: 254, register_email: 254,
+    phone: 13, register_phone: 13,
+    address: 500, city: 500, details: 500, bio: 500,
+    password: 128, register_password: 128, register_confirm: 128,
+    current_password: 128, new_password: 128,
+    new_password_confirmation: 128, confirm_password: 128,
+    profile_current_password: 128, comment: 500, feedback: 500,
+  };
+  $$('input, textarea', root).forEach(field => {
+    const key = field.name || field.id || '';
+    const inferred = field.matches('[data-chat-input]') ? 1000
+      : field.matches('[data-menu-search]') ? 100
+      : field.matches('[data-delivery-address]') ? 500
+      : null;
+    const limit = limits[key] || inferred;
+    if (limit && field.maxLength < 0) field.maxLength = limit;
+    if (field.type === 'tel') {
+      field.inputMode = 'numeric';
+      field.pattern = '09 [0-9]{2} [0-9]{3} [0-9]{3}';
+      field.maxLength = 13;
+      if (field.value) field.value = formatSyrianPhone(field.value);
+      field.addEventListener('input', () => {
+        field.value = formatSyrianPhone(field.value);
+        const complete = !field.value || isPhone(field.value);
+        const message = langText('أكمل الرقم: 09 ثم خانتان ثم 3 خانات ثم 3 خانات', 'Complete the number: 09, then 2, 3, and 3 digits');
+        field.setCustomValidity(complete ? '' : message);
+        if (field.name === 'register_phone') {
+          const error = $('.error.phone', field.form || document);
+          if (error && field.value && !complete) error.textContent = message;
+          else if (error && complete && !field.form?.register_email?.value) error.textContent = '';
+        }
+      });
+    }
+  });
 }
 
 function friendlyError(error, fallbackAr = 'تعذر تنفيذ العملية، يرجى التحقق من البيانات والمحاولة مرة أخرى', fallbackEn = 'Unable to complete the action. Please check your details and try again') {

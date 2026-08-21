@@ -51,23 +51,25 @@ function populateInfoForm(ri) {
 }
 
 function setRestaurantSaveState(state = 'saved') {
-  const el = document.getElementById('restaurant-save-state');
-  if (!el) return;
+  const elements = document.querySelectorAll('[data-restaurant-save-state]');
+  if (!elements.length) return;
   const isAr = TAZA.Lang.current === 'ar';
   const copy = {
     saved:  { icon:'fa-circle-check', ar:'كل التغييرات محفوظة', en:'All changes saved' },
     dirty:  { icon:'fa-circle-exclamation', ar:'توجد تغييرات غير محفوظة', en:'Unsaved changes' },
     saving: { icon:'fa-spinner fa-spin', ar:'جارٍ الحفظ...', en:'Saving...' },
   }[state];
-  el.className = `restaurant-save-state is-${state}`;
-  const icon = el.querySelector('i');
-  const text = el.querySelector('span');
-  if (icon) icon.className = `fa-solid ${copy.icon}`;
-  if (text) {
-    text.textContent = isAr ? copy.ar : copy.en;
-    text.dataset.langAr = copy.ar;
-    text.dataset.langEn = copy.en;
-  }
+  elements.forEach(el => {
+    el.className = `restaurant-save-state is-${state}`;
+    const icon = el.querySelector('i');
+    const text = el.querySelector('span');
+    if (icon) icon.className = `fa-solid ${copy.icon}`;
+    if (text) {
+      text.textContent = isAr ? copy.ar : copy.en;
+      text.dataset.langAr = copy.ar;
+      text.dataset.langEn = copy.en;
+    }
+  });
 }
 
 function markRestaurantInfoDirty() {
@@ -278,7 +280,7 @@ function initRestaurantLocationMap(ri = {}) {
 
 async function saveRestaurantInfo() {
   const isAr  = TAZA.Lang.current === 'ar';
-  const btn   = document.getElementById('save-info-btn');
+  const buttons = document.querySelectorAll('[data-save-restaurant-info]');
   const invalidControl = document.querySelector('#restaurant-editor-shell input:invalid, #restaurant-editor-shell textarea:invalid');
   if (invalidControl) {
     invalidControl.reportValidity();
@@ -330,7 +332,7 @@ async function saveRestaurantInfo() {
   }
 
   setRestaurantSaveState('saving');
-  TAZA.Utils.disableBtn(btn);
+  buttons.forEach(button => TAZA.Utils.disableBtn(button));
   try {
     await TAZA.Http.put(TAZA.API.COMM.RESTAURANT_UPDATE, payload);
     TAZA.Toast.success(isAr ? 'تم حفظ المعلومات بنجاح' : 'Information saved successfully');
@@ -345,7 +347,7 @@ async function saveRestaurantInfo() {
     setRestaurantSaveState('dirty');
     TAZA.Toast.apiError(e);
   }
-  finally    { TAZA.Utils.enableBtn(btn); }
+  finally    { buttons.forEach(button => TAZA.Utils.enableBtn(button)); }
 }
 
 async function uploadLogo(e) {

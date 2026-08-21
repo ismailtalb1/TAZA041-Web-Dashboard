@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\DeliveryOrder;
 use App\Models\Customer;
+use App\Models\DeliveryOrder;
 use App\Models\Employee;
 use App\Models\Order;
 use App\Models\Product;
@@ -65,8 +65,8 @@ class DeliveryRoutingTest extends TestCase
         $registration = $this->postJson('/api/customer/auth/register', [
             'name' => 'Route Customer',
             'email' => 'route-customer@example.test',
-            'password' => 'password',
-            'password_confirmation' => 'password',
+            'password' => 'Password123',
+            'password_confirmation' => 'Password123',
         ])->assertCreated();
         $product = Product::active()->where('stock_quantity', '>', 0)->firstOrFail();
 
@@ -133,8 +133,8 @@ class DeliveryRoutingTest extends TestCase
         $registration = $this->postJson('/api/customer/auth/register', [
             'name' => 'Outside Route Customer',
             'email' => 'outside-route@example.test',
-            'password' => 'password',
-            'password_confirmation' => 'password',
+            'password' => 'Password123',
+            'password_confirmation' => 'Password123',
         ])->assertCreated();
         $product = Product::active()->where('stock_quantity', '>', 0)->firstOrFail();
 

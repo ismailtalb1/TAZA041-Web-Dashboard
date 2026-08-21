@@ -66,11 +66,15 @@ function initMenuPage() {
   const suggestions = $('[data-suggestions]');
   let activeCategory = 'all';
   const maxProductPrice = 1000;
-  const filters = { maxPrice: maxProductPrice, featured: false, topRated: false, popular: false, available: false, offersOnly: false };
+  const filters = { maxPrice: maxProductPrice, topRated: false, available: false, offersOnly: false };
   const range = $('[data-max-price]');
   let activeDetailItem = null;
-  if (range) { range.max = String(maxProductPrice); range.value = String(maxProductPrice); }
-  $('[data-price-value]') && ($('[data-price-value]').textContent = formatCurrency(maxProductPrice));
+  if (range) {
+    range.max = String(maxProductPrice);
+    range.value = String(maxProductPrice);
+  }
+  const priceValue = $('[data-price-value]');
+  if (priceValue) priceValue.textContent = formatCurrency(maxProductPrice);
 
   const findCatalogItem = (key) => [
     ...AppState.catalog.allItems,
@@ -232,22 +236,20 @@ function initMenuPage() {
   };
 
   const renderProducts = () => {
-    const q = (search?.value || '').toLowerCase();
+    const q = normalizeCatalogSearch(search?.value || '');
     const wantsOffers = activeCategory === 'offers' || filters.offersOnly;
     let items = wantsOffers
       ? AppState.catalog.offers
       : AppState.catalog.allItems.filter(item => activeCategory === 'all' ? true : item.category === activeCategory);
-    if (q) items = items.filter(item => catalogItemSearchText(item).includes(q));
+    if (q) items = smartCatalogSearch(items, q).map(match => match.item);
     items = items.filter(item => Number(item.price) <= filters.maxPrice);
-    if (filters.featured) items = items.filter(item => item.top);
     if (filters.topRated) items = items.filter(item => item.rating >= 4.5);
-    if (filters.popular) items = items.filter(item => item.popular);
     if (filters.available) items = items.filter(item => item.available);
     const grid = $('[data-products-grid]');
     if (!grid) return;
     grid.classList.toggle('is-empty', !items.length);
     if (!items.length) {
-      const emptyType = q ? 'search' : (activeCategory === 'offers' || filters.offersOnly ? 'offers' : 'products');
+      const emptyType = q ? 'search' : (wantsOffers ? 'offers' : 'products');
       grid.innerHTML = emptyStateHtml(emptyType);
       return;
     }
@@ -323,19 +325,35 @@ function initMenuPage() {
     renderProducts();
   }));
   syncCategoryTabs();
-  $('[data-max-price]')?.addEventListener('input', (e) => { filters.maxPrice = Number(e.target.value); $('[data-price-value]').textContent = formatCurrency(filters.maxPrice); renderProducts(); });
-  $$('[data-filter-flag]').forEach(chk => chk.addEventListener('change', () => { filters[chk.dataset.filterFlag] = chk.checked; renderProducts(); }));
+  range?.addEventListener('input', event => {
+    filters.maxPrice = Number(event.target.value);
+    if (priceValue) priceValue.textContent = formatCurrency(filters.maxPrice);
+    renderProducts();
+  });
+  $$('[data-filter-flag]').forEach(chk => chk.addEventListener('change', () => {
+    filters[chk.dataset.filterFlag] = chk.checked;
+    renderProducts();
+  }));
   search?.addEventListener('input', () => {
-    const val = search.value.trim().toLowerCase();
+    const val = normalizeCatalogSearch(search.value);
     if (val.length >= 2) {
-      const matches = AppState.catalog.allItems.filter(item => catalogItemSearchText(item).includes(val)).slice(0, 5);
-      suggestions.innerHTML = matches.map(item => {
+      const matches = smartCatalogSearch(AppState.catalog.allItems, val).slice(0, 5);
+      const correction = matches[0]?.fuzzy
+        ? `<div class="suggestion-item" style="pointer-events:none;font-weight:700;color:var(--primary)">${esc(langText('هل تقصد؟', 'Did you mean?'))}</div>`
+        : '';
+      suggestions.innerHTML = correction + matches.map(({ item }) => {
         const itemName = catalogItemName(item);
         return `<div class="suggestion-item" data-suggest="${esc(itemName)}">${esc(itemName)}</div>`;
       }).join('');
       suggestions.classList.toggle('active', matches.length > 0);
-      $$('[data-suggest]', suggestions).forEach(el => el.onclick = () => { search.value = el.dataset.suggest; suggestions.classList.remove('active'); renderProducts(); });
-    } else suggestions?.classList.remove('active');
+      $$('[data-suggest]', suggestions).forEach(el => el.onclick = () => {
+        search.value = el.dataset.suggest;
+        suggestions.classList.remove('active');
+        renderProducts();
+      });
+    } else {
+      suggestions?.classList.remove('active');
+    }
     renderProducts();
   });
   $('[data-continue-order]')?.addEventListener('click', () => {
@@ -502,7 +520,7 @@ function paymentMethodPayload(method, total) {
   const inputs = $$('input', visibleForm);
   const body = { method: map[method] || method };
   if (method === 'seriatel' || method === 'sham') {
-    body.phone = inputs[0]?.value.trim() || AppState.user.phone || '0000000000';
+    body.phone = normalizePhone(inputs[0]?.value || AppState.user.phone || '');
     body.pin_code = inputs[1]?.value.trim() || '0000';
   }
   if (method === 'loyalty') body.points_required = loyaltyPointsRequired(total);

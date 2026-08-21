@@ -30,6 +30,7 @@ class Customer extends Authenticatable
         'bio',
         'date_of_birth',
         'status',
+        'last_ip_address',
         'loyalty_points',
     ];
 
@@ -65,6 +66,16 @@ class Customer extends Authenticatable
     const CANCELLATION_BAN_THRESHOLD = 10;
 
     const CANCELLATION_BAN_WINDOW_DAYS = 5;
+
+    const SECURITY_HIGH_RISK_THRESHOLD = 7;
+
+    const SECURITY_SAFE = 'safe';
+
+    const SECURITY_WATCH = 'watch';
+
+    const SECURITY_HIGH_RISK = 'high_risk';
+
+    const SECURITY_BLOCKED = 'blocked';
 
     /**
      * تنظيف البريد أو رقم الهاتف قبل التخزين أو البحث.
@@ -184,6 +195,11 @@ class Customer extends Authenticatable
         return $this->hasMany(AiConversation::class, 'customer_id');
     }
 
+    public function blockedIpAddresses(): HasMany
+    {
+        return $this->hasMany(CustomerBlockedIp::class, 'customer_id');
+    }
+
     // ─────────────────────────────────────────────
     // Scopes — فلاتر جاهزة للمدير العام
     // ─────────────────────────────────────────────
@@ -241,6 +257,34 @@ class Customer extends Authenticatable
             ->orderByDesc('cancelled_orders_count');
     }
 
+    public function scopeSecurityStatus($query, string $status)
+    {
+        return match ($status) {
+            self::SECURITY_BLOCKED => $query->banned(),
+            self::SECURITY_HIGH_RISK => $query
+                ->where('loyalty_points', '!=', -1)
+                ->whereHas(
+                    'cancelledOrders',
+                    fn ($orders) => $orders->where('updated_at', '>=', now()->subDays(self::CANCELLATION_BAN_WINDOW_DAYS)),
+                    '>=',
+                    self::SECURITY_HIGH_RISK_THRESHOLD
+                ),
+            self::SECURITY_WATCH => $query
+                ->where('loyalty_points', '!=', -1)
+                ->whereHas('cancelledOrders', null, '>=', self::CANCELLATION_WARNING_THRESHOLD)
+                ->whereHas(
+                    'cancelledOrders',
+                    fn ($orders) => $orders->where('updated_at', '>=', now()->subDays(self::CANCELLATION_BAN_WINDOW_DAYS)),
+                    '<',
+                    self::SECURITY_HIGH_RISK_THRESHOLD
+                ),
+            self::SECURITY_SAFE => $query
+                ->where('loyalty_points', '!=', -1)
+                ->whereHas('cancelledOrders', null, '<', self::CANCELLATION_WARNING_THRESHOLD),
+            default => $query,
+        };
+    }
+
     // ─────────────────────────────────────────────
     // التوابع — Methods
     // ─────────────────────────────────────────────
@@ -264,6 +308,8 @@ class Customer extends Authenticatable
         $originalPoints = $this->loyalty_points;
         $this->loyalty_points = -1;
         $this->save();
+
+        $this->activateIpBlock($bannedBy, $reason);
 
         // إشعار للزبون بالحظر
         Notification::create([
@@ -290,6 +336,10 @@ class Customer extends Authenticatable
     {
         $this->loyalty_points = 0;
         $this->save();
+
+        $this->blockedIpAddresses()
+            ->where('is_active', true)
+            ->update(['is_active' => false, 'released_at' => now()]);
 
         Notification::create([
             'sender_type' => 'employee',
@@ -341,6 +391,7 @@ class Customer extends Authenticatable
 
         $this->loyalty_points = -1;
         $this->save();
+        $this->activateIpBlock(null, 'حظر تلقائي بسبب كثرة إلغاء الطلبات');
         $this->tokens()->delete();
 
         Notification::create([
@@ -359,6 +410,78 @@ class Customer extends Authenticatable
         ]);
 
         return true;
+    }
+
+    public function recordAccessIp(?string $ipAddress): void
+    {
+        $ipAddress = CustomerBlockedIp::normalize($ipAddress);
+        if ($ipAddress === null || $this->last_ip_address === $ipAddress) {
+            return;
+        }
+
+        $this->forceFill(['last_ip_address' => $ipAddress])->save();
+    }
+
+    public function activateIpBlock(?Employee $bannedBy, string $reason): void
+    {
+        $ipAddress = CustomerBlockedIp::normalize($this->last_ip_address);
+        if ($ipAddress === null) {
+            return;
+        }
+
+        $this->blockedIpAddresses()->updateOrCreate(
+            ['ip_address' => $ipAddress],
+            [
+                'banned_by' => $bannedBy?->id,
+                'reason' => $reason,
+                'is_active' => true,
+                'banned_at' => now(),
+                'released_at' => null,
+            ]
+        );
+    }
+
+    public function getSecurityStatus(?int $cancelCount = null, ?int $recentCancelCount = null): string
+    {
+        if ($this->isBanned()) {
+            return self::SECURITY_BLOCKED;
+        }
+
+        $cancelCount ??= $this->getCancellationCount();
+        $recentCancelCount ??= $this->getRecentCancellationCount();
+
+        if ($recentCancelCount >= self::SECURITY_HIGH_RISK_THRESHOLD) {
+            return self::SECURITY_HIGH_RISK;
+        }
+
+        return $cancelCount >= self::CANCELLATION_WARNING_THRESHOLD
+            ? self::SECURITY_WATCH
+            : self::SECURITY_SAFE;
+    }
+
+    /** @return array{title: string, message: string} */
+    public function getSuggestedSecurityWarning(?string $securityStatus = null): array
+    {
+        $securityStatus ??= $this->getSecurityStatus();
+
+        return match ($securityStatus) {
+            self::SECURITY_BLOCKED => [
+                'title' => 'تنبيه بخصوص تعليق الحساب',
+                'message' => 'حسابك موقوف حالياً. يرجى التواصل مع إدارة مطعم TAZA 041 لمراجعة سبب التعليق قبل محاولة إنشاء حساب آخر.',
+            ],
+            self::SECURITY_HIGH_RISK => [
+                'title' => 'تحذير أخير بخصوص الطلبات',
+                'message' => 'لاحظنا عدداً مرتفعاً من إلغاءات الطلبات خلال فترة قصيرة. استمرار الإلغاءات قد يؤدي إلى تعليق الحساب والجهاز المتصل به. يرجى تأكيد الطلب فقط عند الجدية.',
+            ],
+            self::SECURITY_WATCH => [
+                'title' => 'تنبيه بخصوص تكرار الإلغاء',
+                'message' => 'لاحظنا تكرار إلغاء الطلبات في حسابك. نرجو مراجعة تفاصيل الطلب قبل تأكيده، لأن استمرار الإلغاءات قد يؤدي إلى تقييد الحساب.',
+            ],
+            default => [
+                'title' => 'تنبيه أمني احترازي',
+                'message' => 'نذكّرك بالحفاظ على بيانات حسابك وعدم مشاركتها، والتأكد من تفاصيل الطلب قبل إرساله. شكراً لتعاونك مع TAZA 041.',
+            ],
+        };
     }
 
     // إجمالي ما أنفقه الزبون
@@ -385,6 +508,8 @@ class Customer extends Authenticatable
         $recentCancelCount = $recentCancelCount !== null
             ? (int) $recentCancelCount
             : $this->getRecentCancellationCount();
+        $securityStatus = $this->getSecurityStatus($cancelCount, $recentCancelCount);
+        $suggestedWarning = $this->getSuggestedSecurityWarning($securityStatus);
 
         return [
             'id' => $this->id,
@@ -398,6 +523,12 @@ class Customer extends Authenticatable
             'status' => $this->status,
             'is_banned' => $this->isBanned(),
             'is_suspicious' => $cancelCount >= self::CANCELLATION_WARNING_THRESHOLD,
+            'security_status' => $securityStatus,
+            'security_warning' => $suggestedWarning,
+            'last_ip_address' => $this->last_ip_address,
+            'is_ip_blocked' => $this->blockedIpAddresses()
+                ->where('is_active', true)
+                ->exists(),
             'loyalty_points' => $this->isBanned() ? 0 : $this->loyalty_points,
             'loyalty_tier' => $this->loyaltyAccount?->tier ?? 'bronze',
             'total_orders' => $totalOrders,
@@ -451,9 +582,14 @@ class Customer extends Authenticatable
     // إنشاء توكن للزبون
     public function generateAuthToken(): string
     {
-        $this->tokens()->delete();
-
         $expiration = (int) config('sanctum.customer_token_expiration', 43200);
+
+        // لكل جهاز/متصفح جلسة مستقلة. حذف كل التوكنات هنا كان يؤدي إلى
+        // تسجيل خروج تطبيق الموبايل بمجرد دخول الزبون من الموقع أو جهاز آخر.
+        $this->tokens()
+            ->whereNotNull('expires_at')
+            ->where('expires_at', '<=', now())
+            ->delete();
 
         return $this->createToken(
             name: 'customer-token',

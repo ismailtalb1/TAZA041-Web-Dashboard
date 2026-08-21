@@ -224,8 +224,6 @@ class DeliveryController extends BaseController
         $allDeliveries = DeliveryOrder::all();
         $statusCounts = collect([
             DeliveryOrder::STATUS_PENDING,
-            DeliveryOrder::STATUS_ASSIGNED,
-            DeliveryOrder::STATUS_PICKED_UP,
             DeliveryOrder::STATUS_IN_DELIVERY,
         ])->mapWithKeys(fn (string $status) => [
             $status => $allDeliveries->where('status', $status)->count(),

@@ -61,9 +61,9 @@ class DeliveryOrder extends Model
     // ─────────────────────────────────────────────
     const STATUS_PENDING = 'pending';      // بانتظار تعيين سائق
 
-    const STATUS_ASSIGNED = 'assigned';     // تم تعيين السائق
+    const STATUS_ASSIGNED = 'assigned';     // حالة قديمة تُدمج في in_delivery
 
-    const STATUS_PICKED_UP = 'picked_up';    // السائق استلم الطلب
+    const STATUS_PICKED_UP = 'picked_up';    // حالة قديمة تُدمج في in_delivery
 
     const STATUS_IN_DELIVERY = 'in_delivery';  // جاري التوصيل
 
@@ -78,19 +78,15 @@ class DeliveryOrder extends Model
     // مدير التوصيل يدير التعيين والإلغاء، أما التنفيذ الميداني فللسائق فقط.
     const STATUS_FLOW = [
         'order_manager' => [
-            // Order Manager يحول الطلب من pending إلى assigned
-            // عند اختيار السائق
-            self::STATUS_PENDING => [self::STATUS_ASSIGNED],
+            self::STATUS_PENDING => [self::STATUS_IN_DELIVERY],
         ],
         'delivery_manager' => [
             self::STATUS_PENDING => [self::STATUS_CANCELLED],
-            self::STATUS_ASSIGNED => [self::STATUS_CANCELLED],
-            self::STATUS_PICKED_UP => [self::STATUS_CANCELLED],
             self::STATUS_IN_DELIVERY => [self::STATUS_CANCELLED],
         ],
         'driver' => [
-            self::STATUS_ASSIGNED => [self::STATUS_IN_DELIVERY],
-            self::STATUS_PICKED_UP => [self::STATUS_IN_DELIVERY], // دعم بيانات قديمة
+            self::STATUS_ASSIGNED => [self::STATUS_DELIVERED], // دعم بيانات قديمة قبل الترحيل
+            self::STATUS_PICKED_UP => [self::STATUS_DELIVERED], // دعم بيانات قديمة قبل الترحيل
             self::STATUS_IN_DELIVERY => [self::STATUS_DELIVERED],
         ],
     ];
@@ -303,8 +299,8 @@ class DeliveryOrder extends Model
         }
 
         $messages = [
-            self::STATUS_ASSIGNED => 'تم تعيين السائق لطلبك',
-            self::STATUS_PICKED_UP => 'السائق استلم طلبك وفي طريقه إليك',
+            self::STATUS_ASSIGNED => 'طلبك الآن في الطريق مع السائق 🚗',
+            self::STATUS_PICKED_UP => 'طلبك الآن في الطريق مع السائق 🚗',
             self::STATUS_IN_DELIVERY => 'طلبك الآن في الطريق مع السائق 🚗',
             self::STATUS_DELIVERED => 'تم تسليم طلبك بنجاح! نتمنى أن ينال إعجابك 🎉',
             self::STATUS_CANCELLED => 'تم إلغاء توصيل طلبك',
@@ -342,8 +338,8 @@ class DeliveryOrder extends Model
     {
         return match ($this->status) {
             self::STATUS_PENDING => 'بانتظار السائق',
-            self::STATUS_ASSIGNED => 'تم تعيين السائق',
-            self::STATUS_PICKED_UP => 'الطلب مع السائق',
+            self::STATUS_ASSIGNED => 'في الطريق مع السائق',
+            self::STATUS_PICKED_UP => 'في الطريق مع السائق',
             self::STATUS_IN_DELIVERY => 'في الطريق مع السائق',
             self::STATUS_DELIVERED => 'تم التسليم',
             self::STATUS_CANCELLED => 'ملغى',
@@ -388,6 +384,7 @@ class DeliveryOrder extends Model
             'order' => $this->order ? [
                 'id' => $this->order->id,
                 'status' => $this->order->status,
+                'notes' => $this->order->notes,
                 'customer' => $customer ? [
                     'id' => $customer->id,
                     'name' => $customer->name,

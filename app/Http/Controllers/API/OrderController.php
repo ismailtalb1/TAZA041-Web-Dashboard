@@ -14,6 +14,7 @@ use App\Models\ReservationOrder;
 use App\Models\RestaurantInfo;
 use App\Services\DeliveryRouteService;
 use App\Services\OrderCancellationService;
+use App\Support\CustomerInputRules;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -305,7 +306,7 @@ class OrderController extends BaseController
             }
 
             // تمنح النقاط عند نهاية خدمة المطعم للطلب العادي فقط.
-            // طلب التوصيل تُمنح نقاطه بعد "تم التسليم"، والحجز بعد "الطاولة جاهزة".
+            // طلب التوصيل تُمنح نقاطه بعد "تم التسليم"، والحجز بعد "انتهت الجلسة".
             if ($newStatus === Order::STATUS_COMPLETED
                 && $order->type === Order::TYPE_NORMAL) {
                 $order->awardLoyaltyPoints();
@@ -680,13 +681,13 @@ class OrderController extends BaseController
         // ── التحقق الأساسي ────────────────────────
         $validator = Validator::make($request->all(), [
             'type' => 'required|in:normal,delivery,reservation',
-            'notes' => 'nullable|string|max:500',
-            'items' => 'required|array|min:1',
+            'notes' => CustomerInputRules::safeText(false, 500, 2),
+            'items' => 'required|array|min:1|max:100',
             'items.*.item_type' => 'required|in:product,offer',
             'items.*.reference_id' => 'required|integer|min:1',
-            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.quantity' => 'required|integer|min:1|max:50',
             // بيانات التوصيل
-            'delivery_address' => 'required_if:type,delivery|string|max:500',
+            'delivery_address' => ['required_if:type,delivery', ...CustomerInputRules::safeText(false, 500, 3)],
             'latitude' => 'required_if:type,delivery|numeric|between:-90,90',
             'longitude' => 'required_if:type,delivery|numeric|between:-180,180',
             // بيانات الحجز
@@ -695,7 +696,7 @@ class OrderController extends BaseController
             'seats_count' => 'required_if:type,reservation|integer|min:1|max:10',
             'reservation_time' => 'required_if:type,reservation|date|after:now',
             'duration_minutes' => 'nullable|integer|in:60',
-            'special_notes' => 'nullable|string|max:500',
+            'special_notes' => CustomerInputRules::safeText(false, 500, 2),
         ], [
             'type.required' => 'نوع الطلب مطلوب',
             'type.in' => 'النوع: normal أو delivery أو reservation',

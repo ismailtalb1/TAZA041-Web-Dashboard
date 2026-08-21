@@ -253,9 +253,16 @@ async function refreshLivePublicData() {
     if (changes.restaurant && wasOpen !== restaurantIsOpen() && AppState.loggedIn && AppState.token) {
       showToast(
         restaurantIsOpen()
-          ? langText('أهلاً بك، المطعم يستقبل طلباتك الآن', 'Welcome back! The restaurant is now accepting your orders')
+          ? langText('يمكنك الآن تصفح المنيو وإرسال طلبك', 'You can now browse the menu and place your order')
           : langText('المطعم مغلق حالياً، وسنعلمك عندما يعود لاستقبال الطلبات', 'The restaurant is currently closed; we will let you know when ordering resumes'),
-        { kind: restaurantIsOpen() ? 'success' : 'warning', position: 'top', duration: 6500 }
+        {
+          kind: restaurantIsOpen() ? 'info' : 'warning',
+          title: restaurantIsOpen()
+            ? langText('المطعم مفتوح الآن', 'The restaurant is open now')
+            : langText('المطعم مغلق الآن', 'The restaurant is closed now'),
+          position: 'top',
+          duration: 6500
+        }
       );
     }
 
@@ -277,6 +284,54 @@ function syncRestaurantStatusUI() {
     card.classList.toggle('is-open', isOpen);
     card.classList.toggle('is-closed', !isOpen);
     card.setAttribute('aria-label', `${langText('حالة المطعم', 'Restaurant status')}: ${statusText}`);
+  });
+}
+
+const PUBLIC_WORKING_DAYS = [
+  ['saturday', 'السبت', 'Saturday'],
+  ['sunday', 'الأحد', 'Sunday'],
+  ['monday', 'الاثنين', 'Monday'],
+  ['tuesday', 'الثلاثاء', 'Tuesday'],
+  ['wednesday', 'الأربعاء', 'Wednesday'],
+  ['thursday', 'الخميس', 'Thursday'],
+  ['friday', 'الجمعة', 'Friday']
+];
+
+function formatWorkingHourTime(value) {
+  const [rawHour, rawMinute] = String(value || '00:00').split(':');
+  const hour = Number(rawHour);
+  const minute = Number(rawMinute || 0);
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return value || '—';
+  const suffix = hour < 12 ? langText('ص', 'AM') : langText('م', 'PM');
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${String(minute).padStart(2, '0')} ${suffix}`;
+}
+
+function workingHoursLine(day, hours) {
+  const label = AppState.lang === 'ar' ? day[1] : day[2];
+  if (!hours || hours.open === false) return `${label}: ${langText('مغلق', 'Closed')}`;
+  return `${label}: ${formatWorkingHourTime(hours.from)} – ${formatWorkingHourTime(hours.to)}`;
+}
+
+function todayWorkingHoursText(restaurant = AppState.restaurant || {}) {
+  const hours = restaurant.working_hours || {};
+  if (!Object.keys(hours).length) return langText('غير محدد', 'Not specified');
+  const nowKey = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date()).toLowerCase();
+  const today = PUBLIC_WORKING_DAYS.find(day => day[0] === nowKey) || PUBLIC_WORKING_DAYS[0];
+  return workingHoursLine(today, hours[today[0]]);
+}
+
+function syncWorkingHoursUI(restaurant = AppState.restaurant || {}) {
+  const hours = restaurant.working_hours || {};
+  if (!Object.keys(hours).length) return;
+
+  const todayText = todayWorkingHoursText(restaurant);
+
+  $$('[data-working-hours-today]').forEach(el => { el.textContent = todayText; });
+  $$('[data-working-hours-list]').forEach(list => {
+    list.innerHTML = PUBLIC_WORKING_DAYS
+      .map(day => `<li>${esc(workingHoursLine(day, hours[day[0]]))}</li>`)
+      .join('');
   });
 }
 
@@ -321,6 +376,8 @@ function applyRestaurantBranding() {
     );
     if (typeof value === 'string' && value.trim()) el.textContent = value.trim();
   });
+
+  syncWorkingHoursUI(restaurant);
 
   const footerDescription = websiteContent[`footer_description_${AppState.lang}`];
   if (footerDescription) {
@@ -370,6 +427,7 @@ function applyRestaurantBranding() {
     list.innerHTML = `
       <div class="info-chip">${esc(langText('العنوان: ', 'Location: '))}${esc(restaurant.address || langText('غير محدد بعد', 'Not set yet'))}</div>
       <div class="info-chip">${esc(langText('حالة المطعم: ', 'Restaurant status: '))}${esc(restaurantStatusText())}</div>
+      <div class="info-chip">${esc(langText('دوام اليوم: ', 'Today’s hours: '))}${esc(todayWorkingHoursText(restaurant))}</div>
       <div class="info-chip">${esc(langText('التواصل: ', 'Contact: '))}${esc(restaurant.phone || restaurant.whatsapp || restaurant.email || '—')}</div>`;
   });
 }

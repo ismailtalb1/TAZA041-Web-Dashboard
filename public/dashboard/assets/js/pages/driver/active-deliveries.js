@@ -37,10 +37,8 @@ function buildFullDeliveryCard(d) {
   const customerPhone = escapeHtml(d.order?.customer?.phone ?? '');
   const deliveryAddress = escapeHtml(d.delivery_address ?? (isAr?'لا يوجد عنوان':'No address'));
 
-  const nextStatus = { assigned:'picked_up', picked_up:'in_delivery', in_delivery:'delivered' }[status];
+  const nextStatus = { assigned:'delivered', picked_up:'delivered', in_delivery:'delivered' }[status];
   const nextBtnMap = {
-    picked_up:  { label: isAr?'🛵 استلمت الطلب':'🛵 Picked Up',         cls:'status-btn-pickup'    },
-    in_delivery:{ label: isAr?'🛣️ في طريقي للزبون':'🛣️ On My Way',       cls:'status-btn-enroute'   },
     delivered:  { label: isAr?'✅ تم التسليم للزبون':'✅ Delivered to Customer', cls:'status-btn-delivered' },
   };
   const nextBtn = nextBtnMap[nextStatus];
@@ -120,6 +118,8 @@ function buildFullDeliveryCard(d) {
             </div>
           </div>` : ''}
 
+        ${TAZA.OrderComment.render(d.order?.notes, { isAr, compact: true })}
+
         <!-- Action Buttons -->
         <div class="status-flow">
           <button type="button" class="status-btn btn-maps" data-action="view-route" data-id="${d.id}">
@@ -174,7 +174,8 @@ async function handleDeliveryAction(e) {
   const isAr   = TAZA.Lang.current === 'ar';
 
   const statusLabels = {
-    picked_up:  isAr?'استلمت الطلب':'Picked Up',
+    assigned:   isAr?'في الطريق مع السائق':'On My Way',
+    picked_up:  isAr?'في الطريق مع السائق':'On My Way',
     in_delivery:isAr?'في الطريق مع السائق':'On My Way',
     delivered:  isAr?'تم التسليم':'Delivered',
   };

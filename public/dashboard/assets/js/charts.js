@@ -924,13 +924,11 @@
        return createDonutChart(canvasId, {
          labels: data?.labels ?? [
            isAr ? 'بانتظار السائق' : 'Pending',
-           isAr ? 'تم التعيين'     : 'Assigned',
-           isAr ? 'مع السائق'      : 'Picked Up',
            isAr ? 'جاري التوصيل'  : 'In Delivery',
            isAr ? 'تم التسليم'    : 'Delivered',
          ],
-         data: data?.values ?? [0, 0, 0, 0, 0],
-         colors: [ChartColors.warning, ChartColors.info, ChartColors.primary, ChartColors.purple, ChartColors.success],
+         data: data?.values ?? [0, 0, 0],
+         colors: [ChartColors.warning, ChartColors.purple, ChartColors.success],
        });
      },
 

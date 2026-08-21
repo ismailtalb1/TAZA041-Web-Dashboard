@@ -126,7 +126,7 @@ function renderOrdersGrid(orders) {
           ${items.length > 4 ? `<div class="gm-order-more">+${items.length - 4} ${isAr ? 'عناصر أخرى' : 'more items'}</div>` : ''}
         </section>
 
-        ${order.notes ? `<div class="gm-order-note"><i class="fa-solid fa-note-sticky"></i><span>${TAZA.Utils.escapeHtml(order.notes)}</span></div>` : ''}
+        ${TAZA.OrderComment.render(order.notes, { isAr })}
 
         <footer class="gm-order-card-actions">
           ${gmOrderRecordActions(order, isAr)}

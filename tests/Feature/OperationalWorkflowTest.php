@@ -70,8 +70,8 @@ class OperationalWorkflowTest extends TestCase
         $registration = $this->postJson('/api/customer/auth/register', [
             'name' => 'Full Workflow Customer',
             'email' => 'full-workflow@example.test',
-            'password' => 'password',
-            'password_confirmation' => 'password',
+            'password' => 'Password123',
+            'password_confirmation' => 'Password123',
         ])->assertCreated();
 
         $customerToken = $registration->json('data.token');
